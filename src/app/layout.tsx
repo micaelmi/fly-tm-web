@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Quicksand } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import TanstackQueryClientWrapper from "@/components/tanstack-query-client-wrapper";
 
 const quicksand = Quicksand({ subsets: ["latin"] });
 
@@ -24,7 +25,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <main className="container">{children}</main>
+          <TanstackQueryClientWrapper>
+            <main className="container">{children}</main>
+          </TanstackQueryClientWrapper>
         </ThemeProvider>
       </body>
     </html>

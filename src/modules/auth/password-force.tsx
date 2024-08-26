@@ -21,9 +21,9 @@ export function PasswordForceGraphic({ text }: { text: string }) {
 
   function renderForce() {
     const forceDivs = [];
-    for (let i = 0; i < force.score; i++) {
+    for (let i = -1; i < force.score; i++) {
       forceDivs.push(
-        <div key={i} className="flex-1 bg-primary rounded-xl h-1"></div>
+        <div key={i} className="bg-primary rounded-xl w-1/5 h-1"></div>
       );
     }
     return forceDivs;

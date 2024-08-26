@@ -1,14 +1,14 @@
 "use client";
-
+import InputPassword from "@/components/form/input-password";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
-import Image from "next/image";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import Image from "next/image";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import InputPassword from "./input-password";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { PasswordForceGraphic, PasswordForceText } from "./password-force";
 
 const FormSchema = z
   .object({
@@ -17,8 +17,17 @@ const FormSchema = z
       .min(8, {
         message: "A senha deve ter no mínimo 8 caracteres",
       })
-      .max(32),
-    confirmPassword: z.string(),
+      .max(32, {
+        message: "A senha deve ter no máximo 32 caracteres",
+      }),
+    confirmPassword: z
+      .string()
+      .min(8, {
+        message: "A senha deve ter no mínimo 8 caracteres",
+      })
+      .max(32, {
+        message: "A senha deve ter no máximo 32 caracteres",
+      }),
   })
   .refine((data) => data.confirmPassword === data.password, {
     message: "As senhas devem ser iguais.",
@@ -36,6 +45,8 @@ export default function ChangePasswordForm() {
     },
   });
 
+  const passwordValue = form.watch("password");
+
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {};
 
   return (
@@ -49,8 +60,10 @@ export default function ChangePasswordForm() {
           priority={true}
         />
         <div>
-          <h1 className="text-xl">Troca de senha</h1>
-          <p className="text-gray-400 text-sm">redefina sua senha.</p>
+          <h1 className="text-xl">Criar nova senha</h1>
+          <p className="text-gray-400 text-sm">
+            redefina sua senha para acessar sua conta.
+          </p>
         </div>
       </CardHeader>
       <Form {...form}>
@@ -62,6 +75,12 @@ export default function ChangePasswordForm() {
               placeholder="Digite sua senha"
               name="password"
             />
+            {passwordValue && (
+              <div className="flex flex-col gap-2 text-muted-foreground text-sm">
+                <PasswordForceGraphic text={passwordValue} />
+                Força da senha: {PasswordForceText(passwordValue)}
+              </div>
+            )}
             <InputPassword
               label="Confirme sua nova senha"
               control={form.control}

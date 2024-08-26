@@ -1,38 +1,32 @@
 "use client";
-
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
+import InputDefault from "@/components/form/input-default";
+import InputPassword from "@/components/form/input-password";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
+import { Form } from "@/components/ui/form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { signIn } from "next-auth/react";
 import Image from "next/image";
-import InputPassword from "./input-password";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 
 const FormSchema = z.object({
-  email: z.string().email({ message: "O e-mail informado não é valido." }),
+  email: z.string().email({ message: "Digite um e-mail válido." }),
   password: z
     .string()
     .min(8, {
       message: "A senha deve ter no mínimo 8 caracteres",
     })
-    .max(24),
+    .max(32, {
+      message: "A senha deve ter no máximo 32 caracteres",
+    }),
 });
 
 export default function LoginForm() {
@@ -85,43 +79,19 @@ export default function LoginForm() {
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardContent className="flex flex-col">
             <div className="flex flex-col gap-4">
-              <div>
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>E-mail</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Digite seu e-mail"
-                          autoComplete="off"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div>
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Senha</FormLabel>
-                      <FormControl>
-                        <InputPassword
-                          placeholder="Digite sua senha"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <InputDefault
+                control={form.control}
+                name="email"
+                label="E-mail"
+                type="email"
+                placeholder="Seu e-mail"
+              />
+              <InputPassword
+                control={form.control}
+                name="password"
+                label="Senha"
+                placeholder="Digite sua senha"
+              />
             </div>
             <a
               href="/recover-account"
@@ -131,7 +101,7 @@ export default function LoginForm() {
             </a>
           </CardContent>
           <CardFooter>
-            <div className="flex justify-between items-end w-full">
+            <div className="flex justify-between items-center w-full">
               <a
                 href="/register"
                 className="hover:opacity-85 text-primary text-sm underline"

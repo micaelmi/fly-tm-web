@@ -1,22 +1,16 @@
 "use client";
-
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from "@/components/ui/card";
-import { Form } from "@/components/ui/form";
-import Image from "next/image";
 import InputDefault from "@/components/form/input-default";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Form } from "@/components/ui/form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import Image from "next/image";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 const FormSchema = z.object({
-  email: z.string().email({ message: "O e-mail informado não é valido." }),
+  email: z.string().email({ message: "Digite um e-mail válido." }),
 });
 
 export default function RecoverAccountForm() {

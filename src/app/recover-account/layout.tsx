@@ -1,3 +1,8 @@
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Recuperação de conta | Fly TM",
+};
 export default function RecoverAccountLayout({
   children, // will be a page or nested layout
 }: {

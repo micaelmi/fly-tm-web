@@ -20,8 +20,9 @@ const BackButton = React.forwardRef<HTMLButtonElement, ButtonProps>(
           className
         )}
         onClick={goBack}
+        title="Voltar"
       >
-        <ArrowLeft size={"1.5rem"} />
+        <ArrowLeft size={"2rem"} />
       </button>
     );
   }
