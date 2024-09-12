@@ -68,21 +68,22 @@ export default function RegisterForm() {
 
   const { mutate, isSuccess, isPending, isError } = useUserMutate();
 
-  const onSubmit = (data: z.infer<typeof FormSchema>) => {
+  const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     const randomNumber = generateRandomNumber().toString();
     const username = data.email.split("@")[0].concat(randomNumber);
-    mutate({
-      name: data.name,
-      username: username,
-      email: data.email,
-      password: data.password,
-    });
-    if (isSuccess) {
-      toast.success("Sucesso! sua conta foi criada!");
-      setTimeout(() => {
-        router.push("/users/register/confirm-email");
-      }, 3000);
-    }
+    mutate(
+      {
+        name: data.name,
+        username: username,
+        email: data.email,
+        password: data.password,
+      },
+      {
+        onSuccess: () => {
+          router.push("/register/confirm-email");
+        },
+      }
+    );
   };
 
   return (

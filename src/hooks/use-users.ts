@@ -1,7 +1,7 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import { AxiosResponse } from "axios";
-import { User, UserRegisterData, UserResponse } from "@/interfaces/user";
+import { UserRegisterData, UserResponse } from "@/interfaces/user";
 
 const fetchUsers = async (): Promise<AxiosResponse<UserResponse>> => {
   const response = await api.get<UserResponse>("/users");

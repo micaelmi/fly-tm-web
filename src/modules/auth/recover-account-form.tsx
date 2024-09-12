@@ -3,10 +3,14 @@ import InputDefault from "@/components/form/input-default";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
+import { useTokenMutate } from "@/hooks/use-tokens";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { FaSpinner } from "react-icons/fa";
+import { toast } from "react-toastify";
 import { z } from "zod";
 
 const FormSchema = z.object({
@@ -14,8 +18,6 @@ const FormSchema = z.object({
 });
 
 export default function RecoverAccountForm() {
-  const [error, setError] = useState<boolean>(false);
-
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -23,7 +25,19 @@ export default function RecoverAccountForm() {
     },
   });
 
-  const onSubmit = async (data: z.infer<typeof FormSchema>) => {};
+  const router = useRouter();
+
+  const { mutate, isSuccess, isPending, isError } = useTokenMutate();
+
+  const onSubmit = (data: z.infer<typeof FormSchema>) => {
+    mutate({ email: data.email });
+    if (isSuccess) {
+      toast.success("Verifique seu e-mail para continuar.");
+      setTimeout(() => {
+        router.push(""); // tela de sucesso
+      }, 3000);
+    }
+  };
 
   return (
     <Card className="p-14">
@@ -53,11 +67,18 @@ export default function RecoverAccountForm() {
               name="email"
             />
             <Button type="submit" className="w-full">
-              Continuar
+              {isPending ? (
+                <>
+                  <FaSpinner className="mr-2 animate-spin" />
+                  Enviando...
+                </>
+              ) : (
+                "Continuar"
+              )}
             </Button>
-            {error && (
+            {isError && (
               <div className="p-2 border border-red-500 rounded-md w-full text-center text-red-500 text-sm">
-                {error}
+                Erro ao recuperar conta
               </div>
             )}
           </CardContent>
