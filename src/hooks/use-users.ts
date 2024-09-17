@@ -1,7 +1,12 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import {
+  useMutation,
+  UseMutationResult,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import api from "@/lib/axios";
 import { AxiosResponse } from "axios";
-import { UserRegisterData, UserResponse } from "@/interfaces/user";
+import { User, UserRegisterData, UserResponse } from "@/interfaces/user";
 
 const fetchUsers = async (): Promise<AxiosResponse<UserResponse>> => {
   const response = await api.get<UserResponse>("/users");
@@ -22,17 +27,47 @@ export function useUsersData() {
   return { ...query, data: query.data?.data };
 }
 
+export const useGetUser = (userId: string) => {
+  return useQuery<User>({
+    queryKey: ["user", userId],
+    queryFn: async () => {
+      const response = await api.get(`/users/${userId}`);
+      return response.data;
+    },
+    enabled: !!userId, // Isso evita que a query seja executada sem um userId válido
+  });
+};
+
 const postUser = async (data: UserRegisterData) => {
   return await api.post("users", data);
 };
-
-export function useUserMutate() {
-  // const queryClient = useQueryClient();
-  const mutate = useMutation({
+export function useCreateUser() {
+  return useMutation({
     mutationFn: postUser,
-    // onSuccess: () => {
-    //   queryClient.invalidateQueries(["users"]);
-    // },
   });
-  return mutate;
+}
+
+interface ChangePasswordData {
+  email: string;
+  password: string;
+  token_number: number;
+}
+
+const changePassword = async (data: ChangePasswordData) => {
+  return await api.put(`users/recover-account/change-password`, data);
+};
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: changePassword,
+  });
+}
+
+const editUser = async (userId: string, data: Partial<User>) => {
+  return await api.put(`/users/${userId}`, data);
+};
+export function useEditUser() {
+  return useMutation({
+    mutationFn: ({ userId, data }: { userId: string; data: Partial<User> }) =>
+      editUser(userId, data),
+  });
 }

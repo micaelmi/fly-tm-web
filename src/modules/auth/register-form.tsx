@@ -10,7 +10,7 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
-import { useUserMutate } from "@/hooks/use-users";
+import { useCreateUser } from "@/hooks/use-users";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -66,7 +66,7 @@ export default function RegisterForm() {
 
   const passwordValue = form.watch("password");
 
-  const { mutate, isSuccess, isPending, isError } = useUserMutate();
+  const { mutate, isPending, isError } = useCreateUser();
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     const randomNumber = generateRandomNumber().toString();

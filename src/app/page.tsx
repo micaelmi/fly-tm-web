@@ -12,7 +12,7 @@ export default function LandingPage() {
         <Button>Acessar página de login</Button>
       </Link>
 
-      <UsersList />
+      {/* <UsersList /> */}
     </>
   );
 }

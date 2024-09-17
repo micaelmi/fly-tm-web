@@ -29,14 +29,16 @@ export default function RecoverAccountForm() {
 
   const { mutate, isSuccess, isPending, isError } = useTokenMutate();
 
-  const onSubmit = (data: z.infer<typeof FormSchema>) => {
-    mutate({ email: data.email });
-    if (isSuccess) {
-      toast.success("Verifique seu e-mail para continuar.");
-      setTimeout(() => {
-        router.push(""); // tela de sucesso
-      }, 3000);
-    }
+  const onSubmit = async (data: z.infer<typeof FormSchema>) => {
+    mutate(
+      { email: data.email },
+      {
+        onSuccess: () => {
+          toast.success("Verifique seu e-mail para continuar.");
+          // router.push("/register/confirm-email");
+        },
+      }
+    );
   };
 
   return (

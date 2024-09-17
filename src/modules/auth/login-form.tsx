@@ -1,4 +1,5 @@
 "use client";
+import CheckboxDefault from "@/components/form/checkbox-default";
 import InputDefault from "@/components/form/input-default";
 import InputPassword from "@/components/form/input-password";
 import { Button } from "@/components/ui/button";
@@ -18,7 +19,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 
 const FormSchema = z.object({
-  email: z.string().email({ message: "Digite um e-mail válido." }),
+  credential: z.string().min(4, { message: "Digite valor válido." }), // username or email
   password: z
     .string()
     .min(8, {
@@ -27,14 +28,16 @@ const FormSchema = z.object({
     .max(32, {
       message: "A senha deve ter no máximo 32 caracteres",
     }),
+  rememberMe: z.boolean(),
 });
 
 export default function LoginForm() {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      email: "",
+      credential: "",
       password: "",
+      rememberMe: false,
     },
   });
 
@@ -43,8 +46,9 @@ export default function LoginForm() {
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     const result = await signIn("credentials", {
-      email: data.email,
+      credential: data.credential,
       password: data.password,
+      rememberMe: true, // data.rememberMe
       redirect: false,
     });
     if (result?.error) {
@@ -55,7 +59,7 @@ export default function LoginForm() {
       }
       return;
     }
-    router.replace("/dashboard");
+    router.replace("/home");
   };
 
   return (
@@ -81,10 +85,10 @@ export default function LoginForm() {
             <div className="flex flex-col gap-4">
               <InputDefault
                 control={form.control}
-                name="email"
-                label="E-mail"
-                type="email"
-                placeholder="Seu e-mail"
+                name="credential"
+                label="E-mail ou nome de usuário"
+                type="text"
+                placeholder="Seu e-mail ou nome de usuário"
               />
               <InputPassword
                 control={form.control}
@@ -99,6 +103,11 @@ export default function LoginForm() {
             >
               Esqueci minha senha
             </a>
+            {/* <CheckboxDefault
+              control={form.control}
+              name="rememberMe"
+              label="Lembrar de mim"
+            /> */}
           </CardContent>
           <CardFooter>
             <div className="flex justify-between items-center w-full">
@@ -110,12 +119,12 @@ export default function LoginForm() {
               </a>
               <Button type="submit">Entrar</Button>
             </div>
-            {error && (
-              <div className="p-2 border border-red-500 rounded-md w-full text-center text-red-500 text-sm">
-                {error}
-              </div>
-            )}
           </CardFooter>
+          {error && (
+            <div className="p-2 border border-red-500 rounded-md w-full text-center text-red-500 text-sm">
+              {error}
+            </div>
+          )}
         </form>
       </Form>
     </Card>
