@@ -9,7 +9,7 @@ export default function RecoverAccountLayout({
   children: React.ReactNode;
 }) {
   return (
-    <section className="flex justify-center items-center h-screen">
+    <section className="flex justify-center items-center h-screen container">
       {children}
     </section>
   );

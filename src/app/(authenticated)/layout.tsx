@@ -8,7 +8,7 @@ export default function AuthenticatedLayout({
   return (
     <section>
       <Navbar />
-      {children}
+      <div className="my-8 container">{children}</div>
     </section>
   );
 }

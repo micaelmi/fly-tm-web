@@ -5,7 +5,7 @@ import React from "react";
 
 export default function LandingPage() {
   return (
-    <>
+    <section className="container">
       <h1 className="py-6 text-2xl">Fly TM - Landing Page</h1>
 
       <Link href="/login">
@@ -13,6 +13,6 @@ export default function LandingPage() {
       </Link>
 
       <UsersList />
-    </>
+    </section>
   );
 }

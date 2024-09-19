@@ -101,7 +101,7 @@ export default function LoginForm() {
             </a>
           </CardContent>
           <CardFooter>
-            <div className="flex justify-between items-center w-full">
+            <div className="flex justify-between items-end w-full">
               <a
                 href="/register"
                 className="hover:opacity-85 text-primary text-sm underline"

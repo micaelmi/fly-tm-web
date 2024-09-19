@@ -26,7 +26,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <TanstackQueryClientWrapper>
-            <main className="container">{children}</main>
+            <main>{children}</main>
           </TanstackQueryClientWrapper>
         </ThemeProvider>
       </body>

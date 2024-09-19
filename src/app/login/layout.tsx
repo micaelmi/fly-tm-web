@@ -9,5 +9,5 @@ export default function LoginLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <section>{children}</section>;
+  return <section className="container">{children}</section>;
 }

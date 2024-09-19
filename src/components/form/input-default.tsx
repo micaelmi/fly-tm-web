@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 interface InputDefaultProps {
   control: any;
   name: string;
-  label: string;
+  label?: string;
   placeholder: string;
   type?: string;
   description?: string;
