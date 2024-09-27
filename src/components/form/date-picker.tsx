@@ -33,16 +33,16 @@ export default function DatePicker({ control, name, label }: DatePickerProps) {
                 <Button
                   variant={"outline"}
                   className={cn(
-                    "w-[240px] pl-3 text-left font-normal",
+                    "flex gap-2",
                     !field.value && "text-muted-foreground"
                   )}
                 >
+                  <CalendarBlank className="size-5" />
                   {field.value ? (
                     format(field.value, "PPP", { locale: ptBR })
                   ) : (
                     <span>Selecione uma data</span>
                   )}
-                  <CalendarBlank className="opacity-50 ml-auto w-4 h-4" />
                 </Button>
               </FormControl>
             </PopoverTrigger>

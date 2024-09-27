@@ -13,11 +13,11 @@ export default async function AuthenticatedLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getServerSession(nextAuthOptions);
-  console.log(session);
-  if (!session) {
-    redirect("/");
-  }
+  // const session = await getServerSession(nextAuthOptions);
+  // console.log(session);
+  // if (!session) {
+  //   redirect("/");
+  // }
   return (
     <section>
       <Navbar />

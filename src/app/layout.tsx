@@ -33,7 +33,7 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <TanstackQueryClientWrapper>
-              <main className="container">{children}</main>
+              <main>{children}</main>
             </TanstackQueryClientWrapper>
             <ToastContainer position="bottom-right" autoClose={2500} />
           </ThemeProvider>

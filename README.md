@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-## Fly tm web
-=======
 ### Setup
 
 https://ui.shadcn.com/docs/installation/next
@@ -39,4 +36,3 @@ export default api;
 ```
 
 > escrever-pastas-e/ arquivos-com-tracinho.tsx
->>>>>>> 40b1af4b7ec2047df1e3b3ac2c55608274bacd6e
