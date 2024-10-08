@@ -7,7 +7,6 @@ import {
   FormMessage,
 } from "../ui/form";
 import { HexColorPicker, HexColorInput } from "react-colorful";
-import { Input } from "../ui/input";
 
 interface ColorPickerProps {
   control: any;
@@ -28,7 +27,7 @@ export default function ColorPicker({
           control={control}
           name={name}
           render={({ field }) => (
-            <FormItem className="-top-52 absolute">
+            <FormItem className="-top-52 left-20 absolute">
               <FormLabel></FormLabel>
               <FormControl>
                 <HexColorPicker

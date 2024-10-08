@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import {
   FormControl,
   FormDescription,
@@ -5,38 +6,29 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
-import { FocusEvent } from "react";
+} from "../ui/form";
+import { NumericFormat } from "react-number-format";
+import { ForwardedRef, useRef } from "react";
 
-interface InputDefaultProps {
+interface RealInputProps {
   control: any;
   name: string;
   label?: string;
   placeholder: string;
-  type?: string;
   description?: string;
   className?: string;
-  readOnly?: boolean;
   disabled?: boolean;
-  maxLength?: number | undefined;
-  onBlur?: (event: FocusEvent<HTMLInputElement>) => void;
 }
 
-export default function InputDefault({
+export default function RealInput({
   control,
   name,
   label,
   placeholder,
-  type = "text",
   description,
   className,
-  readOnly = false,
-  disabled = false,
-  maxLength = undefined,
-  onBlur,
-}: InputDefaultProps) {
+  disabled,
+}: RealInputProps) {
   return (
     <FormField
       control={control}
@@ -45,19 +37,14 @@ export default function InputDefault({
         <FormItem className={cn(className)}>
           {label && <FormLabel>{label}</FormLabel>}
           <FormControl>
-            <Input
-              type={type}
-              placeholder={placeholder}
-              autoComplete="off"
+            <NumericFormat
               {...field}
-              readOnly={readOnly}
+              placeholder="Valor (R$)"
               disabled={disabled}
-              maxLength={maxLength}
-              onBlur={(event) => onBlur && onBlur(event)}
             />
           </FormControl>
-          <FormMessage />
           {description && <FormDescription>{description}</FormDescription>}
+          <FormMessage />
         </FormItem>
       )}
     />

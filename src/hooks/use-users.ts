@@ -1,9 +1,4 @@
-import {
-  useMutation,
-  UseMutationResult,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import { AxiosResponse } from "axios";
 import { User, UserRegisterData, UserResponse } from "@/interfaces/user";

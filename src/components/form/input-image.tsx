@@ -37,10 +37,8 @@ export default function InputImage({ control, name }: InputImageProps) {
   };
 
   const removeImage = () => {
-    setSelectedImage(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
+    // setSelectedImage(null);
+    control._fields[name]._f.value = new File([], "");
   };
   return (
     <div className="flex items-center gap-3 w-full">
@@ -66,12 +64,17 @@ export default function InputImage({ control, name }: InputImageProps) {
             </FormLabel>
             <FormControl>
               <Input
+                ref={fileInputRef}
                 className="hidden"
                 type="file"
                 accept="image/*"
                 onChange={(e) => {
-                  field.onChange(e.target.files ? e.target.files[0] : null);
                   handleImageChange(e);
+                  if (e.target.files && e.target.files[0]) {
+                    field.onChange(e.target.files[0]);
+                  } else {
+                    field.onChange(new File([], ""));
+                  }
                 }}
               />
             </FormControl>
