@@ -14,12 +14,18 @@ const config = {
       center: true,
       padding: "2rem",
       screens: {
-        "2xl": "1400px",
+        sm: "310px",
+        DEFAULT: "600px",
+        // "2xl": "1400px",
       },
     },
     extend: {
       colors: {
         navbar: "#001448",
+        event: {
+          green: "#17E469",
+          red: "#F20544",
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

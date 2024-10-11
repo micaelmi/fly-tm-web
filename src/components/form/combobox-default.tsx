@@ -49,7 +49,7 @@ export default function DefaultCombobox({
       control={control}
       name={name}
       render={({ field }) => (
-        <FormItem>
+        <FormItem className="flex flex-col">
           {label && <FormLabel>{label}</FormLabel>}
           <Popover>
             <PopoverTrigger asChild>
@@ -58,24 +58,23 @@ export default function DefaultCombobox({
                   variant="outline"
                   role="combobox"
                   className={cn(
-                    "w-[200px] justify-between",
-                    !field.value && "text-muted-foreground",
-                    className
+                    "flex justify-between",
+                    !field.value && "text-muted-foreground"
                   )}
                   disabled={disabled}
                 >
                   {field.value ? (
                     object?.find((item) => item.value === field.value)?.label
                   ) : isLoading ? (
-                    <FaSpinner className="mr-2 animate-spin" />
+                    <FaSpinner className="animate-spin" />
                   ) : (
                     selectLabel
                   )}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  {!isLoading ? <ChevronsUpDown className="size-5" /> : null}
                 </Button>
               </FormControl>
             </PopoverTrigger>
-            <PopoverContent className="w-[200px] p-0">
+            <PopoverContent className="">
               <Command>
                 <CommandInput placeholder={searchLabel} />
                 <CommandList>
@@ -83,6 +82,7 @@ export default function DefaultCombobox({
                   <CommandGroup>
                     {object?.map((item) => (
                       <CommandItem
+                        className="flex gap-2"
                         value={item.label}
                         key={item.value}
                         onSelect={() => {
@@ -91,7 +91,7 @@ export default function DefaultCombobox({
                       >
                         <Check
                           className={cn(
-                            "mr-2 h-4 w-4",
+                            "size-3",
                             item.value === field.value
                               ? "opacity-100"
                               : "opacity-0"

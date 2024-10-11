@@ -26,7 +26,7 @@ export default function DatePicker({ control, name, label }: DatePickerProps) {
       name={name}
       render={({ field }) => (
         <FormItem className="flex flex-col">
-          <FormLabel>{label}</FormLabel>
+          {label ? <FormLabel>{label}</FormLabel> : null}
           <Popover>
             <PopoverTrigger asChild>
               <FormControl>

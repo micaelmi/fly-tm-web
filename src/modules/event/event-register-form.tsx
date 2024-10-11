@@ -21,42 +21,59 @@ import { AxiosResponse } from "axios";
 import { City, Location, State } from "@/interfaces/location";
 import { FaSpinner } from "react-icons/fa";
 import RadioButton from "@/components/radio-button";
-import RealInput from "@/components/form/real-input";
+import { RealInput } from "@/components/form/real-input";
+
+const resetTime = (date: Date) => {
+  const newDate = new Date(date);
+  newDate.setHours(0, 0, 0, 0);
+  return newDate;
+};
 
 const FormSchema = z
   .object({
     name: z.string(),
-    startsAt: z.date().refine((startsAt) => startsAt >= new Date(), {
-      message: "A data de início deve ser maior ou igual à data atual.",
-    }),
-    endsAt: z.date(),
-    cep: z.string().length(8),
+    startsAt: z.coerce
+      .date()
+      .refine((startsAt) => resetTime(startsAt) >= resetTime(new Date()), {
+        message: "A data de início deve ser maior ou igual à data atual",
+      }),
+    endsAt: z.coerce.date(),
+    cep: z.string().length(8, { message: "Deve conter 8 dígitos" }),
     state: z.string(),
     city: z.string(),
     neighborhood: z.string(),
     street: z.string(),
     number: z.string().regex(/^[A-Za-z0-9]+$/, {
-      message: "O campo deve conter apenas letras e números.",
+      message: "O campo deve conter apenas letras e números",
     }),
     complement: z.string(),
     level: z.string(),
     //price: z.string(),
-    representationUrl: z.instanceof(File),
+    representationUrl: z
+      .instanceof(File)
+      .refine((File) => File.size > 0, { message: "Selecione uma imagem" }),
     representationColor: z.string(),
   })
-  .refine((data) => data.endsAt >= data.startsAt, {
-    message: "A data de fim deve ser maior ou igual à data de início.",
+  .superRefine((data, ctx) => {
+    if (data.endsAt < data.startsAt) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["endsAt"], // Path para o campo específico que será marcado com erro
+        message: "A data de fim deve ser maior ou igual à data de início.",
+      });
+    }
   });
 
 export default function EventRegisterForm() {
   const [payOption, setPayOption] = useState("no-value");
   const [decorationOption, setDecorationOption] = useState("image");
+  const [currentDate, setCurrentDate] = useState<Date | null>(null);
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       name: "",
-      startsAt: new Date(),
+      startsAt: currentDate || undefined,
       endsAt: undefined,
       cep: "",
       state: "",
@@ -72,10 +89,17 @@ export default function EventRegisterForm() {
     },
   });
 
+  useEffect(() => {
+    if (currentDate) {
+      form.reset({
+        startsAt: currentDate,
+      });
+    }
+  }, [currentDate, form]);
+
   const router = useRouter();
 
   const onSubmit = (data: z.infer<typeof FormSchema>) => {
-    console.log("OLA");
     console.log(data);
   };
 
@@ -100,6 +124,12 @@ export default function EventRegisterForm() {
   });
 
   useEffect(() => {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0); // Zera as horas, minutos e segundos
+    setCurrentDate(now);
+  }, []);
+
+  useEffect(() => {
     if (location.isSuccess) {
       form.setValue("state", location.data.state);
       form.setValue("city", location.data.city);
@@ -114,32 +144,16 @@ export default function EventRegisterForm() {
       form.setValue("complement", "");
     }
   }, [location.isSuccess, location.data]);
-  //   queryKey: ["levels"],
-  //   queryFn: async (): Promise<AxiosResponse<City[]>> => {
-  //     return await api.get(
-  //       `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${states.data?.find((state) => state.value == selectedState)?.id}/municipios`
-  //     );
-  //   },
-  //   select: (data) => {
-  //     return data.data.map((city) => {
-  //       return {
-  //         id: city.id,
-  //         value: city.nome,
-  //         label: city.nome,
-  //       };
-  //     });
-  //   },
-  // });
 
   return (
-    <div className="flex flex-col items-center">
-      <div className="flex items-center gap-8">
-        <CalendarDots size={35} />
-        <h1 className="font-bold text-3xl">Cadastre seu evento</h1>
+    <div className="flex flex-col gap-5">
+      <div className="flex gap-3 items-center justify-center text-xl md:text-3xl font-bold">
+        <CalendarDots />
+        <h1 className="">Cadastre seu evento</h1>
       </div>
       <Form {...form}>
         <form
-          className="flex flex-col flex-1 gap-4 mt-10"
+          className="flex flex-col gap-5"
           onSubmit={form.handleSubmit(onSubmit)}
         >
           {/* name */}
@@ -150,20 +164,26 @@ export default function EventRegisterForm() {
             name="name"
           />
           {/* when */}
-          <div>
-            <p className="text-sm">Quando?</p>
-            <div className="flex gap-9">
-              <div className="flex items-center gap-2">
-                <div className="flex flex-col justify-center items-center gap-1 w-min font-light text-sm">
-                  Inicio:
-                  <div className="bg-green-500 rounded w-full h-1"></div>
+          <div className="flex flex-col gap-2">
+            <p className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              Quando?
+            </p>
+            <div className="flex flex-col gap-2 md:flex-row md:justify-between">
+              <div className="flex flex-col md:flex-row md:items-center gap-2">
+                <div className="sm:hidden md:flex md:flex-col md:gap-2">
+                  <p className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    Inicio:
+                  </p>
+                  <div className="sm:hidden md:block md:h-1 md:rounded md:bg-event-green" />
                 </div>
                 <DatePicker control={form.control} name="startsAt" />
               </div>
-              <div className="flex items-center gap-2">
-                <div className="flex flex-col justify-center items-center gap-1 w-min font-light text-sm">
-                  Fim:
-                  <div className="bg-red-500 rounded w-full h-1"></div>
+              <div className="flex flex-col md:flex-row md:items-center gap-2">
+                <div className="sm:hidden md:flex md:flex-col md:gap-2">
+                  <p className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    Fim:
+                  </p>
+                  <div className="sm:hidden md:block md:h-1 md:rounded md:bg-event-red" />
                 </div>
                 <DatePicker control={form.control} name="endsAt" />
               </div>
@@ -171,14 +191,15 @@ export default function EventRegisterForm() {
           </div>
           {/* where */}
           <div className="flex flex-col gap-2">
-            <p className="text-sm">Onde o evento acontecerá?</p>
-
-            <div className="flex gap-7 items-center">
+            <p className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              Onde o evento acontecerá?
+            </p>
+            <div className="flex flex-col gap-2 md:flex-row">
               <InputDefault
                 control={form.control}
                 name="cep"
                 placeholder="CEP"
-                className="flex-1"
+                className="md:flex-1"
                 maxLength={8}
               />
 
@@ -187,7 +208,7 @@ export default function EventRegisterForm() {
                 name="state"
                 placeholder="UF"
                 readOnly={true}
-                className="w-20"
+                className="md:w-1/6"
               />
             </div>
             <InputDefault
@@ -206,19 +227,18 @@ export default function EventRegisterForm() {
               name="street"
               placeholder="Rua"
             />
-            <div className="flex gap-7">
+            <div className="flex flex-col gap-2 md:flex-row">
               <InputDefault
                 control={form.control}
                 name="number"
                 placeholder="Nº"
-                className="w-20"
+                className="md:w-1/6"
               />
-
               <InputDefault
                 control={form.control}
                 name="complement"
                 placeholder="Complemento"
-                className="flex-1"
+                className="md:flex-1"
               />
             </div>
           </div>
@@ -231,20 +251,20 @@ export default function EventRegisterForm() {
               { value: "Intermediário", label: "Intermediário" },
               { value: "Avançado", label: "Avançado" },
             ]}
-            label="Qual o nível do evento? (nível)"
+            label="Qual o nível do evento?"
             searchLabel="Buscar nível..."
             selectLabel="Nível"
-            className="w-full"
+            className=""
             onSelect={(value: string) => {
               form.setValue("level", value);
             }}
           />
-          {/* payment
+          {/* payment */}
           <div className="flex flex-col gap-2">
-            <p className="font-medium text-sm">
+            <p className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
               É cobrado algum valor de entrada/participação?
             </p>
-            <div className="flex gap-8">
+            <div className="flex flex-col gap-2 md:flex-row">
               <RadioButton
                 firstLabel="Não"
                 secondLabel="Sim"
@@ -257,15 +277,17 @@ export default function EventRegisterForm() {
                 control={form.control}
                 name="price"
                 placeholder="Valor (R$)"
+                disabled={payOption === "no-value"}
+                className="md:flex-1"
               />
             </div>
-          </div> */}
+          </div>
           {/* representation */}
           <div className="flex flex-col gap-2">
-            <p className="font-medium text-sm">
+            <p className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
               Escolha como representar seu evento!
             </p>
-            <div className="flex gap-8">
+            <div className="flex flex-col gap-2 md:flex-row">
               <RadioButton
                 firstLabel="Imagem"
                 secondLabel="Cor"
@@ -274,25 +296,31 @@ export default function EventRegisterForm() {
                 optionValue={decorationOption}
                 onValueChange={setDecorationOption}
               />
-              <div className="relative flex flex-1">
+              <div className="md:flex-1">
                 {decorationOption === "image" ? (
-                  <InputImage control={form.control} name="representationUrl" />
+                  <InputImage name="representationUrl" />
                 ) : (
-                  <ColorPicker
-                    control={form.control}
-                    name="representationColor"
-                  />
+                  <ColorPicker name="representationColor" />
                 )}
               </div>
             </div>
           </div>
           {/* buttons: cancel and register */}
-          <div className="flex justify-between mt-5">
-            <Button variant={"outline"}>Cancelar</Button>
+          <div className="flex flex-col gap-2 md:flex-row md:justify-between">
+            <Button type="button" variant={"outline"}>
+              Cancelar
+            </Button>
             <Button
-              type="button"
-              onClick={() => console.log(form.getValues("representationUrl"))}
-              className="font-semibold"
+              type="submit"
+              className=""
+              onClick={() => {
+                console.log(form.getValues("startsAt").getDate());
+                console.log(form.getValues("endsAt").getDate());
+                console.log(
+                  form.getValues("endsAt").getDate() >=
+                    form.getValues("startsAt").getDate()
+                );
+              }}
             >
               Cadastrar
             </Button>
