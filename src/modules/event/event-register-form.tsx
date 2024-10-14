@@ -48,25 +48,34 @@ const FormSchema = z
     }),
     complement: z.string(),
     level: z.string(),
-    //price: z.string(),
-    representationUrl: z
-      .instanceof(File)
-      .refine((File) => File.size > 0, { message: "Selecione uma imagem" }),
-    representationColor: z.string(),
+    price: z.string(),
+    representationUrl: z.instanceof(File).optional(),
+    representationColor: z.string().optional(),
+    representationOption: z.enum(["image", "color"]),
   })
   .superRefine((data, ctx) => {
     if (data.endsAt < data.startsAt) {
       ctx.addIssue({
         code: "custom",
         path: ["endsAt"], // Path para o campo específico que será marcado com erro
-        message: "A data de fim deve ser maior ou igual à data de início.",
+        message: "A data de fim deve ser maior ou igual à data de início",
       });
+    }
+
+    if (data.representationOption === "image") {
+      if (!data.representationUrl || data.representationUrl.size === 0) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["representationUrl"],
+          message: "Selecione uma imagem",
+        });
+      }
     }
   });
 
 export default function EventRegisterForm() {
   const [payOption, setPayOption] = useState("no-value");
-  const [decorationOption, setDecorationOption] = useState("image");
+  //const [representationOption, setRepresentationOption] = useState("image");
   const [currentDate, setCurrentDate] = useState<Date | null>(null);
 
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -83,9 +92,10 @@ export default function EventRegisterForm() {
       number: "",
       complement: "",
       level: "",
-      //price: undefined,
+      price: "",
       representationUrl: new File([], ""),
-      representationColor: "",
+      representationColor: "ffff",
+      representationOption: "image",
     },
   });
 
@@ -93,6 +103,7 @@ export default function EventRegisterForm() {
     if (currentDate) {
       form.reset({
         startsAt: currentDate,
+        representationOption: "image",
       });
     }
   }, [currentDate, form]);
@@ -100,6 +111,7 @@ export default function EventRegisterForm() {
   const router = useRouter();
 
   const onSubmit = (data: z.infer<typeof FormSchema>) => {
+    console.log(data.representationUrl?.size);
     console.log(data);
   };
 
@@ -271,7 +283,12 @@ export default function EventRegisterForm() {
                 firstValue="no-value"
                 secondValue="with-value"
                 optionValue={payOption}
-                onValueChange={setPayOption}
+                onValueChange={(value) => {
+                  setPayOption(value);
+                  if (value === "no-value") {
+                    form.setValue("price", "");
+                  }
+                }}
               />
               <RealInput
                 control={form.control}
@@ -293,11 +310,20 @@ export default function EventRegisterForm() {
                 secondLabel="Cor"
                 firstValue="image"
                 secondValue="color"
-                optionValue={decorationOption}
-                onValueChange={setDecorationOption}
+                optionValue={form.watch("representationOption")}
+                onValueChange={(value) => {
+                  if (value === "image" || value === "color") {
+                    form.setValue("representationOption", value);
+                  }
+                  if (value === "image") {
+                    form.setValue("representationColor", "");
+                  } else {
+                    form.setValue("representationUrl", new File([], ""));
+                  }
+                }}
               />
               <div className="md:flex-1">
-                {decorationOption === "image" ? (
+                {form.watch("representationOption") === "image" ? (
                   <InputImage name="representationUrl" />
                 ) : (
                   <ColorPicker name="representationColor" />
@@ -312,15 +338,7 @@ export default function EventRegisterForm() {
             </Button>
             <Button
               type="submit"
-              className=""
-              onClick={() => {
-                console.log(form.getValues("startsAt").getDate());
-                console.log(form.getValues("endsAt").getDate());
-                console.log(
-                  form.getValues("endsAt").getDate() >=
-                    form.getValues("startsAt").getDate()
-                );
-              }}
+              onClick={() => console.log(form.getValues("representationColor"))}
             >
               Cadastrar
             </Button>

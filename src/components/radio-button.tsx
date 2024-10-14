@@ -28,12 +28,12 @@ export default function RadioButton({
       onValueChange={(value) => onValueChange(value)}
     >
       <div className="flex items-center space-x-2">
-        <RadioGroupItem value={firstValue} id="first" />
-        <Label htmlFor="first">{firstLabel}</Label>
+        <RadioGroupItem value={firstValue} id={firstValue} />
+        <Label htmlFor={firstValue}>{firstLabel}</Label>
       </div>
       <div className="flex items-center space-x-2">
-        <RadioGroupItem value={secondValue} id="second" />
-        <Label htmlFor="second">{secondLabel}</Label>
+        <RadioGroupItem value={secondValue} id={secondValue} />
+        <Label htmlFor={secondValue}>{secondLabel}</Label>
       </div>
     </RadioGroup>
   );
