@@ -20,7 +20,7 @@ export default function ColorPicker({
   const [color, setColor] = useState<string>("#ffff");
   const [colorInput, setColorInput] = useState<string>("#ffff");
 
-  const { control } = useFormContext();
+  const { control, setValue } = useFormContext();
 
   return (
     <>
@@ -39,8 +39,14 @@ export default function ColorPicker({
             <HexColorPicker
               color={color}
               onChange={setColor}
-              onMouseUp={() => setColorInput(color)}
-              onTouchEnd={() => setColorInput(color)}
+              onMouseUp={() => {
+                setColorInput(color);
+                setValue(name, color);
+              }}
+              onTouchEnd={() => {
+                setColorInput(color);
+                setValue(name, color);
+              }}
             />
           </div>
         ) : null}

@@ -22,6 +22,8 @@ import { City, Location, State } from "@/interfaces/location";
 import { FaSpinner } from "react-icons/fa";
 import RadioButton from "@/components/radio-button";
 import { RealInput } from "@/components/form/real-input";
+import { useCreateEvent } from "@/hooks/use-events";
+import { handleFileUpload } from "@/lib/firebase-upload";
 
 const resetTime = (date: Date) => {
   const newDate = new Date(date);
@@ -31,7 +33,7 @@ const resetTime = (date: Date) => {
 
 const FormSchema = z
   .object({
-    name: z.string(),
+    name: z.string().min(4, { message: "Mínimo de 4 caracteres" }),
     startsAt: z.coerce
       .date()
       .refine((startsAt) => resetTime(startsAt) >= resetTime(new Date()), {
@@ -43,7 +45,7 @@ const FormSchema = z
     city: z.string(),
     neighborhood: z.string(),
     street: z.string(),
-    number: z.string().regex(/^[A-Za-z0-9]+$/, {
+    address_number: z.string().regex(/^[A-Za-z0-9]+$/, {
       message: "O campo deve conter apenas letras e números",
     }),
     complement: z.string(),
@@ -70,12 +72,19 @@ const FormSchema = z
           message: "Selecione uma imagem",
         });
       }
+    } else if (data.representationOption === "color") {
+      if (!data.representationColor || data.representationColor === undefined) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["representationColor"],
+          message: "Selecione uma cor",
+        });
+      }
     }
   });
 
 export default function EventRegisterForm() {
   const [payOption, setPayOption] = useState("no-value");
-  //const [representationOption, setRepresentationOption] = useState("image");
   const [currentDate, setCurrentDate] = useState<Date | null>(null);
 
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -89,7 +98,7 @@ export default function EventRegisterForm() {
       city: "",
       neighborhood: "",
       street: "",
-      number: "",
+      address_number: "",
       complement: "",
       level: "",
       price: "",
@@ -104,15 +113,56 @@ export default function EventRegisterForm() {
       form.reset({
         startsAt: currentDate,
         representationOption: "image",
+        representationColor: "ffff",
       });
     }
   }, [currentDate, form]);
 
   const router = useRouter();
 
-  const onSubmit = (data: z.infer<typeof FormSchema>) => {
-    console.log(data.representationUrl?.size);
-    console.log(data);
+  const { mutate, isPending, isError } = useCreateEvent();
+
+  const onSubmit = async (data: z.infer<typeof FormSchema>) => {
+    let file;
+    if (
+      data.representationUrl instanceof File &&
+      data.representationUrl.size > 0
+    ) {
+      const timestamp = new Date().toISOString();
+      const fileExtension = data.representationUrl.name.split(".").pop();
+      file = await handleFileUpload(
+        data.representationUrl,
+        `eventos/imagem-representacao-${timestamp}.${fileExtension}`
+      );
+    } else file = "";
+
+    // mutate(
+    //   {
+    //     name: data.name,
+    //     date: data.,
+    //     show_date: data.,
+    //     hide_date: data.,
+    //     cep: data.cep,
+    //     state: data.state,
+    //     city: data.cep,
+    //     neighborhood: data.neighborhood,
+    //     street: data.street,
+    //     address_number: data.address_number,
+    //     complement: data.complement,
+    //     maps_url: "",
+    //     description: data.,
+    //     image_url: data.,
+    //     price: data.,
+    //     status: data.,
+    //     level_id: data.,
+    //     user_id: data.,
+    //   },
+    //   {
+    //     onSuccess: () => {
+    //       router.push("/");
+    //     },
+    //   }
+    // );
   };
 
   const informedCep = form.watch("cep");
@@ -214,7 +264,6 @@ export default function EventRegisterForm() {
                 className="md:flex-1"
                 maxLength={8}
               />
-
               <InputDefault
                 control={form.control}
                 name="state"
@@ -242,7 +291,7 @@ export default function EventRegisterForm() {
             <div className="flex flex-col gap-2 md:flex-row">
               <InputDefault
                 control={form.control}
-                name="number"
+                name="address_number"
                 placeholder="Nº"
                 className="md:w-1/6"
               />
@@ -340,9 +389,21 @@ export default function EventRegisterForm() {
               type="submit"
               onClick={() => console.log(form.getValues("representationColor"))}
             >
-              Cadastrar
+              {isPending ? (
+                <>
+                  <FaSpinner className="mr-2 animate-spin" />
+                  "Cadastrando"
+                </>
+              ) : (
+                "Cadastrar"
+              )}
             </Button>
           </div>
+          {isError && (
+            <div className="p-2 border border-destructive rounded-md w-full text-center text-destructive text-sm">
+              Erro ao criar evento
+            </div>
+          )}
         </form>
       </Form>
     </div>
