@@ -24,6 +24,8 @@ import RadioButton from "@/components/radio-button";
 import { RealInput } from "@/components/form/real-input";
 import { useCreateEvent } from "@/hooks/use-events";
 import { handleFileUpload } from "@/lib/firebase-upload";
+import { getServerSession } from "next-auth";
+import { nextAuthOptions } from "@/app/api/auth/[...nextauth]/auth";
 
 const resetTime = (date: Date) => {
   const newDate = new Date(date);
@@ -45,9 +47,12 @@ const FormSchema = z
     city: z.string(),
     neighborhood: z.string(),
     street: z.string(),
-    address_number: z.string().regex(/^[A-Za-z0-9]+$/, {
-      message: "O campo deve conter apenas letras e números",
-    }),
+    address_number: z
+      .string()
+      .regex(/^\d+$/, {
+        message: "O campo deve conter apenas números",
+      })
+      .max(6, { message: "Máximo de 6 dígitos" }),
     complement: z.string(),
     level: z.string(),
     price: z.string(),
@@ -123,18 +128,37 @@ export default function EventRegisterForm() {
   const { mutate, isPending, isError } = useCreateEvent();
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
-    let file;
-    if (
-      data.representationUrl instanceof File &&
-      data.representationUrl.size > 0
-    ) {
-      const timestamp = new Date().toISOString();
-      const fileExtension = data.representationUrl.name.split(".").pop();
-      file = await handleFileUpload(
-        data.representationUrl,
-        `eventos/imagem-representacao-${timestamp}.${fileExtension}`
-      );
-    } else file = "";
+    let filteredData;
+    if (data.representationUrl && data.representationUrl.size > 0) {
+      let file;
+      if (data.representationUrl instanceof File) {
+        const timestamp = new Date().toISOString();
+        const fileExtension = data.representationUrl.name.split(".").pop();
+        file = await handleFileUpload(
+          data.representationUrl,
+          `eventos/imagem-representacao-${timestamp}.${fileExtension}`
+        );
+      } else file = "";
+
+      const {
+        representationUrl,
+        representationColor,
+        representationOption,
+        ...rest
+      } = data;
+      filteredData = {
+        ...rest,
+        representationUrl: file, // A URL da imagem após o upload
+      };
+    } else {
+      // Atribuir a 'filteredData' o objeto 'data' removendo 'representationUrl'
+      const { representationUrl, representationOption, ...rest } = data;
+      filteredData = rest;
+    }
+
+    const session = getServerSession(nextAuthOptions);
+
+    console.log(session);
 
     // mutate(
     //   {
@@ -308,9 +332,9 @@ export default function EventRegisterForm() {
             control={form.control}
             name="level"
             object={[
-              { value: "Iniciante", label: "Iniciante" },
-              { value: "Intermediário", label: "Intermediário" },
-              { value: "Avançado", label: "Avançado" },
+              { value: "1", label: "Iniciante" },
+              { value: "2", label: "Intermediário" },
+              { value: "3", label: "Avançado" },
             ]}
             label="Qual o nível do evento?"
             searchLabel="Buscar nível..."
@@ -385,10 +409,7 @@ export default function EventRegisterForm() {
             <Button type="button" variant={"outline"}>
               Cancelar
             </Button>
-            <Button
-              type="submit"
-              onClick={() => console.log(form.getValues("representationColor"))}
-            >
+            <Button type="submit">
               {isPending ? (
                 <>
                   <FaSpinner className="mr-2 animate-spin" />

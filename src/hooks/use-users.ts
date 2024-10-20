@@ -4,7 +4,9 @@ import { AxiosResponse } from "axios";
 import { User, UserRegisterData, UserResponse } from "@/interfaces/user";
 
 const fetchUsers = async (): Promise<AxiosResponse<UserResponse>> => {
-  const response = await api.get<UserResponse>("/users");
+  const response = await api.get<UserResponse>("/users", {
+    headers: {},
+  });
   console.log(response);
   return response;
 };
