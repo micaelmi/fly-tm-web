@@ -26,6 +26,7 @@ import { useCreateEvent } from "@/hooks/use-events";
 import { handleFileUpload } from "@/lib/firebase-upload";
 import { getServerSession } from "next-auth";
 import { nextAuthOptions } from "@/app/api/auth/[...nextauth]/auth";
+import { useSession } from "next-auth/react";
 
 const resetTime = (date: Date) => {
   const newDate = new Date(date);
@@ -125,6 +126,8 @@ export default function EventRegisterForm() {
 
   const router = useRouter();
 
+  const userId = useSession().data?.payload.sub;
+
   const { mutate, isPending, isError } = useCreateEvent();
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
@@ -148,45 +151,46 @@ export default function EventRegisterForm() {
       } = data;
       filteredData = {
         ...rest,
-        representationUrl: file, // A URL da imagem após o upload
+        representation: file, // A URL da imagem após o upload
       };
     } else {
       // Atribuir a 'filteredData' o objeto 'data' removendo 'representationUrl'
-      const { representationUrl, representationOption, ...rest } = data;
-      filteredData = rest;
+      const {
+        representationUrl,
+        representationOption,
+        representationColor,
+        ...rest
+      } = data;
+      filteredData = { ...rest, representation: representationColor };
     }
 
-    const session = getServerSession(nextAuthOptions);
-
-    console.log(session);
-
-    // mutate(
-    //   {
-    //     name: data.name,
-    //     date: data.,
-    //     show_date: data.,
-    //     hide_date: data.,
-    //     cep: data.cep,
-    //     state: data.state,
-    //     city: data.cep,
-    //     neighborhood: data.neighborhood,
-    //     street: data.street,
-    //     address_number: data.address_number,
-    //     complement: data.complement,
-    //     maps_url: "",
-    //     description: data.,
-    //     image_url: data.,
-    //     price: data.,
-    //     status: data.,
-    //     level_id: data.,
-    //     user_id: data.,
-    //   },
-    //   {
-    //     onSuccess: () => {
-    //       router.push("/");
-    //     },
-    //   }
-    // );
+    mutate(
+      {
+        name: filteredData.name,
+        date: new Date().toISOString(),
+        show_date: filteredData.startsAt.toISOString(),
+        hide_date: filteredData.endsAt.toISOString(),
+        cep: filteredData.cep,
+        state: filteredData.state,
+        city: filteredData.city,
+        neighborhood: filteredData.neighborhood,
+        street: filteredData.street,
+        address_number: Number(filteredData.address_number),
+        complement: filteredData.complement,
+        maps_url: "sem link",
+        description: "",
+        image_url: filteredData.representation,
+        price: filteredData.price,
+        status: "active",
+        level_id: Number(filteredData.level),
+        user_id: userId,
+      },
+      {
+        onSuccess: () => {
+          router.push("/");
+        },
+      }
+    );
   };
 
   const informedCep = form.watch("cep");

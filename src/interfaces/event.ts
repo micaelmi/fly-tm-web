@@ -1,16 +1,20 @@
 export interface EventRegisterData {
   name: string;
-  startsAt: Date;
-  endsAt: Date;
+  date: string;
+  show_date: string;
+  hide_date: string;
   cep: string;
   state: string;
   city: string;
   neighborhood: string;
   street: string;
-  number: string;
+  address_number: number;
+  maps_url: string;
+  description: string;
+  image_url: string | undefined;
+  status: "active" | "inactive";
   complement: string;
-  level: string;
+  level_id: number;
   price: string;
-  representationUrl: File | undefined;
-  representationColor: string | undefined;
+  user_id: string | undefined;
 }
