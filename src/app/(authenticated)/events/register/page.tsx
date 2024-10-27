@@ -1,4 +1,4 @@
-import EventRegisterForm from "@/modules/event/event-register-form";
+import EventRegisterForm from "@/modules/events/event-register-form";
 
 export default function EventRegister() {
   return <EventRegisterForm />;

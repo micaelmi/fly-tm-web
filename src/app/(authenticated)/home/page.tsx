@@ -17,23 +17,32 @@ export default function Home() {
           alt="Patola sacando"
           imageUrl="mascot-serve.svg"
           text="Treinos"
+          linkToFeaturePage="trainings"
         />
         <FeatureCard
           alt="Patola criando estratégia"
           imageUrl="mascot-strategy.svg"
           text="Estratégias"
+          linkToFeaturePage="#"
         />
         <FeatureCard
           alt="Patola atacando"
           imageUrl="mascot-hitting.svg"
           text="Meu perfil"
+          linkToFeaturePage="#"
         />
         <FeatureCard
           alt="Logo de clube"
           imageUrl="club-logo.svg"
           text="Clubes"
+          linkToFeaturePage="#"
         />
-        <FeatureCard alt="Placar" imageUrl="scoreboard.svg" text="Placar" />
+        <FeatureCard
+          alt="Placar"
+          imageUrl="scoreboard.svg"
+          text="Placar"
+          linkToFeaturePage="#"
+        />
       </div>
       <div className="flex justify-between">
         <h3 className="font-semibold text-xl">Confira os próximos eventos</h3>

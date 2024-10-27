@@ -3,6 +3,7 @@
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import { useDebouncedCallback } from "use-debounce";
 import { Input } from "./ui/input";
+import { MagnifyingGlass } from "@phosphor-icons/react/dist/ssr";
 
 export default function Search({
   placeholder,
@@ -27,7 +28,8 @@ export default function Search({
   }, 300);
 
   return (
-    <div className="flex items-center gap-2 w-full md:w-1/2 lg:w-4/12">
+    <div className="flex items-center gap-2 w-full">
+      <MagnifyingGlass size={35} />
       <Input
         type="search"
         placeholder={placeholder}
