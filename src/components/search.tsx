@@ -8,9 +8,11 @@ import { MagnifyingGlass } from "@phosphor-icons/react/dist/ssr";
 export default function Search({
   placeholder,
   pagination,
+  className,
 }: {
   placeholder: string;
   pagination: boolean;
+  className?: string;
 }) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -28,7 +30,7 @@ export default function Search({
   }, 300);
 
   return (
-    <div className="flex items-center gap-2 w-full">
+    <div className="flex items-center gap-2">
       <MagnifyingGlass size={35} />
       <Input
         type="search"
@@ -37,6 +39,7 @@ export default function Search({
           handleSearch(e.target.value);
         }}
         defaultValue={searchParams.get("query")?.toString()}
+        className={className}
       />
     </div>
   );

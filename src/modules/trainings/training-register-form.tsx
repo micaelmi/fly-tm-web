@@ -1,12 +1,14 @@
 "use client";
 
-import AddMovementCard from "@/components/add-movement-card";
-import MovementCard from "@/components/movement-card";
+import AddMovementModal from "@/components/add-movement-modal";
+import AddMovementCard from "@/components/cards/add-movement-card";
+import MovementCard from "@/components/cards/movement-card";
 import PageTitleWithIcon from "@/components/page-title-with-icon";
 import Search from "@/components/search";
 import TrainingsSession from "@/components/trainings-session";
 import { Button } from "@/components/ui/button";
 import { Barbell } from "@phosphor-icons/react/dist/ssr";
+import { UUID } from "crypto";
 import Image from "next/image";
 import { FormEvent, useState } from "react";
 
@@ -19,6 +21,12 @@ interface Move {
 
 export default function TrainingRegisterForm() {
   const [moves, setMoves] = useState<Move[]>([]);
+  const [addMovementModal, setAddMovementModal] = useState({
+    movementName: "",
+    movementImageUrl: "",
+    isOpen: false,
+  });
+
   const movesForChoose = [
     {
       id: "1",
@@ -58,8 +66,53 @@ export default function TrainingRegisterForm() {
     },
   ];
 
-  function addNewMovement(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  function openAddMovementModal(
+    movementName: string,
+    movementImageUrl: string
+  ) {
+    setAddMovementModal({
+      movementName: movementName,
+      movementImageUrl: movementImageUrl,
+      isOpen: true,
+    });
+  }
+
+  function closeAddMovementModal() {
+    setAddMovementModal({
+      movementName: "",
+      movementImageUrl: "",
+      isOpen: false,
+    });
+  }
+
+  function removeMovement(idToRemove: string) {
+    const newMovesList = moves.filter((move) => move.id != idToRemove);
+    setMoves(newMovesList);
+  }
+
+  function addNewMovement(data: FormData) {
+    const isMovementAlreadyOnList = moves.some(
+      (move) => move.name === data.get("movementName")
+    );
+
+    if (isMovementAlreadyOnList) {
+      alert(
+        "O movimento escolhido já está incluido na lista de movimentos do treino!"
+      );
+      return;
+    }
+
+    const newMovement = {
+      id: crypto.randomUUID(),
+      url: data.get("movementImageUrl")?.toString() ?? "",
+      name: data.get("movementName")?.toString() ?? "",
+      duration: data.get("reps")
+        ? `${data.get("reps")}x`
+        : `${data.get("time")}s`,
+    };
+
+    setMoves([...moves, newMovement]);
+    setAddMovementModal({ ...addMovementModal, isOpen: false });
   }
 
   return (
@@ -80,9 +133,11 @@ export default function TrainingRegisterForm() {
               return (
                 <MovementCard
                   key={move.id}
+                  id={move.id}
                   imageUrl={move.url}
                   duration={move.duration}
                   name={move.name}
+                  removeMovement={() => removeMovement(move.id)}
                 />
               );
             })
@@ -119,14 +174,23 @@ export default function TrainingRegisterForm() {
             return (
               <AddMovementCard
                 key={move.id}
-                imageUrl={move.url}
-                name={move.name}
-                addNewMovement={addNewMovement}
+                movementImageUrl={move.url}
+                movementName={move.name}
+                openAddMovementModal={openAddMovementModal}
               />
             );
           })}
         </div>
       </div>
+
+      {addMovementModal.isOpen && (
+        <AddMovementModal
+          movementName={addMovementModal.movementName}
+          movementImageUrl={addMovementModal.movementImageUrl}
+          closeAddMovementModal={closeAddMovementModal}
+          addNewMovement={addNewMovement}
+        />
+      )}
     </div>
   );
 }

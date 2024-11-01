@@ -3,7 +3,7 @@ import {
   MapPinLine,
   Medal,
 } from "@phosphor-icons/react/dist/ssr";
-import { Button } from "./ui/button";
+import { Button } from "../ui/button";
 import { cn } from "@/lib/utils";
 
 interface EventCardProps {

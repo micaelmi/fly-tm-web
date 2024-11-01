@@ -1,6 +1,6 @@
-import ClubCard from "@/components/club-card";
-import EventCard from "@/components/event-card";
-import FeatureCard from "@/components/feature-card";
+import ClubCard from "@/components/cards/club-card";
+import EventCard from "@/components/cards/event-card";
+import FeatureCard from "@/components/cards/feature-card";
 import Search from "@/components/search";
 
 export default function Home() {
@@ -44,9 +44,15 @@ export default function Home() {
           linkToFeaturePage="#"
         />
       </div>
-      <div className="flex justify-between">
-        <h3 className="font-semibold text-xl">Confira os próximos eventos</h3>
-        <Search placeholder="Buscar evento" pagination={false} />
+      <div className="flex justify-between items-center">
+        <h3 className="font-semibold text-xl whitespace-nowrap">
+          Confira os próximos eventos
+        </h3>
+        <Search
+          placeholder="Buscar evento"
+          pagination={false}
+          className="max-w-60"
+        />
       </div>
       <div className="flex gap-4 overflow-x-scroll">
         <EventCard
@@ -92,9 +98,15 @@ export default function Home() {
           local="Piracaia-SP"
         />
       </div>
-      <div className="flex justify-between">
-        <h3 className="font-semibold text-xl">Encontre clubes</h3>
-        <Search placeholder="Buscar clube" pagination={false} />
+      <div className="flex justify-between items-center">
+        <h3 className="font-semibold text-xl whitespace-nowrap">
+          Encontre clubes
+        </h3>
+        <Search
+          placeholder="Buscar clube"
+          pagination={false}
+          className="max-w-60"
+        />
       </div>
       <div className="flex gap-4 overflow-x-scroll">
         <ClubCard

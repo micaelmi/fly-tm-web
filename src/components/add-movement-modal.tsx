@@ -1,4 +1,4 @@
-import { Plus, X } from "@phosphor-icons/react/dist/ssr";
+import { X } from "@phosphor-icons/react/dist/ssr";
 import { Button } from "./ui/button";
 import Image from "next/image";
 import { Label } from "./ui/label";
@@ -8,24 +8,26 @@ import {
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
 import { Input } from "./ui/input";
 
 interface AddMovementModalProps {
+  movementName: string;
+  movementImageUrl: string;
   closeAddMovementModal: () => void;
-  addNewMovement: (event: FormEvent<HTMLFormElement>) => void;
-  //   emailsToInvite: string[];
-  //   removeEmailFromInvites: (email: string) => void;
+  addNewMovement: (data: FormData) => void;
 }
 
 export default function AddMovementModal({
+  movementName,
+  movementImageUrl,
   closeAddMovementModal,
   addNewMovement,
 }: AddMovementModalProps) {
   const [selectedOption, setSelectedOption] = useState("");
+  const [error, setError] = useState("");
 
   return (
     <div className="fixed inset-0 flex justify-center items-center bg-black/60">
@@ -40,23 +42,48 @@ export default function AddMovementModal({
           </button>
         </div>
         <div className="bg-zinc-800 w-full h-px" />
-        Drive de Forehand
+        {movementName}
         <div className="flex items-center gap-3">
           <Image
-            src={"/mascot-hitting.svg"}
+            src={movementImageUrl}
             alt="Imagem do movimento"
-            width={90}
-            height={90}
-            className="aspect-square"
+            width={120}
+            height={120}
+            className="border-white p-3 border rounded aspect-square"
           />
           <form
             className="flex flex-col flex-1 gap-3"
-            onSubmit={addNewMovement}
+            onSubmit={(event: FormEvent<HTMLFormElement>) => {
+              event.preventDefault();
+              if (selectedOption === "") {
+                setError("Selecione uma opção.");
+                return;
+              }
+
+              const data = new FormData(event.currentTarget);
+
+              if (data.get("countOption") === "reps") {
+                if (data.get("reps") === "") {
+                  setError("Defina o número de repetições.");
+                  return;
+                }
+              }
+
+              if (data.get("time") === "") {
+                setError("Defina a duração do movimento.");
+                return;
+              }
+
+              setError("");
+              data.append("movementName", movementName);
+              data.append("movementImageUrl", movementImageUrl);
+              addNewMovement(data);
+            }}
           >
             <div className="flex gap-3">
               <div className="flex-1">
                 <Label>Contabilizar movimento por:</Label>
-                <Select onValueChange={setSelectedOption}>
+                <Select name="countOption" onValueChange={setSelectedOption}>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione" />
                   </SelectTrigger>
@@ -72,17 +99,20 @@ export default function AddMovementModal({
                 selectedOption === "reps" ? (
                   <div>
                     <Label>Número de repetições</Label>
-                    <Input type="number" />
+                    <Input name="reps" type="number" />
                   </div>
                 ) : (
                   <div>
-                    <Label>Execurar durante:</Label>
-                    <Input type="text" />
+                    <Label>Execurar durante (segundos):</Label>
+                    <Input name="time" type="number" />
                   </div>
                 )
               ) : null}
             </div>
-            <Button>Adicionar</Button>
+            <Button type="submit">Adicionar</Button>
+            {error ? (
+              <span className="text-destructive text-sm">{error}</span>
+            ) : null}
           </form>
         </div>
       </div>
