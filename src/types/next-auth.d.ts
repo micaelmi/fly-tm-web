@@ -6,16 +6,15 @@ declare module "next-auth" {
       sub: string;
       name: string;
       type: number;
-      rememberMe: boolean;
       iat: number;
       exp: number;
     };
     token: {
+      exp: number;
+      iat: number;
+      jti: string;
       user: {
-        id: string; // Ajuste conforme o tipo real do seu id
-        name: string;
-        type: number;
-        rememberMe: boolean;
+        token: string;
       };
     };
   }

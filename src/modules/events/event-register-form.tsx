@@ -1,32 +1,27 @@
 "use client";
-
+import ColorPicker from "@/components/form/color-picker";
 import DefaultCombobox from "@/components/form/combobox-default";
 import DatePicker from "@/components/form/date-picker";
 import InputDefault from "@/components/form/input-default";
 import InputImage from "@/components/form/input-image";
+import { RealInput } from "@/components/form/real-input";
+import RadioButton from "@/components/radio-button";
+import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useCreateEvent } from "@/hooks/use-events";
+import { Location } from "@/interfaces/location";
+import api from "@/lib/axios";
+import { handleFileUpload } from "@/lib/firebase-upload";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarDots } from "@phosphor-icons/react/dist/ssr";
+import { useQuery } from "@tanstack/react-query";
+import { AxiosResponse } from "axios";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import * as z from "zod";
-import ColorPicker from "@/components/form/color-picker";
-import { Button } from "@/components/ui/button";
-import { useQuery } from "@tanstack/react-query";
-import api from "@/lib/axios";
-import { AxiosResponse } from "axios";
-import { City, Location, State } from "@/interfaces/location";
 import { FaSpinner } from "react-icons/fa";
-import RadioButton from "@/components/radio-button";
-import { RealInput } from "@/components/form/real-input";
-import { useCreateEvent } from "@/hooks/use-events";
-import { handleFileUpload } from "@/lib/firebase-upload";
-import { getServerSession } from "next-auth";
-import { nextAuthOptions } from "@/app/api/auth/[...nextauth]/auth";
-import { useSession } from "next-auth/react";
+import * as z from "zod";
 
 const resetTime = (date: Date) => {
   const newDate = new Date(date);
@@ -90,6 +85,9 @@ const FormSchema = z
   });
 
 export default function EventRegisterForm() {
+  const { data: session } = useSession();
+  const userId = session?.payload.sub;
+
   const [payOption, setPayOption] = useState("no-value");
   const [currentDate, setCurrentDate] = useState<Date | null>(null);
 
@@ -125,8 +123,6 @@ export default function EventRegisterForm() {
   }, [currentDate, form]);
 
   const router = useRouter();
-
-  const userId = useSession().data?.payload.sub;
 
   const { mutate, isPending, isError } = useCreateEvent();
 
@@ -167,9 +163,8 @@ export default function EventRegisterForm() {
     mutate(
       {
         name: filteredData.name,
-        date: new Date().toISOString(),
-        show_date: filteredData.startsAt.toISOString(),
-        hide_date: filteredData.endsAt.toISOString(),
+        start_date: filteredData.startsAt.toISOString(),
+        end_date: filteredData.endsAt.toISOString(),
         cep: filteredData.cep,
         state: filteredData.state,
         city: filteredData.city,
@@ -177,7 +172,7 @@ export default function EventRegisterForm() {
         street: filteredData.street,
         address_number: Number(filteredData.address_number),
         complement: filteredData.complement,
-        maps_url: "sem link",
+        maps_url: "https://maps.google.com/maps",
         description: "",
         image_url: filteredData.representation,
         price: filteredData.price,
