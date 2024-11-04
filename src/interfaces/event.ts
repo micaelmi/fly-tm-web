@@ -1,8 +1,7 @@
 export interface EventRegisterData {
   name: string;
-  date: string;
-  show_date: string;
-  hide_date: string;
+  start_date: string;
+  end_date: string;
   cep: string;
   state: string;
   city: string;
