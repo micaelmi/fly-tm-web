@@ -1,8 +1,11 @@
 "use client";
 
-import AddMovementModal from "@/components/add-movement-modal";
+import AddItemModal from "@/components/add-item-modal";
 import AddMovementCard from "@/components/cards/add-movement-card";
-import MovementCard from "@/components/cards/movement-card";
+import TrainingItemCard from "@/components/cards/training-item-card";
+import ItemCard from "@/components/cards/training-item-card";
+import MovementCard from "@/components/cards/training-item-card";
+import FinishingTrainingModal from "@/components/finishing-training-modal";
 import PageTitleWithIcon from "@/components/page-title-with-icon";
 import Search from "@/components/search";
 import TrainingsSession from "@/components/trainings-session";
@@ -12,107 +15,108 @@ import { UUID } from "crypto";
 import Image from "next/image";
 import { FormEvent, useState } from "react";
 
-interface Move {
-  id: string;
-  url: string;
-  name: string;
-  duration: string;
+export interface Item {
+  counting_mode: "reps" | "time";
+  reps: number;
+  time: number;
+  queue: number;
+  comments: string;
+  movement_id: number;
+  image_url: string;
 }
 
 export default function TrainingRegisterForm() {
-  const [moves, setMoves] = useState<Move[]>([]);
-  const [addMovementModal, setAddMovementModal] = useState({
-    movementName: "",
-    movementImageUrl: "",
-    isOpen: false,
+  const [items, setItems] = useState<Item[]>([]);
+  const [addItemModal, setAddItemModal] = useState({
+    movement_id: 0,
+    movement_name: "",
+    movement_image_url: "",
+    is_open: false,
+  });
+  const [finishingTrainingModal, setFinishinTrainingModal] = useState({
+    is_open: false,
   });
 
   const movesForChoose = [
     {
-      id: "1",
+      id: 1,
       url: "/mascot-hitting.svg",
       name: "Drive de forehandssssssssssssssss",
-      duration: "12x",
     },
     {
-      id: "2",
+      id: 2,
       url: "/mascot-hitting.svg",
       name: "Drive de forehand",
-      duration: "12x",
     },
     {
-      id: "3",
+      id: 3,
       url: "/mascot-hitting.svg",
       name: "Drive de forehand",
-      duration: "12x",
     },
     {
-      id: "4",
+      id: 4,
       url: "/mascot-hitting.svg",
       name: "Drive de forehand",
-      duration: "12x",
     },
     {
-      id: "5",
+      id: 5,
       url: "/mascot-hitting.svg",
       name: "Drive de forehand",
-      duration: "12x",
     },
     {
-      id: "6",
+      id: 6,
       url: "/mascot-hitting.svg",
       name: "Drive de forehand",
-      duration: "12x",
     },
   ];
 
-  function openAddMovementModal(
-    movementName: string,
-    movementImageUrl: string
+  function openAddItemModal(
+    movement_id: number,
+    movement_name: string,
+    movement_image_url: string
   ) {
-    setAddMovementModal({
-      movementName: movementName,
-      movementImageUrl: movementImageUrl,
-      isOpen: true,
+    setAddItemModal({
+      movement_id: movement_id,
+      movement_name: movement_name,
+      movement_image_url: movement_image_url,
+      is_open: true,
     });
   }
 
-  function closeAddMovementModal() {
-    setAddMovementModal({
-      movementName: "",
-      movementImageUrl: "",
-      isOpen: false,
+  function closeAddItemModal() {
+    setAddItemModal({
+      movement_id: 0,
+      movement_name: "",
+      movement_image_url: "",
+      is_open: false,
     });
   }
 
-  function removeMovement(idToRemove: string) {
-    const newMovesList = moves.filter((move) => move.id != idToRemove);
-    setMoves(newMovesList);
+  function removeItem(idToRemove: number) {
+    const newItemsList = items.filter((item) => item.movement_id != idToRemove);
+    setItems(newItemsList);
   }
 
-  function addNewMovement(data: FormData) {
-    const isMovementAlreadyOnList = moves.some(
-      (move) => move.name === data.get("movementName")
-    );
-
-    if (isMovementAlreadyOnList) {
-      alert(
-        "O movimento escolhido já está incluido na lista de movimentos do treino!"
-      );
-      return;
-    }
-
-    const newMovement = {
-      id: crypto.randomUUID(),
-      url: data.get("movementImageUrl")?.toString() ?? "",
-      name: data.get("movementName")?.toString() ?? "",
-      duration: data.get("reps")
-        ? `${data.get("reps")}x`
-        : `${data.get("time")}s`,
+  function addNewItem(data: Item) {
+    const newItem = {
+      ...data,
+      queue: items.length + 1,
     };
 
-    setMoves([...moves, newMovement]);
-    setAddMovementModal({ ...addMovementModal, isOpen: false });
+    setItems([...items, newItem]);
+    setAddItemModal({ ...addItemModal, is_open: false });
+  }
+
+  function openFinishinTrainingModal() {
+    setFinishinTrainingModal({
+      is_open: true,
+    });
+  }
+
+  function closeFinishinTrainingModal() {
+    setFinishinTrainingModal({
+      is_open: false,
+    });
   }
 
   return (
@@ -128,16 +132,19 @@ export default function TrainingRegisterForm() {
         </p>
         <TrainingsSession sessionTitle="Seu conjunto de movimentos" />
         <div className="flex flex-col gap-3 overflow-y-auto">
-          {moves.length > 0 ? (
-            moves.map((move) => {
+          {items.length > 0 ? (
+            items.map((item) => {
               return (
-                <MovementCard
-                  key={move.id}
-                  id={move.id}
-                  imageUrl={move.url}
-                  duration={move.duration}
-                  name={move.name}
-                  removeMovement={() => removeMovement(move.id)}
+                <TrainingItemCard
+                  key={item.movement_id + crypto.randomUUID()}
+                  movement_id={item.movement_id}
+                  image_url={item.image_url}
+                  reps={item.reps}
+                  time={item.time}
+                  counting_mode={item.counting_mode}
+                  comments={item.comments}
+                  queue={item.queue}
+                  removeItem={() => removeItem(item.movement_id)}
                 />
               );
             })
@@ -160,7 +167,7 @@ export default function TrainingRegisterForm() {
         </div>
         <div className="flex justify-between">
           <Button variant={"outline"}>Cancelar</Button>
-          <Button>Continuar</Button>
+          <Button onClick={openFinishinTrainingModal}>Continuar</Button>
         </div>
       </div>
 
@@ -174,21 +181,30 @@ export default function TrainingRegisterForm() {
             return (
               <AddMovementCard
                 key={move.id}
-                movementImageUrl={move.url}
-                movementName={move.name}
-                openAddMovementModal={openAddMovementModal}
+                movement_id={move.id}
+                movement_image_url={move.url}
+                movement_name={move.name}
+                openAddItemModal={openAddItemModal}
               />
             );
           })}
         </div>
       </div>
 
-      {addMovementModal.isOpen && (
-        <AddMovementModal
-          movementName={addMovementModal.movementName}
-          movementImageUrl={addMovementModal.movementImageUrl}
-          closeAddMovementModal={closeAddMovementModal}
-          addNewMovement={addNewMovement}
+      {addItemModal.is_open && (
+        <AddItemModal
+          movement_id={addItemModal.movement_id}
+          movement_name={addItemModal.movement_name}
+          movement_image_url={addItemModal.movement_image_url}
+          closeAddItemModal={closeAddItemModal}
+          addNewItem={addNewItem}
+        />
+      )}
+
+      {finishingTrainingModal.is_open && (
+        <FinishingTrainingModal
+          items={items}
+          closeFinishinTrainingModal={closeFinishinTrainingModal}
         />
       )}
     </div>

@@ -55,7 +55,7 @@ const FormSchema = z
       })
       .max(6, { message: "Máximo de 6 dígitos" }),
     complement: z.string(),
-    level: z.string(),
+    level: z.number(),
     price: z.string(),
     representationUrl: z.instanceof(File).optional(),
     representationColor: z.string().optional(),
@@ -106,7 +106,7 @@ export default function EventRegisterForm() {
       street: "",
       address_number: "",
       complement: "",
-      level: "",
+      level: undefined,
       price: "",
       representationUrl: new File([], ""),
       representationColor: "ffff",
@@ -182,7 +182,7 @@ export default function EventRegisterForm() {
         image_url: filteredData.representation,
         price: filteredData.price,
         status: "active",
-        level_id: Number(filteredData.level),
+        level_id: filteredData.level,
         user_id: userId,
       },
       {
@@ -336,15 +336,15 @@ export default function EventRegisterForm() {
             control={form.control}
             name="level"
             object={[
-              { value: "1", label: "Iniciante" },
-              { value: "2", label: "Intermediário" },
-              { value: "3", label: "Avançado" },
+              { value: 1, label: "Iniciante" },
+              { value: 2, label: "Intermediário" },
+              { value: 3, label: "Avançado" },
             ]}
             label="Qual o nível do evento?"
             searchLabel="Buscar nível..."
             selectLabel="Nível"
             className=""
-            onSelect={(value: string) => {
+            onSelect={(value: number) => {
               form.setValue("level", value);
             }}
           />

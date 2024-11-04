@@ -9,7 +9,7 @@ export default function Navbar() {
       <BackButton />
       <div className="flex flex-1 justify-between">
         <div className="flex items-center gap-3 font-semibold text-3xl">
-          <Image src={"logo.svg"} alt="Logo Fly TM" width={40} height={40} />
+          <Image src={"/logo.svg"} alt="Logo Fly TM" width={40} height={40} />
           Fly TM
         </div>
         <div className="flex items-center gap-5">
