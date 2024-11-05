@@ -1,7 +1,8 @@
 import ClubCard from "@/components/cards/club-card";
-import EventCard from "@/components/cards/event-card";
 import FeatureCard from "@/components/cards/feature-card";
 import Search from "@/components/search";
+import EventsCarousel from "@/modules/events/event-carousel";
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -12,7 +13,7 @@ export default function Home() {
           Qual é o plano de hoje?
         </h3>
       </div>
-      <div className="flex justify-between">
+      <div className="flex justify-between my-4 px-4">
         <FeatureCard
           alt="Patola sacando"
           imageUrl="mascot-serve.svg"
@@ -54,49 +55,12 @@ export default function Home() {
           className="max-w-60"
         />
       </div>
-      <div className="flex gap-4 overflow-x-scroll">
-        <EventCard
-          date="04/02/2024"
-          level="Avançado"
-          title="Campeonato avançado"
-          local="Piracaia-SP"
-        />
-        <EventCard
-          date="04/02/2024"
-          level="Avançado"
-          title="Campeonato avançado"
-          local="Piracaia-SP"
-        />
-        <EventCard
-          date="04/02/2024"
-          level="Avançado"
-          title="Campeonato avançado"
-          local="Piracaia-SP"
-        />
-        <EventCard
-          date="04/02/2024"
-          level="Avançado"
-          title="Campeonato avançado"
-          local="Piracaia-SP"
-        />
-        <EventCard
-          date="04/02/2024"
-          level="Avançado"
-          title="Campeonato avançado"
-          local="Piracaia-SP"
-        />
-        <EventCard
-          date="04/02/2024"
-          level="Avançado"
-          title="Campeonato avançado"
-          local="Piracaia-SP"
-        />
-        <EventCard
-          date="04/02/2024"
-          level="Avançado"
-          title="Campeonato avançado"
-          local="Piracaia-SP"
-        />
+      {/* events */}
+      <EventsCarousel />
+      <div className="flex justify-end mb-4">
+        <Link href="events/register" className="text-lg text-primary underline">
+          Criar evento
+        </Link>
       </div>
       <div className="flex justify-between items-center">
         <h3 className="font-semibold text-xl whitespace-nowrap">

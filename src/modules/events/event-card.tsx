@@ -3,8 +3,8 @@ import {
   MapPinLine,
   Medal,
 } from "@phosphor-icons/react/dist/ssr";
-import { Button } from "../ui/button";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 interface EventCardProps {
   title: string;
@@ -22,8 +22,13 @@ export default function EventCard({
   className,
 }: EventCardProps) {
   return (
-    <div className={cn("flex flex-col p-3 border rounded min-w-72", className)}>
-      <h3 className="font-semibold">{title}</h3>
+    <div
+      className={cn(
+        "flex flex-col mx-2 p-3 border rounded-xl shadow-blue-500 shadow-md",
+        className
+      )}
+    >
+      <h3 className="font-semibold truncate">{title}</h3>
       <div className="flex items-center gap-2 text-muted-foreground">
         <CalendarCheck size={20} />
         {date}
