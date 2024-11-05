@@ -29,7 +29,7 @@ interface DefaultComboboxProps {
   isLoading?: boolean;
   disabled?: boolean;
   className?: string;
-  onSelect: (value: string) => void;
+  onSelect: (value: number) => void;
 }
 
 export default function DefaultCombobox({
@@ -50,7 +50,7 @@ export default function DefaultCombobox({
       name={name}
       render={({ field }) => (
         <FormItem className="flex flex-col">
-          {label && <FormLabel>{label}</FormLabel>}
+          {label ? <FormLabel>{label}</FormLabel> : null}
           <Popover>
             <PopoverTrigger asChild>
               <FormControl>
@@ -64,7 +64,7 @@ export default function DefaultCombobox({
                   disabled={disabled}
                 >
                   {field.value ? (
-                    object?.find((item) => item.value === field.value)?.label
+                    object?.find((item) => item.value == field.value)?.label
                   ) : isLoading ? (
                     <FaSpinner className="animate-spin" />
                   ) : (
