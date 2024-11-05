@@ -13,14 +13,14 @@ export default async function AuthenticatedLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // const session = await getServerSession(nextAuthOptions);
-  // if (!session) {
-  //   redirect("/");
-  // }
+  const session = await getServerSession(nextAuthOptions);
+  if (!session) {
+    redirect("/");
+  }
   return (
     <section>
       <Navbar />
-      <div className="my-8 container">{children}</div>
+      <div className="my-8 px-2 container">{children}</div>
     </section>
   );
 }

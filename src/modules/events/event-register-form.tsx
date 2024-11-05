@@ -182,7 +182,7 @@ export default function EventRegisterForm() {
       },
       {
         onSuccess: () => {
-          router.push("/");
+          router.push("/home");
         },
       }
     );

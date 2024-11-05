@@ -20,10 +20,10 @@ export default function FeatureCard({
   return (
     <Link
       href={linkToFeaturePage}
-      className="flex flex-col items-center hover:opacity-80 text-primary transition-all"
+      className="flex flex-col items-center hover:opacity-80 text-primary transition-all scale-125"
     >
       <Image
-        className={cn("bg-primary p-4 rounded aspect-square", className)}
+        className={cn("bg-primary p-4 rounded-xl aspect-square", className)}
         src={imageUrl}
         width={135}
         height={135}

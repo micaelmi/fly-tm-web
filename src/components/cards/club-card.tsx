@@ -24,7 +24,7 @@ export default function ClubCard({
   name,
 }: ClubCardProps) {
   return (
-    <div className="flex flex-col justify-center items-center gap-2 p-3 border rounded min-w-48">
+    <div className="flex flex-col justify-center items-center gap-2 shadow-blue-500 shadow-md p-3 border rounded-xl min-w-48">
       <h4 className="font-semibold text-center">{name}</h4>
       <Image
         src={imageUrl}
