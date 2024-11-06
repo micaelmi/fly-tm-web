@@ -5,23 +5,33 @@ import TextareaDefault from "@/components/form/textarea-default";
 import Search from "@/components/search";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Question, Strategy } from "@phosphor-icons/react/dist/ssr";
+import {
+  Question,
+  Strategy,
+  TrashSimple,
+} from "@phosphor-icons/react/dist/ssr";
 import Image from "next/image";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-
-interface Item {
-  movement_id: number;
-  description: string;
-}
+import FinishingStrategyModal from "./finishing-strategy-modal";
+import { handleFileUpload } from "@/lib/firebase-upload";
 
 const FormSchema = z.object({
   against_whom: z
     .string()
     .min(1, { message: "Ao mínimo 1 caractere é necessário" }),
   how_it_works: z.string(),
+  icon_file: z
+    .instanceof(File)
+    .refine((file) => file.size > 0, { message: "Selecione um ícone" }),
+  // user_id: z.string().uuid(),
+  level_id: z.number(),
+  visibility_type_id: z.number(),
+  club_id: z.string().optional(),
   items: z.array(
     z.object({
       description: z.string(),
@@ -48,22 +58,54 @@ export default function StrategyRegisterForm() {
       movement_image_url: "/mascot-hitting.svg",
     },
   ]);
-  const [items, setItems] = useState<Item[]>([]);
+  const [finishingStrategyModal, setFinishingStrategyModal] = useState({
+    isOpen: false,
+  });
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       against_whom: "",
       how_it_works: "",
+      icon_file: new File([], ""),
+      // user_id: "",
+      level_id: undefined,
+      visibility_type_id: undefined,
+      club_id: "",
       items: [],
     },
   });
+  const items = form.watch("items");
 
-  const onSubmit = (data: z.infer<typeof FormSchema>) => {
-    console.log(data);
+  const closeFinishingStrategyModal = (open: boolean) => {
+    setFinishingStrategyModal({
+      ...finishingStrategyModal,
+      isOpen: open,
+    });
+  };
+
+  const onSubmit = async (data: z.infer<typeof FormSchema>) => {
+    console.log("Foi para envio");
+
+    let file;
+    if (data.icon_file && data.icon_file.size > 0) {
+      if (data.icon_file instanceof File) {
+        const timestamp = new Date().toISOString();
+        const file_extension = data.icon_file.name.split(".").pop();
+        file = await handleFileUpload(
+          data.icon_file,
+          `estrategias/icone-representacao-${timestamp}.${file_extension}`
+        );
+      } else file = "";
+    } else file = "";
+
+    const { icon_file, ...rest } = data;
+    const filteredData = { ...rest, icon_url: file };
+    console.log(filteredData);
   };
   return (
     <div className="flex">
+      {/* Formulário */}
       <div>
         <div>
           <Strategy />
@@ -87,11 +129,63 @@ export default function StrategyRegisterForm() {
               label="Como funciona?"
               placeholder="Descreva quais movimentos devem ser usados e em qual sequência. Considerando também destacar os contextos apropriados para o uso dessa estratégia."
             />
-            <Button>Enviar</Button>
+            {items.length > 0 ? (
+              <>
+                <Label>Movimentos relacionados</Label>
+                <ScrollArea>
+                  <div className="flex flex-col gap-2">
+                    {items.map((item) => {
+                      return (
+                        <div
+                          key={item.movement_id}
+                          className="flex items-center gap-2 p-2 border border-border rounded"
+                        >
+                          {item.movement_id}
+                          {item.description}
+                          <Button
+                            variant={"secondary"}
+                            onClick={() => {
+                              const newItemsList = items.filter(
+                                (itemInList) =>
+                                  itemInList.movement_id !== item.movement_id
+                              );
+                              form.setValue("items", newItemsList);
+                            }}
+                            type="button"
+                            className="bg-transparent p-0 h-fit text-primary"
+                          >
+                            <TrashSimple />
+                          </Button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </ScrollArea>
+              </>
+            ) : null}
+            <div className="flex justify-between">
+              <Button variant={"outline"}>Cancelar</Button>
+              <Button
+                type="button"
+                onClick={() =>
+                  setFinishingStrategyModal({
+                    ...finishingStrategyModal,
+                    isOpen: true,
+                  })
+                }
+              >
+                Continuar
+              </Button>
+            </div>
+            {/* Modal para finalização da estratégia */}
+            <FinishingStrategyModal
+              isOpen={finishingStrategyModal.isOpen}
+              closeFinishingStrategyModal={closeFinishingStrategyModal}
+            />
           </form>
         </Form>
       </div>
-
+      {/* Movimentos para relação */}
       <div>
         <h1>Movimentos</h1>
         <Search pagination={false} placeholder="Buscar..." />
@@ -113,11 +207,17 @@ export default function StrategyRegisterForm() {
               <Button
                 type="button"
                 onClick={() => {
-                  const newItem = {
-                    movement_id: move.movement_id,
-                    description: move.movement_description,
-                  };
-                  setItems([...items, newItem]);
+                  if (
+                    items.some((item) => item.movement_id === move.movement_id)
+                  ) {
+                    alert("O item selecionado já está relacionado.");
+                  } else {
+                    const newItem = {
+                      movement_id: move.movement_id,
+                      description: move.movement_description,
+                    };
+                    form.setValue("items", [...items, newItem]);
+                  }
                 }}
               >
                 Relacionar

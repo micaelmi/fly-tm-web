@@ -21,6 +21,7 @@ const config = {
     },
     extend: {
       colors: {
+        modal: "#15141A",
         navbar: "#001448",
         event: {
           green: "#17E469",
