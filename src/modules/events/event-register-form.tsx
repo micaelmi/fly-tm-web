@@ -1,15 +1,19 @@
 "use client";
+import { CancelButton } from "@/components/cancel-button";
 import ColorPicker from "@/components/form/color-picker";
 import DefaultCombobox from "@/components/form/combobox-default";
 import DatePicker from "@/components/form/date-picker";
 import InputDefault from "@/components/form/input-default";
 import InputImage from "@/components/form/input-image";
 import { RealInput } from "@/components/form/real-input";
+import TextareaDefault from "@/components/form/textarea-default";
 import Navbar from "@/components/navbar";
 import RadioButton from "@/components/radio-button";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
+import { useLevelsData } from "@/hooks/use-auxiliaries";
 import { useCreateEvent } from "@/hooks/use-events";
+import { Level, LevelResponse } from "@/interfaces/level";
 import { Location } from "@/interfaces/location";
 import api from "@/lib/axios";
 import { handleFileUpload } from "@/lib/firebase-upload";
@@ -33,6 +37,7 @@ const resetTime = (date: Date) => {
 const FormSchema = z
   .object({
     name: z.string().min(4, { message: "Mínimo de 4 caracteres" }),
+    description: z.string(),
     startsAt: z.coerce
       .date()
       .refine((startsAt) => resetTime(startsAt) >= resetTime(new Date()), {
@@ -56,6 +61,7 @@ const FormSchema = z
     representationUrl: z.instanceof(File).optional(),
     representationColor: z.string().optional(),
     representationOption: z.enum(["image", "color"]),
+    maps_url: z.string().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.endsAt < data.startsAt) {
@@ -96,6 +102,7 @@ export default function EventRegisterForm() {
     resolver: zodResolver(FormSchema),
     defaultValues: {
       name: "",
+      description: "",
       startsAt: currentDate || undefined,
       endsAt: undefined,
       cep: "",
@@ -110,6 +117,7 @@ export default function EventRegisterForm() {
       representationUrl: new File([], ""),
       representationColor: "ffff",
       representationOption: "image",
+      maps_url: "",
     },
   });
 
@@ -164,6 +172,7 @@ export default function EventRegisterForm() {
     mutate(
       {
         name: filteredData.name,
+        description: filteredData.description,
         start_date: filteredData.startsAt.toISOString(),
         end_date: filteredData.endsAt.toISOString(),
         cep: filteredData.cep,
@@ -173,8 +182,10 @@ export default function EventRegisterForm() {
         street: filteredData.street,
         address_number: Number(filteredData.address_number),
         complement: filteredData.complement,
-        maps_url: "https://maps.google.com/maps",
-        description: "",
+        maps_url:
+          filteredData.maps_url && filteredData.maps_url?.length > 0
+            ? filteredData.maps_url
+            : undefined,
         image_url: filteredData.representation,
         price: filteredData.price,
         status: "active",
@@ -231,6 +242,33 @@ export default function EventRegisterForm() {
     }
   }, [location.isSuccess, location.data]);
 
+  const token = session?.token.user.token;
+  const [levelData, setLevelData] = useState<Level[]>([]);
+  async function fetchLevels() {
+    if (session) {
+      const response = await api.get<LevelResponse>("/levels", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setLevelData(response.data.levels);
+    }
+  }
+
+  interface item {
+    value: number;
+    label: string;
+  }
+  const levels: item[] = [];
+
+  levelData.map((level) =>
+    levels.push({ value: level.id, label: level.title })
+  );
+
+  useEffect(() => {
+    fetchLevels();
+  }, [session]);
+
   return (
     <>
       <Navbar />
@@ -250,6 +288,12 @@ export default function EventRegisterForm() {
               label="Qual o nome do evento?"
               placeholder="Informe o nome ou título que identifica seu evento"
               name="name"
+            />
+            <TextareaDefault
+              control={form.control}
+              label="Descreva seu evento"
+              placeholder="Informe o nome ou título que identifica seu evento"
+              name="description"
             />
             {/* when */}
             <div className="flex flex-col gap-2">
@@ -329,15 +373,18 @@ export default function EventRegisterForm() {
                 />
               </div>
             </div>
+            {/* maps */}
+            <InputDefault
+              control={form.control}
+              label="Link do Google Maps (cole aqui)"
+              placeholder="Ajude as pessoas a encontrarem o local"
+              name="maps_url"
+            />
             {/* target audience */}
             <DefaultCombobox
               control={form.control}
               name="level"
-              object={[
-                { value: 1, label: "Iniciante" },
-                { value: 2, label: "Intermediário" },
-                { value: 3, label: "Avançado" },
-              ]}
+              object={levels}
               label="Qual o nível do evento?"
               searchLabel="Buscar nível..."
               selectLabel="Nível"
@@ -408,9 +455,7 @@ export default function EventRegisterForm() {
             </div>
             {/* buttons: cancel and register */}
             <div className="flex flex-col gap-2 md:flex-row md:justify-between mb-16">
-              <Button type="button" variant={"outline"}>
-                Cancelar
-              </Button>
+              <CancelButton />
               <Button type="submit">
                 {isPending ? (
                   <>
