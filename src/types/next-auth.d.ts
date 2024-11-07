@@ -5,6 +5,7 @@ declare module "next-auth" {
     payload: {
       sub: string;
       name: string;
+      username: string;
       type: number;
       iat: number;
       exp: number;

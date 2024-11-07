@@ -17,10 +17,5 @@ export default async function AuthenticatedLayout({
   if (!session) {
     redirect("/");
   }
-  return (
-    <section>
-      <Navbar />
-      <div className="my-8 px-2 container">{children}</div>
-    </section>
-  );
+  return <section>{children}</section>;
 }

@@ -5,6 +5,7 @@ import DatePicker from "@/components/form/date-picker";
 import InputDefault from "@/components/form/input-default";
 import InputImage from "@/components/form/input-image";
 import { RealInput } from "@/components/form/real-input";
+import Navbar from "@/components/navbar";
 import RadioButton from "@/components/radio-button";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
@@ -231,201 +232,204 @@ export default function EventRegisterForm() {
   }, [location.isSuccess, location.data]);
 
   return (
-    <div className="flex flex-col gap-5">
-      <div className="flex gap-3 items-center justify-center text-xl md:text-3xl font-bold">
-        <CalendarDots />
-        <h1 className="">Cadastre seu evento</h1>
-      </div>
-      <Form {...form}>
-        <form
-          className="flex flex-col gap-5"
-          onSubmit={form.handleSubmit(onSubmit)}
-        >
-          {/* name */}
-          <InputDefault
-            control={form.control}
-            label="Qual o nome do evento?"
-            placeholder="Informe o nome ou título que identifica seu evento"
-            name="name"
-          />
-          {/* when */}
-          <div className="flex flex-col gap-2">
-            <p className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-              Quando?
-            </p>
-            <div className="flex flex-col gap-2 md:flex-row md:justify-between">
-              <div className="flex flex-col md:flex-row md:items-center gap-2">
-                <div className="sm:hidden md:flex md:flex-col md:gap-2">
-                  <p className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                    Inicio:
-                  </p>
-                  <div className="sm:hidden md:block md:h-1 md:rounded md:bg-event-green" />
+    <>
+      <Navbar />
+      <div className="flex flex-col gap-5 my-8 px-4 lg:px-12 container max-w-screen-sm">
+        <div className="flex gap-3 items-center justify-center text-xl md:text-3xl font-bold">
+          <CalendarDots />
+          <h1 className="">Cadastre seu evento</h1>
+        </div>
+        <Form {...form}>
+          <form
+            className="flex flex-col gap-5"
+            onSubmit={form.handleSubmit(onSubmit)}
+          >
+            {/* name */}
+            <InputDefault
+              control={form.control}
+              label="Qual o nome do evento?"
+              placeholder="Informe o nome ou título que identifica seu evento"
+              name="name"
+            />
+            {/* when */}
+            <div className="flex flex-col gap-2">
+              <p className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                Quando?
+              </p>
+              <div className="flex flex-col gap-2 md:flex-row md:justify-between">
+                <div className="flex flex-col md:flex-row md:items-center gap-2">
+                  <div className="sm:hidden md:flex md:flex-col md:gap-2">
+                    <p className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                      Inicio:
+                    </p>
+                    <div className="sm:hidden md:block md:h-1 md:rounded md:bg-event-green" />
+                  </div>
+                  <DatePicker control={form.control} name="startsAt" />
                 </div>
-                <DatePicker control={form.control} name="startsAt" />
-              </div>
-              <div className="flex flex-col md:flex-row md:items-center gap-2">
-                <div className="sm:hidden md:flex md:flex-col md:gap-2">
-                  <p className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                    Fim:
-                  </p>
-                  <div className="sm:hidden md:block md:h-1 md:rounded md:bg-event-red" />
+                <div className="flex flex-col md:flex-row md:items-center gap-2">
+                  <div className="sm:hidden md:flex md:flex-col md:gap-2">
+                    <p className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                      Fim:
+                    </p>
+                    <div className="sm:hidden md:block md:h-1 md:rounded md:bg-event-red" />
+                  </div>
+                  <DatePicker control={form.control} name="endsAt" />
                 </div>
-                <DatePicker control={form.control} name="endsAt" />
               </div>
             </div>
-          </div>
-          {/* where */}
-          <div className="flex flex-col gap-2">
-            <p className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-              Onde o evento acontecerá?
-            </p>
-            <div className="flex flex-col gap-2 md:flex-row">
+            {/* where */}
+            <div className="flex flex-col gap-2">
+              <p className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                Onde o evento acontecerá?
+              </p>
+              <div className="flex flex-col gap-2 md:flex-row">
+                <InputDefault
+                  control={form.control}
+                  name="cep"
+                  placeholder="CEP"
+                  className="md:flex-1"
+                  maxLength={8}
+                />
+                <InputDefault
+                  control={form.control}
+                  name="state"
+                  placeholder="UF"
+                  readOnly={true}
+                  className="md:w-1/6"
+                />
+              </div>
               <InputDefault
                 control={form.control}
-                name="cep"
-                placeholder="CEP"
-                className="md:flex-1"
-                maxLength={8}
-              />
-              <InputDefault
-                control={form.control}
-                name="state"
-                placeholder="UF"
+                name="city"
+                placeholder="Cidade"
                 readOnly={true}
-                className="md:w-1/6"
-              />
-            </div>
-            <InputDefault
-              control={form.control}
-              name="city"
-              placeholder="Cidade"
-              readOnly={true}
-            />
-            <InputDefault
-              control={form.control}
-              name="neighborhood"
-              placeholder="Bairro"
-            />
-            <InputDefault
-              control={form.control}
-              name="street"
-              placeholder="Rua"
-            />
-            <div className="flex flex-col gap-2 md:flex-row">
-              <InputDefault
-                control={form.control}
-                name="address_number"
-                placeholder="Nº"
-                className="md:w-1/6"
               />
               <InputDefault
                 control={form.control}
-                name="complement"
-                placeholder="Complemento"
-                className="md:flex-1"
+                name="neighborhood"
+                placeholder="Bairro"
               />
-            </div>
-          </div>
-          {/* target audience */}
-          <DefaultCombobox
-            control={form.control}
-            name="level"
-            object={[
-              { value: 1, label: "Iniciante" },
-              { value: 2, label: "Intermediário" },
-              { value: 3, label: "Avançado" },
-            ]}
-            label="Qual o nível do evento?"
-            searchLabel="Buscar nível..."
-            selectLabel="Nível"
-            className=""
-            onSelect={(value: number) => {
-              form.setValue("level", value);
-            }}
-          />
-          {/* payment */}
-          <div className="flex flex-col gap-2">
-            <p className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-              É cobrado algum valor de entrada/participação?
-            </p>
-            <div className="flex flex-col gap-2 md:flex-row">
-              <RadioButton
-                firstLabel="Não"
-                secondLabel="Sim"
-                firstValue="no-value"
-                secondValue="with-value"
-                optionValue={payOption}
-                onValueChange={(value) => {
-                  setPayOption(value);
-                  if (value === "no-value") {
-                    form.setValue("price", "");
-                  }
-                }}
-              />
-              <RealInput
+              <InputDefault
                 control={form.control}
-                name="price"
-                placeholder="Valor (R$)"
-                disabled={payOption === "no-value"}
-                className="md:flex-1"
+                name="street"
+                placeholder="Rua"
               />
-            </div>
-          </div>
-          {/* representation */}
-          <div className="flex flex-col gap-2">
-            <p className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-              Escolha como representar seu evento!
-            </p>
-            <div className="flex flex-col gap-2 md:flex-row">
-              <RadioButton
-                firstLabel="Imagem"
-                secondLabel="Cor"
-                firstValue="image"
-                secondValue="color"
-                optionValue={form.watch("representationOption")}
-                onValueChange={(value) => {
-                  if (value === "image" || value === "color") {
-                    form.setValue("representationOption", value);
-                  }
-                  if (value === "image") {
-                    form.setValue("representationColor", "");
-                  } else {
-                    form.setValue("representationUrl", new File([], ""));
-                  }
-                }}
-              />
-              <div className="md:flex-1">
-                {form.watch("representationOption") === "image" ? (
-                  <InputImage name="representationUrl" />
-                ) : (
-                  <ColorPicker name="representationColor" />
-                )}
+              <div className="flex flex-col gap-2 md:flex-row">
+                <InputDefault
+                  control={form.control}
+                  name="address_number"
+                  placeholder="Nº"
+                  className="md:w-1/6"
+                />
+                <InputDefault
+                  control={form.control}
+                  name="complement"
+                  placeholder="Complemento"
+                  className="md:flex-1"
+                />
               </div>
             </div>
-          </div>
-          {/* buttons: cancel and register */}
-          <div className="flex flex-col gap-2 md:flex-row md:justify-between">
-            <Button type="button" variant={"outline"}>
-              Cancelar
-            </Button>
-            <Button type="submit">
-              {isPending ? (
-                <>
-                  <FaSpinner className="mr-2 animate-spin" />
-                  "Cadastrando"
-                </>
-              ) : (
-                "Cadastrar"
-              )}
-            </Button>
-          </div>
-          {isError && (
-            <div className="p-2 border border-destructive rounded-md w-full text-center text-destructive text-sm">
-              Erro ao criar evento
+            {/* target audience */}
+            <DefaultCombobox
+              control={form.control}
+              name="level"
+              object={[
+                { value: 1, label: "Iniciante" },
+                { value: 2, label: "Intermediário" },
+                { value: 3, label: "Avançado" },
+              ]}
+              label="Qual o nível do evento?"
+              searchLabel="Buscar nível..."
+              selectLabel="Nível"
+              className=""
+              onSelect={(value: number) => {
+                form.setValue("level", value);
+              }}
+            />
+            {/* payment */}
+            <div className="flex flex-col gap-2">
+              <p className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                É cobrado algum valor de entrada/participação?
+              </p>
+              <div className="flex flex-col gap-2 md:flex-row">
+                <RadioButton
+                  firstLabel="Não"
+                  secondLabel="Sim"
+                  firstValue="no-value"
+                  secondValue="with-value"
+                  optionValue={payOption}
+                  onValueChange={(value) => {
+                    setPayOption(value);
+                    if (value === "no-value") {
+                      form.setValue("price", "");
+                    }
+                  }}
+                />
+                <RealInput
+                  control={form.control}
+                  name="price"
+                  placeholder="Valor (R$)"
+                  disabled={payOption === "no-value"}
+                  className="md:flex-1"
+                />
+              </div>
             </div>
-          )}
-        </form>
-      </Form>
-    </div>
+            {/* representation */}
+            <div className="flex flex-col gap-2">
+              <p className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                Escolha como representar seu evento!
+              </p>
+              <div className="flex flex-col gap-2 md:flex-row">
+                <RadioButton
+                  firstLabel="Imagem"
+                  secondLabel="Cor"
+                  firstValue="image"
+                  secondValue="color"
+                  optionValue={form.watch("representationOption")}
+                  onValueChange={(value) => {
+                    if (value === "image" || value === "color") {
+                      form.setValue("representationOption", value);
+                    }
+                    if (value === "image") {
+                      form.setValue("representationColor", "");
+                    } else {
+                      form.setValue("representationUrl", new File([], ""));
+                    }
+                  }}
+                />
+                <div className="md:flex-1">
+                  {form.watch("representationOption") === "image" ? (
+                    <InputImage name="representationUrl" />
+                  ) : (
+                    <ColorPicker name="representationColor" />
+                  )}
+                </div>
+              </div>
+            </div>
+            {/* buttons: cancel and register */}
+            <div className="flex flex-col gap-2 md:flex-row md:justify-between mb-16">
+              <Button type="button" variant={"outline"}>
+                Cancelar
+              </Button>
+              <Button type="submit">
+                {isPending ? (
+                  <>
+                    <FaSpinner className="mr-2 animate-spin" />
+                    "Cadastrando"
+                  </>
+                ) : (
+                  "Cadastrar"
+                )}
+              </Button>
+            </div>
+            {isError && (
+              <div className="p-2 border border-destructive rounded-md w-full text-center text-destructive text-sm">
+                Erro ao criar evento
+              </div>
+            )}
+          </form>
+        </Form>
+      </div>
+    </>
   );
 }

@@ -26,6 +26,7 @@ export default function RadioButton({
       className={cn("flex gap-5", className)}
       value={optionValue}
       onValueChange={(value) => onValueChange(value)}
+      // defaultValue={firstValue}
     >
       <div className="flex items-center space-x-2">
         <RadioGroupItem value={firstValue} id={firstValue} />

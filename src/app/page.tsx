@@ -1,6 +1,5 @@
 "use client";
-
-import BackButton from "@/components/back-button";
+import { LandingNavbar } from "@/components/landing-navbar";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Carousel,
@@ -9,34 +8,12 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { Link, User } from "lucide-react";
 import Image from "next/image";
 
 export default function LandingPage() {
   return (
     <>
-      <nav className="flex items-center gap-5 border-white bg-navbar px-6 border-b-[1px] h-20">
-        <BackButton />
-        <div className="flex flex-1 justify-between">
-          <div className="flex items-center gap-3 font-semibold text-3xl">
-            <Image src={"/logo.svg"} alt="Logo Fly TM" width={40} height={40} />
-            Fly TM
-          </div>
-          <div className="flex items-center gap-5">
-            <Link href={"/login"}>
-              <div className="flex gap-2 hover:opacity-80 font-semibold transition-all">
-                <User className="text-primary" />
-                FAZER LOGIN
-              </div>
-            </Link>
-            <Link href={"/register"}>
-              <div className="border-primary hover:opacity-80 p-2 border rounded font-semibold transition-all">
-                CADASTRE-SE
-              </div>
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <LandingNavbar />
       <section className="py-10 container">
         <div className="flex justify-between items-center">
           <Carousel

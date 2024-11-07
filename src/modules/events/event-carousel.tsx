@@ -14,8 +14,17 @@ import { format } from "date-fns";
 export default function EventsCarousel() {
   const { data, isLoading, error } = useEventsData();
 
-  if (isLoading) return <p>Carregando eventos...</p>;
+  if (isLoading)
+    return (
+      <p className="w-full text-center animate-pulse">Carregando eventos...</p>
+    );
   if (error) return <p>Erro ao carregar eventos: {error.message}</p>;
+  if (data && data.events.length < 1)
+    return (
+      <p className="w-full font-medium text-center text-lg text-primary">
+        Nenhum evento cadastrado, seja o primeiro a publicar seu evento aqui!
+      </p>
+    );
 
   return (
     <Carousel
@@ -26,7 +35,7 @@ export default function EventsCarousel() {
       }}
       plugins={[
         Autoplay({
-          delay: 3000,
+          delay: 4500,
         }),
       ]}
     >
