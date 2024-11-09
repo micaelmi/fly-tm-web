@@ -26,13 +26,14 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
 import * as z from "zod";
+import { PlanCards } from "./plan-cards";
 
 const FormSchema = z.object({
   name: z.string().min(4, { message: "Mínimo de 4 caracteres" }),
   description: z.string(),
-  logo_url: z.instanceof(File).optional(),
+  logo_url: z.instanceof(File).optional().nullable(),
   background: z.enum(["image", "color"]),
-  background_url: z.instanceof(File).optional(),
+  background_url: z.instanceof(File).optional().nullable(),
   background_color: z.string().optional(),
   owner_username: z.string(),
   email: z.string(),
@@ -46,15 +47,17 @@ const FormSchema = z.object({
   city: z.string(),
   neighborhood: z.string(),
   street: z.string(),
-  address_number: z.number().optional(),
+  address_number: z.string().regex(/^\d+$/, {
+    message: "O campo deve conter apenas números",
+  }),
   complement: z.string().optional(),
   maps_url: z.string().optional(),
-  max_members: z.number(),
+  max_members: z.coerce.number(),
 });
 export default function ClubRegisterForm() {
   const { data: session } = useSession();
-  if (!session) return;
-  const user = session?.payload.username;
+
+  const user = session?.payload.username || "";
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -64,7 +67,7 @@ export default function ClubRegisterForm() {
       logo_url: new File([], ""),
       background: "color",
       background_url: new File([], ""),
-      background_color: "ffffff",
+      background_color: "fff",
       owner_username: "",
       email: "",
       phone: "",
@@ -77,7 +80,7 @@ export default function ClubRegisterForm() {
       city: "",
       neighborhood: "",
       street: "",
-      address_number: 0,
+      address_number: "",
       complement: "",
       maps_url: "",
       max_members: 5,
@@ -117,7 +120,7 @@ export default function ClubRegisterForm() {
         city: data.city,
         neighborhood: data.neighborhood,
         street: data.street,
-        address_number: data.address_number,
+        address_number: Number(data.address_number),
         complement: data.complement,
         maps_url: data.maps_url,
         max_members: data.max_members,
@@ -129,6 +132,44 @@ export default function ClubRegisterForm() {
       }
     );
   };
+
+  const informedCep = form.watch("cep");
+
+  const location = useQuery({
+    queryKey: ["location", informedCep],
+    queryFn: async (): Promise<AxiosResponse<Location>> => {
+      return await api.get(`https://viacep.com.br/ws/${informedCep}/json/`);
+    },
+
+    enabled: /^\d{8}$/.test(informedCep),
+    select: (data) => {
+      return {
+        state: data.data.uf,
+        city: data.data.localidade,
+        neighborhood: data.data.bairro,
+        street: data.data.logradouro,
+        complement: data.data.complemento,
+      };
+    },
+  });
+
+  useEffect(() => {
+    if (location.isSuccess) {
+      form.setValue("state", location.data.state);
+      form.setValue("city", location.data.city);
+      form.setValue("neighborhood", location.data.neighborhood);
+      form.setValue("street", location.data.street);
+      form.setValue("complement", location.data.complement);
+    } else {
+      form.setValue("state", "");
+      form.setValue("city", "");
+      form.setValue("neighborhood", "");
+      form.setValue("street", "");
+      form.setValue("complement", "");
+    }
+  }, [location.isSuccess, location.data]);
+
+  const [formStep, setFormStep] = useState(1);
 
   return (
     <>
@@ -145,109 +186,212 @@ export default function ClubRegisterForm() {
             className="flex flex-col gap-5"
             onSubmit={form.handleSubmit(onSubmit)}
           >
-            <div className="flex flex-col gap-2 mt-4">
-              <p className="text-sm">Logo</p>
-              <InputImageWithPreview control={form.control} name="logo_url" />
-            </div>
-            <div className="flex flex-col gap-2">
-              <p className="peer-disabled:opacity-70 font-medium text-sm leading-none peer-disabled:cursor-not-allowed">
-                Defina uma capa para seu clube
-              </p>
-              <div className="flex md:flex-row flex-col gap-2">
-                <RadioButton
-                  firstLabel="Imagem"
-                  secondLabel="Cor"
-                  firstValue="image"
-                  secondValue="color"
-                  optionValue={form.watch("background")}
-                  onValueChange={(value) => {
-                    if (value === "image" || value === "color") {
-                      form.setValue("background", value);
-                    }
-                    if (value === "image") {
-                      form.setValue("background_color", "");
-                    } else {
-                      form.setValue("background_url", new File([], ""));
-                    }
-                  }}
+            {formStep === 1 && (
+              <div className="flex flex-col gap-5">
+                <div className="flex flex-col gap-2 mt-4">
+                  <p className="text-sm">Logo</p>
+                  <InputImageWithPreview
+                    control={form.control}
+                    name="logo_url"
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <p className="peer-disabled:opacity-70 font-medium text-sm leading-none peer-disabled:cursor-not-allowed">
+                    Defina uma capa para seu clube
+                  </p>
+                  <div className="flex md:flex-row flex-col gap-2">
+                    <RadioButton
+                      firstLabel="Imagem"
+                      secondLabel="Cor"
+                      firstValue="image"
+                      secondValue="color"
+                      optionValue={form.watch("background")}
+                      onValueChange={(value) => {
+                        if (value === "image" || value === "color") {
+                          form.setValue("background", value);
+                        }
+                        if (value === "image") {
+                          form.setValue("background_color", "");
+                        } else {
+                          form.setValue("background_url", new File([], ""));
+                        }
+                      }}
+                    />
+                    <div className="md:flex-1">
+                      {form.watch("background") === "image" ? (
+                        <InputImage name="background_url" />
+                      ) : (
+                        <ColorPicker name="background_color" />
+                      )}
+                    </div>
+                  </div>
+                </div>
+                {/* name */}
+                <InputDefault
+                  control={form.control}
+                  label="Nome do clube"
+                  placeholder="Digite o nome do seu clube"
+                  name="name"
                 />
-                <div className="md:flex-1">
-                  {form.watch("background") === "image" ? (
-                    <InputImage name="background_Url" />
-                  ) : (
-                    <ColorPicker name="background_color" />
-                  )}
+                <TextareaDefault
+                  control={form.control}
+                  label="Texto de apresentação"
+                  placeholder="Descreva seu clube em um pequeno texto"
+                  name="description"
+                />
+                <InputDefault
+                  control={form.control}
+                  type="email"
+                  label="E-mail de contato"
+                  placeholder="Digite o e-mail do seu clube"
+                  name="email"
+                />
+                <InputDefault
+                  control={form.control}
+                  label="Telefone"
+                  placeholder="Digite o telefone do seu clube"
+                  name="phone"
+                />
+                <InputDefault
+                  control={form.control}
+                  label="Instagram"
+                  placeholder="Digite o instagram do seu clube"
+                  name="instagram"
+                />
+                <TextareaDefault
+                  control={form.control}
+                  label="Outras formas de contato"
+                  placeholder="Insira outros contatos se houver"
+                  name="other_contacts"
+                />
+                <TextareaDefault
+                  control={form.control}
+                  label="Horários de funcionamento"
+                  placeholder="Informe os dias e horários de funcionamento do clube"
+                  name="schedule"
+                />
+                <TextareaDefault
+                  control={form.control}
+                  label="Valores"
+                  placeholder="Informe os valores dos serviços oferecidos (mensalidade, diária, por hora...)"
+                  name="prices"
+                />
+                <div className="flex md:flex-row flex-col md:justify-between gap-2 mt-4 mb-12">
+                  <Button type="button" variant={"outline"}>
+                    Cancelar
+                  </Button>
+                  <Button type="button" onClick={() => setFormStep(2)}>
+                    Continuar
+                  </Button>
                 </div>
               </div>
-            </div>
-            {/* name */}
-            <InputDefault
-              control={form.control}
-              label="Nome do clube"
-              placeholder="Digite o nome do seu clube"
-              name="name"
-            />
-            <TextareaDefault
-              control={form.control}
-              label="Texto de apresentação"
-              placeholder="Descreva seu clube em um pequeno texto"
-              name="description"
-            />
-            <InputDefault
-              control={form.control}
-              type="email"
-              label="E-mail de contato"
-              placeholder="Digite o e-mail do seu clube"
-              name="email"
-            />
-            <InputDefault
-              control={form.control}
-              label="Telefone"
-              placeholder="Digite o telefone do seu clube"
-              name="phone"
-            />
-            <InputDefault
-              control={form.control}
-              label="Instagram"
-              placeholder="Digite o instagram do seu clube"
-              name="instagram"
-            />
-            <TextareaDefault
-              control={form.control}
-              label="Outras formas de contato"
-              placeholder="Insira outros contatos se houver"
-              name="other_contacts"
-            />
-            <TextareaDefault
-              control={form.control}
-              label="Horários de funcionamento"
-              placeholder="Informe os dias e horários de funcionamento do clube"
-              name="schedule"
-            />
-            <TextareaDefault
-              control={form.control}
-              label="Valores"
-              placeholder="Informe os valores dos serviços oferecidos 
-(mensalidade, diária, por hora...)"
-              name="prices"
-            />
+            )}
 
-            {/* buttons: cancel and register */}
-            <div className="flex md:flex-row flex-col md:justify-between gap-2 mb-12">
-              <Button type="button" variant={"outline"}>
-                Cancelar
-              </Button>
-              <Button type="submit">
-                {isPending ? (
-                  <>
-                    <FaSpinner className="mr-2 animate-spin" />
-                    "Cadastrando"
-                  </>
-                ) : (
-                  "Cadastrar"
-                )}
-              </Button>
-            </div>
+            {formStep === 2 && (
+              <div className="flex flex-col gap-5">
+                <div className="flex flex-col gap-2">
+                  <p className="peer-disabled:opacity-70 mt-4 font-medium text-sm leading-none peer-disabled:cursor-not-allowed">
+                    Qual é o seu endereço?
+                  </p>
+                  <div className="flex md:flex-row flex-col gap-2">
+                    <InputDefault
+                      control={form.control}
+                      name="cep"
+                      placeholder="CEP"
+                      className="md:flex-1"
+                      maxLength={8}
+                    />
+                    <InputDefault
+                      control={form.control}
+                      name="state"
+                      placeholder="UF"
+                      readOnly={true}
+                      className="md:w-1/6"
+                    />
+                  </div>
+                  <InputDefault
+                    control={form.control}
+                    name="city"
+                    placeholder="Cidade"
+                    readOnly={true}
+                  />
+                  <InputDefault
+                    control={form.control}
+                    name="neighborhood"
+                    placeholder="Bairro"
+                  />
+                  <InputDefault
+                    control={form.control}
+                    name="street"
+                    placeholder="Rua"
+                  />
+                  <div className="flex md:flex-row flex-col gap-2">
+                    <InputDefault
+                      control={form.control}
+                      name="address_number"
+                      placeholder="Nº"
+                      className="md:w-1/6"
+                    />
+                    <InputDefault
+                      control={form.control}
+                      name="complement"
+                      placeholder="Complemento"
+                      className="md:flex-1"
+                    />
+                  </div>
+                </div>
+                {/* maps */}
+                <InputDefault
+                  control={form.control}
+                  label="Link do Google Maps (cole aqui)"
+                  placeholder="Ajude as pessoas a encontrarem o local"
+                  name="maps_url"
+                />
+                <div className="flex md:flex-row flex-col md:justify-between gap-2 mb-12">
+                  <Button
+                    type="button"
+                    variant={"outline"}
+                    onClick={() => setFormStep(2)}
+                  >
+                    Voltar
+                  </Button>
+                  <Button type="button" onClick={() => setFormStep(3)}>
+                    Continuar
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {formStep === 3 && (
+              <div className="flex flex-col gap-5">
+                <PlanCards
+                  control={form.control}
+                  name="max_members"
+                  label="Selecione um plano"
+                />
+                {/* buttons: cancel and register */}
+                <div className="flex md:flex-row flex-col md:justify-between gap-2 mb-12">
+                  <Button
+                    type="button"
+                    variant={"outline"}
+                    onClick={() => setFormStep(2)}
+                  >
+                    Voltar
+                  </Button>
+                  <Button type="submit">
+                    {isPending ? (
+                      <>
+                        <FaSpinner className="mr-2 animate-spin" />
+                        "Cadastrando"
+                      </>
+                    ) : (
+                      "Cadastrar"
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
+
             {isError && (
               <div className="border-destructive p-2 border rounded-md w-full text-center text-destructive text-sm">
                 Erro ao criar evento

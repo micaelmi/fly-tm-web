@@ -17,7 +17,7 @@ export function useEventsData() {
       return response;
     },
     refetchInterval: 5 * 60 * 1000, // 5 minutes
-    // enabled: !!id, // if...
+    enabled: !!dataSession, // if...
     // retry: false,
     refetchOnWindowFocus: true,
     refetchOnReconnect: true,

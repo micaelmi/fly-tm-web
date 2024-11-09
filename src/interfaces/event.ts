@@ -8,7 +8,7 @@ export interface EventRegisterData {
   neighborhood: string;
   street: string;
   address_number: number;
-  maps_url: string;
+  maps_url: string | undefined;
   description: string;
   image_url: string | undefined;
   status: "active" | "inactive";
