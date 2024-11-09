@@ -2,6 +2,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import { AxiosResponse } from "axios";
 import { User, UserRegisterData, UserResponse } from "@/interfaces/user";
+import { useSession } from "next-auth/react";
 
 const fetchUsers = async (): Promise<AxiosResponse<UserResponse>> => {
   const response = await api.get<UserResponse>("/users", {
@@ -60,7 +61,13 @@ export function useChangePassword() {
 }
 
 const editUser = async (userId: string, data: Partial<User>) => {
-  return await api.put(`/users/${userId}`, data);
+  const { data: dataSession } = useSession();
+  const token = dataSession?.token.user.token;
+  return await api.put(`/users/${userId}`, data, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 };
 export function useEditUser() {
   return useMutation({

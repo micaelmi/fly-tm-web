@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import BackButton from "./back-button";
 import Link from "next/link";
@@ -7,14 +9,20 @@ import {
   Strategy,
   UserCircle,
 } from "@phosphor-icons/react/dist/ssr";
+import { useSession } from "next-auth/react";
 
 export default function Navbar({ back = true }: { back?: boolean }) {
+  const username = useSession().data?.payload.username;
+
   return (
     <>
       <nav className="flex items-center border-white bg-navbar border-b-[1px] h-20">
         <div className="flex items-center container">
           <div className="flex flex-1 justify-between">
-            <div className="flex items-center gap-3 font-semibold text-3xl">
+            <Link
+              href={"/home"}
+              className="flex items-center gap-3 font-semibold text-3xl"
+            >
               {back && <BackButton />}
               <Image
                 src={"/logo.svg"}
@@ -23,7 +31,7 @@ export default function Navbar({ back = true }: { back?: boolean }) {
                 height={40}
               />
               Fly TM
-            </div>
+            </Link>
             <div className="md:flex items-center gap-5 hidden text-4xl">
               <Link
                 href={"/home"}
@@ -44,7 +52,7 @@ export default function Navbar({ back = true }: { back?: boolean }) {
                 <Strategy />
               </Link>
               <Link
-                href={"/user"}
+                href={`/user/${username}`}
                 className="hover:text-primary transition-colors"
               >
                 <UserCircle />
@@ -69,7 +77,10 @@ export default function Navbar({ back = true }: { back?: boolean }) {
         >
           <Strategy />
         </Link>
-        <Link href={"/user"} className="hover:text-primary transition-colors">
+        <Link
+          href={`/user/${username}`}
+          className="hover:text-primary transition-colors"
+        >
           <UserCircle />
         </Link>
       </div>

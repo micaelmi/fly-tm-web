@@ -10,19 +10,18 @@ import { Input } from "@/components/ui/input";
 import { X } from "@phosphor-icons/react/dist/ssr";
 import { FolderCheck, Upload } from "lucide-react";
 import { ChangeEvent, useRef, useState } from "react";
+import { useFormContext } from "react-hook-form";
 
 interface InputImageProps {
-  control: any;
   name: string;
 }
 
-export default function InputImageWithPreview({
-  control,
-  name,
-}: InputImageProps) {
+export default function InputImageWithPreview({ name }: InputImageProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { control, setValue } = useFormContext();
 
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -36,6 +35,8 @@ export default function InputImageWithPreview({
       };
 
       reader.readAsDataURL(file);
+    } else {
+      setSelectedImage(null);
     }
   };
 
@@ -44,6 +45,7 @@ export default function InputImageWithPreview({
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
+    setValue(name, new File([], ""));
   };
   return (
     <div className="flex items-center gap-2 w-full">
@@ -89,12 +91,17 @@ export default function InputImageWithPreview({
             </FormLabel>
             <FormControl>
               <Input
+                ref={fileInputRef}
                 className="hidden"
                 type="file"
                 accept="image/*"
                 onChange={(e) => {
-                  field.onChange(e.target.files ? e.target.files[0] : null);
                   handleImageChange(e);
+                  if (e.target.files && e.target.files[0]) {
+                    field.onChange(e.target.files[0]);
+                  } else {
+                    field.onChange(new File([], ""));
+                  }
                 }}
               />
             </FormControl>
