@@ -6,8 +6,10 @@ import {
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import FeatureCard from "./cards/feature-card";
+import { useSession } from "next-auth/react";
 
 export default function FeaturesCarousel() {
+  const username = useSession().data?.payload.username;
   return (
     <Carousel
       opts={{
@@ -41,7 +43,7 @@ export default function FeaturesCarousel() {
             alt="Patola atacando"
             imageUrl="mascot-hitting.svg"
             text="Meu perfil"
-            linkToFeaturePage="#"
+            linkToFeaturePage={`/user/${username}`}
           />
         </CarouselItem>
         <CarouselItem className="md:basis-1/3 lg:basis-1/5">

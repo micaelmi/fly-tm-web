@@ -17,7 +17,7 @@ import { Location } from "@/interfaces/location";
 import api from "@/lib/axios";
 import { handleFileUpload } from "@/lib/firebase-upload";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CalendarDots } from "@phosphor-icons/react/dist/ssr";
+import { ArrowLeft, CalendarDots } from "@phosphor-icons/react/dist/ssr";
 import { useQuery } from "@tanstack/react-query";
 import { AxiosResponse } from "axios";
 import { useSession } from "next-auth/react";
@@ -43,13 +43,11 @@ const FormSchema = z.object({
   schedule: z.string(),
   prices: z.string(),
   cep: z.string().length(8, { message: "Deve conter 8 dígitos" }),
-  state: z.string(),
-  city: z.string(),
-  neighborhood: z.string(),
-  street: z.string(),
-  address_number: z.string().regex(/^\d+$/, {
-    message: "O campo deve conter apenas números",
-  }),
+  state: z.string().length(2, { message: "Deve conter 2 dígitos" }),
+  city: z.string().min(1, { message: "Preencha este campo" }),
+  neighborhood: z.string().min(1, { message: "Preencha este campo" }),
+  street: z.string().min(1, { message: "Preencha este campo" }),
+  address_number: z.string().optional(),
   complement: z.string().optional(),
   maps_url: z.string().optional(),
   max_members: z.coerce.number(),
@@ -174,10 +172,10 @@ export default function ClubRegisterForm() {
   return (
     <>
       <Navbar />
-      <div className="flex flex-col gap-5my-8 px-4 lg:px-12 max-w-screen-sm container">
-        <div className="flex flex-col justify-center items-center mt-12 font-bold">
+      <div className="flex flex-col gap-5 my-8 px-4 lg:px-12 max-w-screen-sm container">
+        <div className="flex flex-col justify-center items-center font-bold">
           <h1 className="font-black text-3xl">Crie seu clube!</h1>
-          <p className="text-gray-400">
+          <p className="text-center text-gray-400">
             E inicie uma nova jornada como gerente de uma comunidade.
           </p>
         </div>
@@ -190,10 +188,7 @@ export default function ClubRegisterForm() {
               <div className="flex flex-col gap-5">
                 <div className="flex flex-col gap-2 mt-4">
                   <p className="text-sm">Logo</p>
-                  <InputImageWithPreview
-                    control={form.control}
-                    name="logo_url"
-                  />
+                  <InputImageWithPreview name="logo_url" />
                 </div>
                 <div className="flex flex-col gap-2">
                   <p className="peer-disabled:opacity-70 font-medium text-sm leading-none peer-disabled:cursor-not-allowed">
@@ -276,11 +271,15 @@ export default function ClubRegisterForm() {
                   placeholder="Informe os valores dos serviços oferecidos (mensalidade, diária, por hora...)"
                   name="prices"
                 />
-                <div className="flex md:flex-row flex-col md:justify-between gap-2 mt-4 mb-12">
+                <div className="flex justify-center md:justify-between gap-2 mt-4 mb-12">
                   <Button type="button" variant={"outline"}>
                     Cancelar
                   </Button>
-                  <Button type="button" onClick={() => setFormStep(2)}>
+                  <Button
+                    type="button"
+                    onClick={() => setFormStep(2)}
+                    className="flex-1"
+                  >
                     Continuar
                   </Button>
                 </div>
@@ -347,15 +346,19 @@ export default function ClubRegisterForm() {
                   placeholder="Ajude as pessoas a encontrarem o local"
                   name="maps_url"
                 />
-                <div className="flex md:flex-row flex-col md:justify-between gap-2 mb-12">
+                <div className="flex justify-center md:justify-between gap-2 mb-12">
                   <Button
                     type="button"
                     variant={"outline"}
-                    onClick={() => setFormStep(2)}
+                    onClick={() => setFormStep(1)}
                   >
-                    Voltar
+                    <ArrowLeft />
                   </Button>
-                  <Button type="button" onClick={() => setFormStep(3)}>
+                  <Button
+                    type="button"
+                    onClick={() => setFormStep(3)}
+                    className="flex-1"
+                  >
                     Continuar
                   </Button>
                 </div>
@@ -370,15 +373,15 @@ export default function ClubRegisterForm() {
                   label="Selecione um plano"
                 />
                 {/* buttons: cancel and register */}
-                <div className="flex md:flex-row flex-col md:justify-between gap-2 mb-12">
+                <div className="flex justify-center md:justify-between gap-2 mb-20">
                   <Button
                     type="button"
                     variant={"outline"}
                     onClick={() => setFormStep(2)}
                   >
-                    Voltar
+                    <ArrowLeft />
                   </Button>
-                  <Button type="submit">
+                  <Button type="submit" className="flex-1 bg-green-400">
                     {isPending ? (
                       <>
                         <FaSpinner className="mr-2 animate-spin" />

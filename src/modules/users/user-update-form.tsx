@@ -5,16 +5,22 @@ import InputDefault from "@/components/form/input-default";
 import InputImageWithPreview from "@/components/form/input-image-with-preview";
 import TextareaDefault from "@/components/form/textarea-default";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Form } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useEditUser } from "@/hooks/use-users";
+import { GameStyle } from "@/interfaces/game-style";
+import { HandGrip } from "@/interfaces/hand-grip";
+import { Level, LevelResponse } from "@/interfaces/level";
 import { Location } from "@/interfaces/location";
+import { UserType } from "@/interfaces/user-type";
 import api from "@/lib/axios";
 import { deleteFile, handleFileUpload } from "@/lib/firebase-upload";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
 import { AxiosResponse } from "axios";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -48,15 +54,15 @@ interface UserFilteredData {
   city: string;
   instagram: string;
   image_url: string;
-  user_type: number;
-  level: number;
-  game_style: number;
+  user_type: UserType;
+  level: Level;
+  game_style: GameStyle;
+  hand_grip: HandGrip;
   club: {
     id: string;
     name: string;
     logo_url: string;
   };
-  hand_grip: number;
   credits: number;
 }
 
@@ -64,24 +70,63 @@ interface UserUpdateFormProps {
   user_data: UserFilteredData;
 }
 
+interface item {
+  value: number;
+  label: string;
+}
+
 export default function UserUpdateForm({ user_data }: UserUpdateFormProps) {
+  const { data: session } = useSession();
+  const token = session?.token.user.token;
+
+  const [removeFile, setRemoveFile] = useState(false);
   const [cep, setCep] = useState("");
   const [deleteModal, setDeleteModal] = useState<boolean>(false);
-  const [handGrips, setHandGrips] = useState([
-    { value: 1, label: "Clássica" },
-    { value: 2, label: "Caneta" },
-    { value: 3, label: "Classineta" },
-  ]);
-  const [gameStyles, setGameStyles] = useState([
-    { value: 1, label: "Kato" },
-    { value: 2, label: "Pino" },
-    { value: 3, label: "Ataque" },
-  ]);
-  const [levels, setLevels] = useState([
-    { value: 1, label: "Iniciante" },
-    { value: 2, label: "Intermediário" },
-    { value: 3, label: "Avançado" },
-  ]);
+
+  const [handGripData, setHandGripData] = useState<HandGrip[]>([]);
+  const [gameStyleData, setGameStyleData] = useState<GameStyle[]>([]);
+  const [levelData, setLevelData] = useState<Level[]>([]);
+
+  useEffect(() => {
+    if (session) {
+      Promise.all([
+        api
+          .get("/levels", {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+          .then((response) => setLevelData(response.data.levels)),
+
+        api
+          .get("/hand-grips", {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+          .then((response) => setHandGripData(response.data.handGrips)),
+
+        api
+          .get("/game-styles", {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+          .then((response) => setGameStyleData(response.data.gameStyles)),
+      ]).catch((error) => console.error("Error fetching data:", error));
+    }
+  }, [session]);
+
+  const levels: item[] = levelData
+    .map((level) => ({
+      value: level.id,
+      label: level.title,
+    }))
+    .filter((level) => level.label !== "Livre");
+
+  const handGrips: item[] = handGripData.map((handGrip) => ({
+    value: handGrip.id,
+    label: handGrip.title,
+  }));
+
+  const gameStyles: item[] = gameStyleData.map((gameStyle) => ({
+    value: gameStyle.id,
+    label: gameStyle.title,
+  }));
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -93,9 +138,9 @@ export default function UserUpdateForm({ user_data }: UserUpdateFormProps) {
       state: user_data.state,
       instagram: user_data.instagram ?? "",
       bio: user_data.bio ?? "",
-      game_style_id: user_data.game_style ?? undefined,
-      hand_grip_id: user_data.hand_grip ?? undefined,
-      level_id: user_data.level ?? undefined,
+      game_style_id: user_data.game_style.id ?? undefined,
+      hand_grip_id: user_data.hand_grip.id ?? undefined,
+      level_id: user_data.level.id ?? undefined,
       status: "active",
     },
   });
@@ -121,46 +166,50 @@ export default function UserUpdateForm({ user_data }: UserUpdateFormProps) {
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     let file;
-    if (data.image_file && data.image_file.size > 0) {
-      if (data.image_file instanceof File) {
-        const timestamp = new Date().toISOString();
-        const fileExtension = data.image_file.name.split(".").pop();
-        file = await handleFileUpload(
-          data.image_file,
-          `usuarios/imagem-perfil-${timestamp}.${fileExtension}`
-        );
-        if (user_data.image_url) {
-          await deleteFile(user_data.image_url);
-        }
-      } else file = "";
-    } else file = "";
+
+    if (removeFile) {
+      file = "";
+      if (user_data.image_url.length > 0) {
+        deleteFile(user_data.image_url);
+      }
+    } else if (data.image_file instanceof File && data.image_file.size > 0) {
+      const timestamp = new Date().toISOString();
+      const fileExtension = data.image_file.name.split(".").pop();
+
+      file = await handleFileUpload(
+        data.image_file,
+        `usuarios/imagem-perfil-${timestamp}.${fileExtension}`
+      );
+      if (user_data.image_url.length > 0) {
+        deleteFile(user_data.image_url);
+      }
+    } else if (data?.image_file) file = user_data.image_url;
+    else file = "";
 
     const { image_file, ...rest } = data;
     const filteredData = { ...rest, image_url: file };
 
-    mutate(
-      {
-        userId: user_data.id,
-        data: {
-          name: filteredData.name,
-          email: filteredData.email,
-          bio: filteredData.bio,
-          state: filteredData.state,
-          city: filteredData.city,
-          instagram: filteredData.instagram,
-          image_url: filteredData.image_url,
-          status: filteredData.status,
-          level_id: filteredData.level_id,
-          game_style_id: filteredData.game_style_id,
-          hand_grip_id: filteredData.hand_grip_id,
-        },
+    const userData = {
+      userId: user_data.id,
+      data: {
+        name: filteredData.name,
+        email: filteredData.email,
+        bio: filteredData.bio,
+        state: filteredData.state,
+        city: filteredData.city,
+        instagram: filteredData.instagram,
+        image_url: filteredData.image_url,
+        status: filteredData.status,
+        level_id: filteredData.level_id,
+        game_style_id: filteredData.game_style_id,
+        hand_grip_id: filteredData.hand_grip_id,
       },
-      {
-        onSuccess: () => {
-          router.push(`/user/${user_data.username}`);
-        },
-      }
-    );
+    };
+    mutate(userData, {
+      onSuccess: () => {
+        router.push(`/user/${user_data.username}`);
+      },
+    });
   };
 
   useEffect(() => {
@@ -195,10 +244,28 @@ export default function UserUpdateForm({ user_data }: UserUpdateFormProps) {
                   alt="Imagem atual do perfil"
                   priority
                 />
-                <p className="text-sm leading-4 tracking-tight">
-                  Essa é a sua imagem atual. Sinta-se a vontade para realizar o
-                  upload de uma nova imagem abaixo.
-                </p>
+                <div className="flex flex-col gap-2">
+                  <p className="text-sm leading-4 tracking-tight">
+                    Essa é a sua imagem atual. Sinta-se a vontade para realizar
+                    o upload de uma nova imagem abaixo.
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="check"
+                      onClick={() => {
+                        setRemoveFile(!removeFile);
+                      }}
+                    />
+                    <label
+                      htmlFor="check"
+                      className="peer-disabled:opacity-70 font-medium text-sm leading-none cursor-pointer peer-disabled:cursor-not-allowed"
+                    >
+                      {removeFile
+                        ? "Sua foto será removida"
+                        : "Clique para remover sua foto"}
+                    </label>
+                  </div>
+                </div>
               </div>
             ) : (
               <div className="flex items-center gap-3">
@@ -262,7 +329,7 @@ export default function UserUpdateForm({ user_data }: UserUpdateFormProps) {
               ) : (
                 <div className="flex gap-2 text-sm leading-4 tracking-tight">
                   <p>Sua localização será atualizada para:</p>
-                  <p>
+                  <p className="font-semibold">
                     {data?.city} - {data?.state}
                   </p>
                 </div>
@@ -271,7 +338,7 @@ export default function UserUpdateForm({ user_data }: UserUpdateFormProps) {
             <InputDefault
               control={form.control}
               name="instagram"
-              placeholder="instagram"
+              placeholder="Adicione seu @"
               label="Instagram"
             />
           </div>

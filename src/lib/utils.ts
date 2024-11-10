@@ -18,3 +18,9 @@ export function generateRandomNumber() {
 
   return randomNumber;
 }
+
+export function isValidUrl(url: string): boolean {
+  const urlPattern =
+    /^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d+)?(\/.*)?$/;
+  return urlPattern.test(url);
+}

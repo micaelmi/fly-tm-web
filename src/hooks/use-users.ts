@@ -60,18 +60,22 @@ export function useChangePassword() {
   });
 }
 
-const editUser = async (userId: string, data: Partial<User>) => {
+export function useEditUser() {
   const { data: dataSession } = useSession();
   const token = dataSession?.token.user.token;
-  return await api.put(`/users/${userId}`, data, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-};
-export function useEditUser() {
   return useMutation({
-    mutationFn: ({ userId, data }: { userId: string; data: Partial<User> }) =>
-      editUser(userId, data),
+    mutationFn: async ({
+      userId,
+      data,
+    }: {
+      userId: string;
+      data: Partial<User>;
+    }) => {
+      return await api.put(`/users/${userId}`, data, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    },
   });
 }

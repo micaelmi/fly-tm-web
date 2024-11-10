@@ -21,7 +21,7 @@ export function PlanCards({ control, name, label }: PlanCardProps) {
       name={name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>{label}</FormLabel>
+          <FormLabel className="mt-8 text-lg">{label}</FormLabel>
           <RadioGroup
             onValueChange={field.onChange}
             defaultValue={field.value}

@@ -2,7 +2,11 @@
 
 import Navbar from "@/components/navbar";
 import { Separator } from "@/components/ui/separator";
+import { User } from "@/interfaces/user";
 import api from "@/lib/axios";
+import { isValidUrl } from "@/lib/utils";
+import LogoutButton from "@/modules/auth/logout-button";
+import { ChangeUsernameForm } from "@/modules/users/change-username-form";
 import {
   Coins,
   Fire,
@@ -18,37 +22,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
-export interface UserData {
-  user: {
-    id: string;
-    name: string;
-    username: string;
-    email: string;
-    bio: string;
-    created_at: Date;
-    training_days: number;
-    state: string;
-    city: string;
-    instagram: string;
-    image_url: string;
-    user_type: number;
-    level: number;
-    game_style: number;
-    club: {
-      id: string;
-      name: string;
-      logo_url: string;
-    };
-    hand_grip: number;
-    credits: number;
-  };
+interface UserData {
+  user: User;
 }
 
-export default function User() {
+export default function UserDetails() {
   const username_params = useParams().username;
   const session = useSession().data;
 
-  const usersOwn = username_params === session?.payload.username;
+  const own_page = username_params === session?.payload.username;
 
   const token = session?.token.user.token;
 
@@ -70,7 +52,6 @@ export default function User() {
     );
   if (user.error) return <p>Erro ao carregar perfil: {user.error.message}</p>;
 
-  console.log(user.data?.data);
   const user_data = user.data?.data.user;
   if (!user_data) return <p>Dados do usuário não disponíveis</p>;
 
@@ -82,27 +63,36 @@ export default function User() {
         <div className="flex gap-32">
           <div className="flex flex-col justify-center items-center gap-5">
             <div className="flex flex-col items-center w-full leading-3">
-              {usersOwn ? (
-                <Link
-                  href={`./${user_data.username}/edit`}
-                  className="relative group"
-                >
-                  <Image
-                    src={
-                      user_data.image_url ??
-                      `https://api.dicebear.com/9.x/thumbs/svg?seed=${user_data.id}`
-                    }
-                    width={150}
-                    height={150}
-                    alt="Imagem do perfil"
-                    className="border-primary group-hover:opacity-50 border rounded-full transition duration-300 aspect-square"
-                    priority
-                    unoptimized={true}
-                  />
-                  <div className="absolute inset-0 flex justify-center items-center opacity-0 group-hover:opacity-100 transition duration-300">
-                    <Pencil className="text-3xl" />
-                  </div>
-                </Link>
+              {own_page ? (
+                <>
+                  <Link
+                    href={`./${user_data.username}/edit`}
+                    className="relative group"
+                  >
+                    <Image
+                      src={
+                        user_data.image_url && isValidUrl(user_data.image_url)
+                          ? user_data.image_url
+                          : `https://api.dicebear.com/9.x/thumbs/svg?seed=${user_data.id}`
+                      }
+                      width={150}
+                      height={150}
+                      alt="Imagem do perfil"
+                      className="border-primary group-hover:opacity-50 border rounded-full transition duration-300 aspect-square"
+                      priority
+                      unoptimized={true}
+                    />
+                    <div className="absolute inset-0 flex justify-center items-center opacity-0 group-hover:opacity-100 transition duration-300">
+                      <Pencil className="text-3xl" />
+                    </div>
+                  </Link>
+                  <Link
+                    className="text-3xl hover:animate-spin hover:cursor-pointer self-end"
+                    href={`./${user_data.username}/edit`}
+                  >
+                    <Gear />
+                  </Link>
+                </>
               ) : (
                 <Image
                   src={
@@ -117,9 +107,11 @@ export default function User() {
                   unoptimized={true}
                 />
               )}
-              <Gear className="text-3xl hover:animate-spin hover:cursor-pointer self-end" />
-              <p className="font-semibold text-xl">{user_data.name}</p>
-              <p>{user_data.username}</p>
+              <p className="pb-2 font-semibold text-xl">{user_data.name}</p>
+              <div className="flex justify-center items-center gap-1">
+                <p>{user_data.username}</p>
+                {own_page && <ChangeUsernameForm />}
+              </div>
             </div>
             <div className="flex items-center gap-2 bg-slate-300 px-2 rounded-lg w-52 h-12 font-semibold text-black truncate">
               <Fire size={25} weight="fill" className="text-orange-400" />
@@ -137,26 +129,30 @@ export default function User() {
               </div>
             </div>
             <div className="flex flex-col gap-3 self-start">
-              <div className="flex items-center gap-2">
-                <MapPinLine weight="fill" className="text-3xl text-red-600" />
-                {user_data.city
-                  ? user_data.city + " - " + user_data.state
-                  : "Não informado"}
-              </div>
-              <div className="flex items-center gap-2">
-                <InstagramLogo className="text-3xl text-yellow-500" />
-                {user_data.instagram ?? "Não informado"}
-              </div>
+              {user_data.city && (
+                <div className="flex items-center gap-2">
+                  <MapPinLine weight="fill" className="text-3xl text-red-600" />
+                  {user_data.city} - {user_data.state}
+                </div>
+              )}
+              {user_data.instagram && (
+                <div className="flex items-center gap-2">
+                  <InstagramLogo className="text-3xl text-yellow-500" />
+                  {user_data.instagram}
+                </div>
+              )}
             </div>
           </div>
-          <div className="flex flex-col gap-32">
+          {/* col 2 */}
+          <div className="flex flex-col gap-8">
             <div className="flex flex-col gap-2">
               <h2 className="font-semibold text-xl">Apresentação</h2>
-              <p className="text-sm">
+              <p className="max-w-lg text-justify text-sm">
                 {user_data.bio ?? "Nenhuma descrição fornecida"}
               </p>
             </div>
             <div className="flex gap-32">
+              {/* club */}
               <div className="flex flex-col justify-center items-center gap-2">
                 <h2 className="font-semibold text-xl">Clube</h2>
                 <Image
@@ -177,15 +173,30 @@ export default function User() {
                     : "Este jogador não está em nenhum clube"}
                 </p>
               </div>
+              {/* athlete info */}
               <div className="flex flex-col gap-2">
                 <h2 className="font-semibold text-xl">Informações do atleta</h2>
-                <div className="flex flex-col text-sm">
-                  <p>Empunhadura: {user_data.hand_grip ?? "Não informado"}</p>
-                  <p>Estilo: {user_data.game_style ?? "Não informado"}</p>
-                  <p>Nível: {user_data.level ?? "Não informado"}</p>
+                <div className="flex flex-col gap-1 text-lg">
+                  <p>
+                    Empunhadura:{" "}
+                    {user_data.hand_grip
+                      ? user_data.hand_grip.title
+                      : "Não informado"}
+                  </p>
+                  <p>
+                    Estilo:{" "}
+                    {user_data.game_style
+                      ? user_data.game_style.title
+                      : "Não informado"}
+                  </p>
+                  <p>
+                    Nível:{" "}
+                    {user_data.level ? user_data.level.title : "Não informado"}
+                  </p>
                 </div>
               </div>
             </div>
+            {own_page && <LogoutButton />}
           </div>
         </div>
       </div>
