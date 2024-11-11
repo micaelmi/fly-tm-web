@@ -22,13 +22,13 @@ export default function FeatureCard({
       href={linkToFeaturePage}
       className="flex flex-col items-center hover:opacity-80 text-primary transition-all scale-125"
     >
-      <Image
+      <img
         className={cn("bg-primary p-4 rounded-xl aspect-square", className)}
         src={imageUrl}
         width={135}
         height={135}
         alt={alt}
-        priority
+        // priority
       />
       {text}
     </Link>

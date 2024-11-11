@@ -1,3 +1,4 @@
+import ContactButton from "@/components/contact-button";
 import FeaturesCarousel from "@/components/features-carousel";
 import Navbar from "@/components/navbar";
 import Search from "@/components/search";
@@ -56,6 +57,7 @@ export default function Home() {
             Criar clube
           </Link>
         </div>
+        <ContactButton />
       </div>
     </>
   );

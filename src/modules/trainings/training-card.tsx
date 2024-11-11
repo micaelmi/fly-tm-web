@@ -21,7 +21,7 @@ export default function TrainingCard({
       href={urlToTraining}
       className="inline-block hover:opacity-80 transition-all"
     >
-      <div className="flex flex-col gap-5 border-primary p-4 border rounded w-min min-w-72">
+      <div className="flex flex-col gap-5 border-primary p-4 border rounded-xl w-min min-w-72">
         <div>
           <div className="flex items-center gap-2 text-primary text-sm">
             <Flag />

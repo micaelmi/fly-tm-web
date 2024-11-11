@@ -41,7 +41,7 @@ export default function EventCard({
         <Medal size={20} />
         Nível: {level}
       </div>
-      <Button className="text-xs self-end">Ver mais</Button>
+      <Button className="text-sm self-end">Ver mais</Button>
     </div>
   );
 }

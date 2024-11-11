@@ -7,9 +7,36 @@ import {
 import Autoplay from "embla-carousel-autoplay";
 import FeatureCard from "./cards/feature-card";
 import { useSession } from "next-auth/react";
+import { useQuery } from "@tanstack/react-query";
+import { AxiosResponse } from "axios";
+import { User } from "@/interfaces/user";
+import api from "@/lib/axios";
+import { useEffect, useState } from "react";
 
 export default function FeaturesCarousel() {
-  const username = useSession().data?.payload.username;
+  const session = useSession().data;
+  const username = session?.payload.username;
+  const token = session?.token.user.token;
+
+  const [user, setUser] = useState<User>();
+
+  const fetchData = async () => {
+    if (session)
+      try {
+        const response = await api.get(`/users/${username}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setUser(response.data.user);
+      } catch (error) {
+        console.error("Erro ao obter dados:", error);
+      }
+  };
+  useEffect(() => {
+    fetchData();
+  }, [session]);
+
   return (
     <Carousel
       opts={{
@@ -49,9 +76,12 @@ export default function FeaturesCarousel() {
         <CarouselItem className="md:basis-1/3 lg:basis-1/5">
           <FeatureCard
             alt="Logo de clube"
-            imageUrl="club-logo.svg"
-            text="Clubes"
-            linkToFeaturePage="#"
+            imageUrl={
+              user?.club.logo_url ||
+              `https://api.dicebear.com/9.x/thumbs/svg?seed=${user?.club.id}`
+            }
+            text="Meu clube"
+            linkToFeaturePage={`/clubs/${user?.club.id}`}
           />
         </CarouselItem>
         <CarouselItem className="md:basis-1/3 lg:basis-1/5">

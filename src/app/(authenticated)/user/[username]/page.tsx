@@ -1,5 +1,6 @@
 "use client";
 
+import Loading from "@/app/loading";
 import Navbar from "@/components/navbar";
 import { Separator } from "@/components/ui/separator";
 import { User } from "@/interfaces/user";
@@ -46,10 +47,7 @@ export default function UserDetails() {
     enabled: !!token,
   });
 
-  if (user.isLoading)
-    return (
-      <p className="w-full text-center animate-pulse">Carregando perfil...</p>
-    );
+  if (user.isLoading) return <Loading />;
   if (user.error) return <p>Erro ao carregar perfil: {user.error.message}</p>;
 
   const user_data = user.data?.data.user;

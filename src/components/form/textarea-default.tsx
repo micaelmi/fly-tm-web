@@ -16,6 +16,7 @@ interface TextareaDefaultProps {
   description?: string;
   placeholder: string;
   className?: string;
+  rows?: number;
 }
 
 export default function TextareaDefault({
@@ -25,6 +26,7 @@ export default function TextareaDefault({
   description,
   placeholder,
   className,
+  rows = 5,
 }: TextareaDefaultProps) {
   return (
     <FormField
@@ -38,6 +40,7 @@ export default function TextareaDefault({
               {...field}
               placeholder={placeholder}
               className={cn(className)}
+              rows={rows}
             />
           </FormControl>
           {description ? (

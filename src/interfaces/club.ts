@@ -19,6 +19,9 @@ export interface ClubRegisterData {
   complement: string | undefined;
   maps_url: string | undefined;
   max_members: number;
+  _count: {
+    users: number;
+  };
 }
 
 export interface Club extends ClubRegisterData {

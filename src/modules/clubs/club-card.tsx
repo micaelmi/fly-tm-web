@@ -25,14 +25,14 @@ export default function ClubCard({
         alt="Logo do clube"
         height={115}
         width={115}
-        className="aspect-square"
+        className="rounded-full aspect-square"
       />
       <div className="flex items-center gap-2 text-muted-foreground text-sm">
         <UsersThree size={20} />
         {members}
       </div>
       <p className="text-muted-foreground text-sm">{local}</p>
-      <Button className="w-full text-xs">{buttonContent}</Button>
+      <Button className="w-full text-sm">{buttonContent}</Button>
     </div>
   );
 }

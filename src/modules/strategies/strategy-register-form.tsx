@@ -46,17 +46,17 @@ export default function StrategyRegisterForm() {
   const [movesForChoose, setMovesForChoose] = useState([
     {
       movement_id: 1,
-      movement_description: "Drive",
+      movement_description: "Drive de Forehand",
       movement_image_url: "/mascot-hitting.svg",
     },
     {
       movement_id: 2,
-      movement_description: "Chiquita",
+      movement_description: "Smash",
       movement_image_url: "/mascot-hitting.svg",
     },
     {
       movement_id: 3,
-      movement_description: "Backend",
+      movement_description: "Drive de Backhand",
       movement_image_url: "/mascot-hitting.svg",
     },
   ]);
@@ -110,17 +110,17 @@ export default function StrategyRegisterForm() {
       <Navbar />
       <div className="flex mt-5 mb-5 container">
         {/* Formulário */}
-        <div>
+        <div className="space-y-3 mr-16 w-full max-w-lg">
           <div className="flex items-center gap-3 font-semibold text-4xl">
             <Strategy />
             Elabore uma estratégia
           </div>
-          <p>
+          <p className="text-xl">
             Ao lado, caso deseje, escolha movimentos coerentes à estratégia
             elaborada e relacione-os
           </p>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <InputDefault
                 control={form.control}
                 name="against_whom"
@@ -134,7 +134,7 @@ export default function StrategyRegisterForm() {
                 placeholder="Descreva quais movimentos devem ser usados e em qual sequência. Considerando também destacar os contextos apropriados para o uso dessa estratégia."
               />
               {items.length > 0 ? (
-                <>
+                <div className="space-y-3">
                   <Label>Movimentos relacionados</Label>
                   <ScrollArea>
                     <div className="flex flex-col gap-2">
@@ -142,9 +142,8 @@ export default function StrategyRegisterForm() {
                         return (
                           <div
                             key={item.movement_id}
-                            className="flex items-center gap-2 p-2 border border-border rounded"
+                            className="flex justify-between items-center gap-2 px-4 py-2 border border-border rounded"
                           >
-                            {item.movement_id}
                             {item.description}
                             <Button
                               variant={"secondary"}
@@ -156,7 +155,7 @@ export default function StrategyRegisterForm() {
                                 form.setValue("items", newItemsList);
                               }}
                               type="button"
-                              className="bg-transparent p-0 h-fit text-primary"
+                              className="bg-transparent p-1 h-fit text-primary"
                             >
                               <TrashSimple />
                             </Button>
@@ -165,7 +164,7 @@ export default function StrategyRegisterForm() {
                       })}
                     </div>
                   </ScrollArea>
-                </>
+                </div>
               ) : null}
               <div className="flex justify-between">
                 <Button variant={"outline"}>Cancelar</Button>
@@ -189,18 +188,19 @@ export default function StrategyRegisterForm() {
             </form>
           </Form>
         </div>
-        <Separator orientation="vertical" />
         {/* Movimentos para relação */}
-        <div>
-          <h1>Movimentos</h1>
+        <div className="space-y-3 ml-16 w-full max-w-72">
+          <h1 className="font-semibold text-4xl text-center">Movimentos</h1>
           <Search pagination={false} placeholder="Buscar..." />
           {movesForChoose.map((move) => {
             return (
-              <div key={move.movement_id}>
-                {move.movement_id}
-                <div>
+              <div
+                key={move.movement_id}
+                className="flex flex-col justify-center items-center gap-2 p-4 border rounded-xl"
+              >
+                <div className="flex justify-between items-center gap-2 w-full font-medium text-lg">
                   {move.movement_description}
-                  <Question />
+                  <Question size={24} />
                 </div>
                 <Image
                   src={move.movement_image_url}
@@ -209,7 +209,7 @@ export default function StrategyRegisterForm() {
                   className="aspect-square"
                   alt="Imagem do movimento"
                 />
-                <Button
+                <button
                   type="button"
                   onClick={() => {
                     if (
@@ -226,9 +226,10 @@ export default function StrategyRegisterForm() {
                       form.setValue("items", [...items, newItem]);
                     }
                   }}
+                  className="font-semibold text-primary hover:underline cursor-pointer"
                 >
                   Relacionar
-                </Button>
+                </button>
               </div>
             );
           })}
