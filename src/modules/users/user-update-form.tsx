@@ -1,5 +1,6 @@
 "use client";
 
+import Loading from "@/app/loading";
 import DefaultCombobox from "@/components/form/combobox-default";
 import InputDefault from "@/components/form/input-default";
 import InputImageWithPreview from "@/components/form/input-image-with-preview";
@@ -66,13 +67,19 @@ interface UserFilteredData {
   credits: number;
 }
 
-interface UserUpdateFormProps {
-  user_data: UserFilteredData;
-}
-
-interface item {
+interface Item {
   value: number;
   label: string;
+}
+
+interface ComboboxOption {
+  id: number;
+  title: string;
+  description: string;
+}
+
+interface UserUpdateFormProps {
+  user_data: UserFilteredData;
 }
 
 export default function UserUpdateForm({ user_data }: UserUpdateFormProps) {
@@ -87,46 +94,52 @@ export default function UserUpdateForm({ user_data }: UserUpdateFormProps) {
   const [gameStyleData, setGameStyleData] = useState<GameStyle[]>([]);
   const [levelData, setLevelData] = useState<Level[]>([]);
 
-  useEffect(() => {
-    if (session) {
-      Promise.all([
-        api
-          .get("/levels", {
-            headers: { Authorization: `Bearer ${token}` },
-          })
-          .then((response) => setLevelData(response.data.levels)),
+  api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-        api
-          .get("/hand-grips", {
-            headers: { Authorization: `Bearer ${token}` },
-          })
-          .then((response) => setHandGripData(response.data.handGrips)),
+  const {
+    data: combobox_data,
+    isLoading: combobox_isLoading,
+    error: combobox_error,
+  } = useQuery({
+    queryKey: ["levelsData", "handGripsData", "gameStylesData"],
+    queryFn: async () => {
+      const [levels, hand_grips, game_styles] = await Promise.all([
+        api.get("/levels"),
+        api.get("/hand-grips"),
+        api.get("/game-styles"),
+      ]);
 
-        api
-          .get("/game-styles", {
-            headers: { Authorization: `Bearer ${token}` },
-          })
-          .then((response) => setGameStyleData(response.data.gameStyles)),
-      ]).catch((error) => console.error("Error fetching data:", error));
-    }
-  }, [session]);
+      return {
+        levels: levels.data,
+        hand_grips: hand_grips.data,
+        game_styles: game_styles.data,
+      };
+    },
+    enabled: !!token,
+  });
 
-  const levels: item[] = levelData
-    .map((level) => ({
+  console.log(combobox_data);
+
+  const levels: Item[] = combobox_data?.levels.levels
+    .map((level: ComboboxOption) => ({
       value: level.id,
       label: level.title,
     }))
-    .filter((level) => level.label !== "Livre");
+    .filter((level: Item) => level.label !== "Livre");
 
-  const handGrips: item[] = handGripData.map((handGrip) => ({
-    value: handGrip.id,
-    label: handGrip.title,
-  }));
+  const handGrips: Item[] = combobox_data?.hand_grips.handGrips.map(
+    (handGrip: ComboboxOption) => ({
+      value: handGrip.id,
+      label: handGrip.title,
+    })
+  );
 
-  const gameStyles: item[] = gameStyleData.map((gameStyle) => ({
-    value: gameStyle.id,
-    label: gameStyle.title,
-  }));
+  const gameStyles: Item[] = combobox_data?.game_styles.gameStyles.map(
+    (gameStyle: ComboboxOption) => ({
+      value: gameStyle.id,
+      label: gameStyle.title,
+    })
+  );
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -138,9 +151,9 @@ export default function UserUpdateForm({ user_data }: UserUpdateFormProps) {
       state: user_data.state,
       instagram: user_data.instagram ?? "",
       bio: user_data.bio ?? "",
-      game_style_id: user_data.game_style.id ?? undefined,
-      hand_grip_id: user_data.hand_grip.id ?? undefined,
-      level_id: user_data.level.id ?? undefined,
+      game_style_id: user_data.game_style?.id ?? undefined,
+      hand_grip_id: user_data.hand_grip?.id ?? undefined,
+      level_id: user_data.level?.id ?? undefined,
       status: "active",
     },
   });

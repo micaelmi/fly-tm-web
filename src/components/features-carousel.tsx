@@ -13,29 +13,36 @@ import { User } from "@/interfaces/user";
 import api from "@/lib/axios";
 import { useEffect, useState } from "react";
 
+interface UserData {
+  user: User;
+}
+
 export default function FeaturesCarousel() {
   const session = useSession().data;
   const username = session?.payload.username;
   const token = session?.token.user.token;
 
-  const [user, setUser] = useState<User>();
+  const userData = useQuery({
+    queryKey: ["userData", username],
+    queryFn: async (): Promise<AxiosResponse<UserData>> => {
+      return await api.get(`/users/${username}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    },
+    enabled: !!token,
+    select: (data) => {
+      return {
+        club_id: data.data.user.club.id,
+        club_logo_url: data.data.user.club.logo_url,
+      };
+    },
+  });
 
-  const fetchData = async () => {
-    if (session)
-      try {
-        const response = await api.get(`/users/${username}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setUser(response.data.user);
-      } catch (error) {
-        console.error("Erro ao obter dados:", error);
-      }
-  };
-  useEffect(() => {
-    fetchData();
-  }, [session]);
+  const user = userData.data;
+
+  console.log(user?.club_logo_url);
 
   return (
     <Carousel
@@ -77,11 +84,11 @@ export default function FeaturesCarousel() {
           <FeatureCard
             alt="Logo de clube"
             imageUrl={
-              user?.club.logo_url ||
-              `https://api.dicebear.com/9.x/thumbs/svg?seed=${user?.club.id}`
+              user?.club_logo_url ??
+              `https://api.dicebear.com/9.x/big-smile/svg?seed=${user?.club_id}`
             }
             text="Meu clube"
-            linkToFeaturePage={`/clubs/${user?.club.id}`}
+            linkToFeaturePage={`/clubs/${user?.club_id}`}
           />
         </CarouselItem>
         <CarouselItem className="md:basis-1/3 lg:basis-1/5">
