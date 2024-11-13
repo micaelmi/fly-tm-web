@@ -1,6 +1,6 @@
 import PageTitleWithIcon from "@/components/page-title-with-icon";
 import Search from "@/components/search";
-import TrainingsSession from "@/components/trainings-session";
+import TrainingsSession from "@/modules/trainings/trainings-session";
 import { Button } from "@/components/ui/button";
 import { Barbell } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";

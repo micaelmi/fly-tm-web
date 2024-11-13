@@ -5,13 +5,18 @@ import AddMovementCard from "@/components/cards/add-movement-card";
 import TrainingItemCard from "@/components/cards/training-item-card";
 import ItemCard from "@/components/cards/training-item-card";
 import MovementCard from "@/components/cards/training-item-card";
-import FinishingTrainingModal from "@/components/finishing-training-modal";
+import FinishingTrainingModal from "@/modules/trainings/finishing-training-modal";
+import Navbar from "@/components/navbar";
 import PageTitleWithIcon from "@/components/page-title-with-icon";
 import Search from "@/components/search";
-import TrainingsSession from "@/components/trainings-session";
+import TrainingsSession from "@/modules/trainings/trainings-session";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import api from "@/lib/axios";
 import { Barbell } from "@phosphor-icons/react/dist/ssr";
+import { useQuery } from "@tanstack/react-query";
 import { UUID } from "crypto";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { FormEvent, useState } from "react";
 
@@ -25,7 +30,19 @@ export interface Item {
   image_url: string;
 }
 
+interface Movement {
+  id: number;
+  name: string;
+  description: string;
+  average_time: number;
+  video_url: string;
+  image_url: string;
+}
+
 export default function TrainingRegisterForm() {
+  const session = useSession();
+  const token = session.data?.token.user.token;
+
   const [items, setItems] = useState<Item[]>([]);
   const [addItemModal, setAddItemModal] = useState({
     movement_id: 0,
@@ -37,38 +54,19 @@ export default function TrainingRegisterForm() {
     is_open: false,
   });
 
-  const movesForChoose = [
-    {
-      id: 1,
-      url: "/mascot-hitting.svg",
-      name: "Drive de forehandssssssssssssssss",
+  const movementsData = useQuery({
+    queryKey: ["movementsData"],
+    queryFn: async () => {
+      return await api.get("/movements", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
     },
-    {
-      id: 2,
-      url: "/mascot-hitting.svg",
-      name: "Drive de forehand",
-    },
-    {
-      id: 3,
-      url: "/mascot-hitting.svg",
-      name: "Drive de forehand",
-    },
-    {
-      id: 4,
-      url: "/mascot-hitting.svg",
-      name: "Drive de forehand",
-    },
-    {
-      id: 5,
-      url: "/mascot-hitting.svg",
-      name: "Drive de forehand",
-    },
-    {
-      id: 6,
-      url: "/mascot-hitting.svg",
-      name: "Drive de forehand",
-    },
-  ];
+    enabled: !!token,
+  });
+
+  const movementsForChoose = movementsData.data?.data.movements;
 
   function openAddItemModal(
     movement_id: number,
@@ -120,93 +118,100 @@ export default function TrainingRegisterForm() {
   }
 
   return (
-    <div className="flex gap-20 h-screen">
-      <div className="flex flex-col gap-3">
-        <PageTitleWithIcon icon={Barbell} title="Monte seu treino" />
-        <p>
-          Ao lado, selecione o movimento desejado e o adicione em seu conjunto
-          de movimentos.{" "}
-          <span className="text-primary">
-            Sinta-se a vontade para alterar a ordem dos movimentos.
-          </span>
-        </p>
-        <TrainingsSession sessionTitle="Seu conjunto de movimentos" />
-        <div className="flex flex-col gap-3 overflow-y-auto">
-          {items.length > 0 ? (
-            items.map((item) => {
-              return (
-                <TrainingItemCard
-                  key={item.movement_id + crypto.randomUUID()}
-                  movement_id={item.movement_id}
-                  image_url={item.image_url}
-                  reps={item.reps}
-                  time={item.time}
-                  counting_mode={item.counting_mode}
-                  comments={item.comments}
-                  queue={item.queue}
-                  removeItem={() => removeItem(item.movement_id)}
+    <>
+      <Navbar />
+      <div className="flex gap-20 mt-5 mb-5 h-screen container">
+        <div className="flex flex-col gap-3">
+          <PageTitleWithIcon icon={Barbell} title="Monte seu treino" />
+          <p>
+            Ao lado, selecione o movimento desejado e o adicione em seu conjunto
+            de movimentos.{" "}
+            <span className="text-primary">
+              Sinta-se a vontade para alterar a ordem dos movimentos.
+            </span>
+          </p>
+          <TrainingsSession sessionTitle="Seu conjunto de movimentos" />
+          <div className="flex flex-col gap-3 overflow-y-auto">
+            {items.length > 0 ? (
+              items.map((item) => {
+                return (
+                  <TrainingItemCard
+                    key={item.movement_id + crypto.randomUUID()}
+                    movement_id={item.movement_id}
+                    image_url={item.image_url}
+                    reps={item.reps}
+                    time={item.time}
+                    counting_mode={item.counting_mode}
+                    comments={item.comments}
+                    queue={item.queue}
+                    removeItem={() => removeItem(item.movement_id)}
+                  />
+                );
+              })
+            ) : (
+              <div className="flex justify-around items-center gap-2 p-3 border border-border rounded">
+                <Image
+                  src="/mascot-sad.svg"
+                  alt="Sem treinos"
+                  width={80}
+                  height={80}
+                  className="opacity-60 aspect-square"
                 />
-              );
-            })
-          ) : (
-            <div className="flex justify-around items-center gap-2 p-3 border border-border rounded">
-              <Image
-                src="/mascot-sad.svg"
-                alt="Sem treinos"
-                width={80}
-                height={80}
-                className="opacity-60 aspect-square"
-              />
-              <p className="text-muted-foreground">
-                Nenhum
-                <br /> movimento
-                <br /> adicionado
-              </p>
-            </div>
-          )}
+                <p className="text-muted-foreground">
+                  Nenhum
+                  <br /> movimento
+                  <br /> adicionado
+                </p>
+              </div>
+            )}
+          </div>
+          <div className="flex justify-between">
+            <Button variant={"outline"}>Cancelar</Button>
+            <Button onClick={openFinishinTrainingModal}>Continuar</Button>
+          </div>
         </div>
-        <div className="flex justify-between">
-          <Button variant={"outline"}>Cancelar</Button>
-          <Button onClick={openFinishinTrainingModal}>Continuar</Button>
+
+        <Separator orientation="vertical" className="bg-primary" />
+
+        <div className="flex flex-col gap-3">
+          <h1 className="font-bold text-3xl">Movimentos</h1>
+          <Search pagination={false} placeholder="Procurar..." />
+          <div className="flex flex-col gap-3 overflow-y-auto">
+            {movementsForChoose?.length ? (
+              movementsForChoose.map((movement: Movement) => {
+                return (
+                  <AddMovementCard
+                    key={movement.id}
+                    movement_id={movement.id}
+                    movement_image_url={movement.image_url}
+                    movement_name={movement.name}
+                    openAddItemModal={openAddItemModal}
+                  />
+                );
+              })
+            ) : (
+              <p>Nenhum movimento cadastrado</p>
+            )}
+          </div>
         </div>
+
+        {addItemModal.is_open && (
+          <AddItemModal
+            movement_id={addItemModal.movement_id}
+            movement_name={addItemModal.movement_name}
+            movement_image_url={addItemModal.movement_image_url}
+            closeAddItemModal={closeAddItemModal}
+            addNewItem={addNewItem}
+          />
+        )}
+
+        {finishingTrainingModal.is_open && (
+          <FinishingTrainingModal
+            items={items}
+            closeFinishinTrainingModal={closeFinishinTrainingModal}
+          />
+        )}
       </div>
-
-      <div className="bg-primary w-px h-screen" />
-
-      <div className="flex flex-col gap-3">
-        <h1 className="font-bold text-3xl">Movimentos</h1>
-        <Search pagination={false} placeholder="Procurar..." />
-        <div className="flex flex-col gap-3 overflow-y-auto">
-          {movesForChoose.map((move) => {
-            return (
-              <AddMovementCard
-                key={move.id}
-                movement_id={move.id}
-                movement_image_url={move.url}
-                movement_name={move.name}
-                openAddItemModal={openAddItemModal}
-              />
-            );
-          })}
-        </div>
-      </div>
-
-      {addItemModal.is_open && (
-        <AddItemModal
-          movement_id={addItemModal.movement_id}
-          movement_name={addItemModal.movement_name}
-          movement_image_url={addItemModal.movement_image_url}
-          closeAddItemModal={closeAddItemModal}
-          addNewItem={addNewItem}
-        />
-      )}
-
-      {finishingTrainingModal.is_open && (
-        <FinishingTrainingModal
-          items={items}
-          closeFinishinTrainingModal={closeFinishinTrainingModal}
-        />
-      )}
-    </div>
+    </>
   );
 }

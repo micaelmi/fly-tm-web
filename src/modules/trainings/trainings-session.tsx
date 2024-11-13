@@ -1,3 +1,5 @@
+import { Separator } from "../../components/ui/separator";
+
 interface TrainingsSessionProps {
   sessionTitle: string;
 }
@@ -10,7 +12,7 @@ export default function TrainingsSession({
       <h2 className="font-semibold text-lg whitespace-nowrap">
         {sessionTitle}
       </h2>
-      <div className="bg-muted w-full h-px" />
+      <Separator className="shrink" />
     </div>
   );
 }

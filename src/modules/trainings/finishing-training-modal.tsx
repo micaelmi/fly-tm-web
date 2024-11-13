@@ -1,14 +1,17 @@
 import { useForm } from "react-hook-form";
-import { Button } from "./ui/button";
-import { Form } from "./ui/form";
-import InputDefault from "./form/input-default";
+import { Button } from "../../components/ui/button";
+import { Form } from "../../components/ui/form";
+import InputDefault from "../../components/form/input-default";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import InputImage from "./form/input-image";
+import InputImage from "../../components/form/input-image";
 import { handleFileUpload } from "@/lib/firebase-upload";
-import DefaultCombobox from "./form/combobox-default";
+import DefaultCombobox from "../../components/form/combobox-default";
 import { FormEvent, useState } from "react";
 import { Item } from "@/modules/trainings/training-register-form";
+import { useCreateTraining } from "@/hooks/use-trainings";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 interface FinishingTrainingModalProps {
   items: Item[];
@@ -47,6 +50,9 @@ export default function FinishingTrainingModal({
   items,
   closeFinishinTrainingModal,
 }: FinishingTrainingModalProps) {
+  const { data: session } = useSession();
+  const user_id = session?.payload.sub;
+
   const [levels, setLevels] = useState<Level[]>([
     {
       value: 1,
@@ -94,8 +100,11 @@ export default function FinishingTrainingModal({
     form.handleSubmit(onSubmit)();
   };
 
+  const router = useRouter();
+
+  const { mutate, isPending, isError } = useCreateTraining();
+
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
-    console.log("Foi para envio");
     let file;
     if (data.icon_file && data.icon_file.size > 0) {
       if (data.icon_file instanceof File) {
@@ -109,7 +118,24 @@ export default function FinishingTrainingModal({
     } else file = "";
     const { icon_file, ...rest } = data;
     const filteredData = { ...rest, icon_url: file };
-    console.log(filteredData);
+
+    mutate(
+      {
+        title: filteredData.title,
+        time: filteredData.time,
+        icon_url: filteredData.icon_url,
+        user_id: user_id,
+        level_id: filteredData.level_id,
+        visibility_type_id: filteredData.visibility_type_id,
+        club_id: filteredData.club_id,
+        items: filteredData.items,
+      },
+      {
+        onSuccess: () => {
+          router.push("/home");
+        },
+      }
+    );
   };
 
   return (
