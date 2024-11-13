@@ -1,5 +1,4 @@
 "use client";
-import CheckboxDefault from "@/components/form/checkbox-default";
 import InputDefault from "@/components/form/input-default";
 import InputPassword from "@/components/form/input-password";
 import { Button } from "@/components/ui/button";
