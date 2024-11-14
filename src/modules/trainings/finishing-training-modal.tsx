@@ -33,7 +33,7 @@ const FormSchema = z.object({
   //   user_id: z.string().uuid(),
   level_id: z.number(),
   visibility_type_id: z.number(),
-  club_id: z.string().optional(),
+  // club_id: z.string().optional(),
   items: z.array(
     z.object({
       counting_mode: z.enum(["reps", "time"]),
@@ -90,7 +90,6 @@ export default function FinishingTrainingModal({
       //   user_id: "",
       level_id: undefined,
       visibility_type_id: undefined,
-      club_id: "",
     },
   });
 
@@ -127,7 +126,7 @@ export default function FinishingTrainingModal({
         user_id: user_id,
         level_id: filteredData.level_id,
         visibility_type_id: filteredData.visibility_type_id,
-        club_id: filteredData.club_id,
+        club_id: undefined,
         items: filteredData.items,
       },
       {

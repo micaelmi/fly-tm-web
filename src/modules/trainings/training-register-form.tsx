@@ -3,22 +3,19 @@
 import AddItemModal from "@/components/add-item-modal";
 import AddMovementCard from "@/components/cards/add-movement-card";
 import TrainingItemCard from "@/components/cards/training-item-card";
-import ItemCard from "@/components/cards/training-item-card";
-import MovementCard from "@/components/cards/training-item-card";
-import FinishingTrainingModal from "@/modules/trainings/finishing-training-modal";
 import Navbar from "@/components/navbar";
 import PageTitleWithIcon from "@/components/page-title-with-icon";
 import Search from "@/components/search";
-import TrainingsSession from "@/modules/trainings/trainings-session";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import api from "@/lib/axios";
+import FinishingTrainingModal from "@/modules/trainings/finishing-training-modal";
+import TrainingsSession from "@/modules/trainings/trainings-session";
 import { Barbell } from "@phosphor-icons/react/dist/ssr";
 import { useQuery } from "@tanstack/react-query";
-import { UUID } from "crypto";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
-import { FormEvent, useState } from "react";
+import { useState } from "react";
 
 export interface Item {
   counting_mode: "reps" | "time";

@@ -184,216 +184,216 @@ export default function ClubRegisterForm() {
             className="flex flex-col gap-5"
             onSubmit={form.handleSubmit(onSubmit)}
           >
-            {formStep === 1 && (
-              <div className="flex flex-col gap-5">
-                <div className="flex flex-col gap-2 mt-4">
-                  <p className="text-sm">Logo</p>
-                  <InputImageWithPreview name="logo_url" />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <p className="peer-disabled:opacity-70 font-medium text-sm leading-none peer-disabled:cursor-not-allowed">
-                    Defina uma capa para seu clube
-                  </p>
-                  <div className="flex md:flex-row flex-col gap-2">
-                    <RadioButton
-                      firstLabel="Imagem"
-                      secondLabel="Cor"
-                      firstValue="image"
-                      secondValue="color"
-                      optionValue={form.watch("background")}
-                      onValueChange={(value) => {
-                        if (value === "image" || value === "color") {
-                          form.setValue("background", value);
-                        }
-                        if (value === "image") {
-                          form.setValue("background_color", "");
-                        } else {
-                          form.setValue("background_url", new File([], ""));
-                        }
-                      }}
-                    />
-                    <div className="md:flex-1">
-                      {form.watch("background") === "image" ? (
-                        <InputImage name="background_url" />
-                      ) : (
-                        <ColorPicker name="background_color" />
-                      )}
-                    </div>
-                  </div>
-                </div>
-                {/* name */}
-                <InputDefault
-                  control={form.control}
-                  label="Nome do clube"
-                  placeholder="Digite o nome do seu clube"
-                  name="name"
-                />
-                <TextareaDefault
-                  control={form.control}
-                  label="Texto de apresentação"
-                  placeholder="Descreva seu clube em um pequeno texto"
-                  name="description"
-                />
-                <InputDefault
-                  control={form.control}
-                  type="email"
-                  label="E-mail de contato"
-                  placeholder="Digite o e-mail do seu clube"
-                  name="email"
-                />
-                <InputDefault
-                  control={form.control}
-                  label="Telefone"
-                  placeholder="Digite o telefone do seu clube"
-                  name="phone"
-                />
-                <InputDefault
-                  control={form.control}
-                  label="Instagram"
-                  placeholder="Digite o instagram do seu clube"
-                  name="instagram"
-                />
-                <TextareaDefault
-                  control={form.control}
-                  label="Outras formas de contato"
-                  placeholder="Insira outros contatos se houver"
-                  name="other_contacts"
-                />
-                <TextareaDefault
-                  control={form.control}
-                  label="Horários de funcionamento"
-                  placeholder="Informe os dias e horários de funcionamento do clube"
-                  name="schedule"
-                />
-                <TextareaDefault
-                  control={form.control}
-                  label="Valores"
-                  placeholder="Informe os valores dos serviços oferecidos (mensalidade, diária, por hora...)"
-                  name="prices"
-                />
-                <div className="flex justify-center md:justify-between gap-2 mt-4 mb-12">
-                  <Button type="button" variant={"outline"}>
-                    Cancelar
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={() => setFormStep(2)}
-                    className="flex-1"
-                  >
-                    Continuar
-                  </Button>
-                </div>
+            <div
+              className={`flex flex-col gap-5 ${formStep !== 1 && "hidden"}`}
+            >
+              <div className="flex flex-col gap-2 mt-4">
+                <p className="text-sm">Logo</p>
+                <InputImageWithPreview name="logo_url" />
               </div>
-            )}
-
-            {formStep === 2 && (
-              <div className="flex flex-col gap-5">
-                <div className="flex flex-col gap-2">
-                  <p className="peer-disabled:opacity-70 mt-4 font-medium text-sm leading-none peer-disabled:cursor-not-allowed">
-                    Qual é o seu endereço?
-                  </p>
-                  <div className="flex md:flex-row flex-col gap-2">
-                    <InputDefault
-                      control={form.control}
-                      name="cep"
-                      placeholder="CEP"
-                      className="md:flex-1"
-                      maxLength={8}
-                    />
-                    <InputDefault
-                      control={form.control}
-                      name="state"
-                      placeholder="UF"
-                      readOnly={true}
-                      className="md:w-1/6"
-                    />
-                  </div>
-                  <InputDefault
-                    control={form.control}
-                    name="city"
-                    placeholder="Cidade"
-                    readOnly={true}
+              <div className="flex flex-col gap-2">
+                <p className="peer-disabled:opacity-70 font-medium text-sm leading-none peer-disabled:cursor-not-allowed">
+                  Defina uma capa para seu clube
+                </p>
+                <div className="flex md:flex-row flex-col gap-2">
+                  <RadioButton
+                    firstLabel="Imagem"
+                    secondLabel="Cor"
+                    firstValue="image"
+                    secondValue="color"
+                    optionValue={form.watch("background")}
+                    onValueChange={(value) => {
+                      if (value === "image" || value === "color") {
+                        form.setValue("background", value);
+                      }
+                      if (value === "image") {
+                        form.setValue("background_color", "");
+                      } else {
+                        form.setValue("background_url", new File([], ""));
+                      }
+                    }}
                   />
-                  <InputDefault
-                    control={form.control}
-                    name="neighborhood"
-                    placeholder="Bairro"
-                  />
-                  <InputDefault
-                    control={form.control}
-                    name="street"
-                    placeholder="Rua"
-                  />
-                  <div className="flex md:flex-row flex-col gap-2">
-                    <InputDefault
-                      control={form.control}
-                      name="address_number"
-                      placeholder="Nº"
-                      className="md:w-1/6"
-                    />
-                    <InputDefault
-                      control={form.control}
-                      name="complement"
-                      placeholder="Complemento"
-                      className="md:flex-1"
-                    />
-                  </div>
-                </div>
-                {/* maps */}
-                <InputDefault
-                  control={form.control}
-                  label="Link do Google Maps (cole aqui)"
-                  placeholder="Ajude as pessoas a encontrarem o local"
-                  name="maps_url"
-                />
-                <div className="flex justify-center md:justify-between gap-2 mb-12">
-                  <Button
-                    type="button"
-                    variant={"outline"}
-                    onClick={() => setFormStep(1)}
-                  >
-                    <ArrowLeft />
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={() => setFormStep(3)}
-                    className="flex-1"
-                  >
-                    Continuar
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {formStep === 3 && (
-              <div className="flex flex-col gap-5">
-                <PlanCards
-                  control={form.control}
-                  name="max_members"
-                  label="Selecione um plano"
-                />
-                {/* buttons: cancel and register */}
-                <div className="flex justify-center md:justify-between gap-2 mb-20">
-                  <Button
-                    type="button"
-                    variant={"outline"}
-                    onClick={() => setFormStep(2)}
-                  >
-                    <ArrowLeft />
-                  </Button>
-                  <Button type="submit" className="flex-1 bg-green-400">
-                    {isPending ? (
-                      <>
-                        <FaSpinner className="mr-2 animate-spin" />
-                        "Cadastrando"
-                      </>
+                  <div className="md:flex-1">
+                    {form.watch("background") === "image" ? (
+                      <InputImage name="background_url" />
                     ) : (
-                      "Cadastrar"
+                      <ColorPicker name="background_color" />
                     )}
-                  </Button>
+                  </div>
                 </div>
               </div>
-            )}
+              {/* name */}
+              <InputDefault
+                control={form.control}
+                label="Nome do clube"
+                placeholder="Digite o nome do seu clube"
+                name="name"
+              />
+              <TextareaDefault
+                control={form.control}
+                label="Texto de apresentação"
+                placeholder="Descreva seu clube em um pequeno texto"
+                name="description"
+              />
+              <InputDefault
+                control={form.control}
+                type="email"
+                label="E-mail de contato"
+                placeholder="Digite o e-mail do seu clube"
+                name="email"
+              />
+              <InputDefault
+                control={form.control}
+                label="Telefone"
+                placeholder="Digite o telefone do seu clube"
+                name="phone"
+              />
+              <InputDefault
+                control={form.control}
+                label="Instagram"
+                placeholder="Digite o instagram do seu clube"
+                name="instagram"
+              />
+              <TextareaDefault
+                control={form.control}
+                label="Outras formas de contato"
+                placeholder="Insira outros contatos se houver"
+                name="other_contacts"
+              />
+              <TextareaDefault
+                control={form.control}
+                label="Horários de funcionamento"
+                placeholder="Informe os dias e horários de funcionamento do clube"
+                name="schedule"
+              />
+              <TextareaDefault
+                control={form.control}
+                label="Valores"
+                placeholder="Informe os valores dos serviços oferecidos (mensalidade, diária, por hora...)"
+                name="prices"
+              />
+              <div className="flex justify-center md:justify-between gap-2 mt-4 mb-12">
+                <Button type="button" variant={"outline"}>
+                  Cancelar
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => setFormStep(2)}
+                  className="flex-1"
+                >
+                  Continuar
+                </Button>
+              </div>
+            </div>
+
+            <div
+              className={`flex flex-col gap-5 ${formStep !== 2 && "hidden"}`}
+            >
+              <div className="flex flex-col gap-2">
+                <p className="peer-disabled:opacity-70 mt-4 font-medium text-sm leading-none peer-disabled:cursor-not-allowed">
+                  Qual é o seu endereço?
+                </p>
+                <div className="flex md:flex-row flex-col gap-2">
+                  <InputDefault
+                    control={form.control}
+                    name="cep"
+                    placeholder="CEP"
+                    className="md:flex-1"
+                    maxLength={8}
+                  />
+                  <InputDefault
+                    control={form.control}
+                    name="state"
+                    placeholder="UF"
+                    readOnly={true}
+                    className="md:w-1/6"
+                  />
+                </div>
+                <InputDefault
+                  control={form.control}
+                  name="city"
+                  placeholder="Cidade"
+                  readOnly={true}
+                />
+                <InputDefault
+                  control={form.control}
+                  name="neighborhood"
+                  placeholder="Bairro"
+                />
+                <InputDefault
+                  control={form.control}
+                  name="street"
+                  placeholder="Rua"
+                />
+                <div className="flex md:flex-row flex-col gap-2">
+                  <InputDefault
+                    control={form.control}
+                    name="address_number"
+                    placeholder="Nº"
+                    className="md:w-1/6"
+                  />
+                  <InputDefault
+                    control={form.control}
+                    name="complement"
+                    placeholder="Complemento"
+                    className="md:flex-1"
+                  />
+                </div>
+              </div>
+              {/* maps */}
+              <InputDefault
+                control={form.control}
+                label="Link do Google Maps (cole aqui)"
+                placeholder="Ajude as pessoas a encontrarem o local"
+                name="maps_url"
+              />
+              <div className="flex justify-center md:justify-between gap-2 mb-12">
+                <Button
+                  type="button"
+                  variant={"outline"}
+                  onClick={() => setFormStep(1)}
+                >
+                  <ArrowLeft />
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => setFormStep(3)}
+                  className="flex-1"
+                >
+                  Continuar
+                </Button>
+              </div>
+            </div>
+
+            <div
+              className={`flex flex-col gap-5 ${formStep !== 3 && "hidden"}`}
+            >
+              <PlanCards
+                control={form.control}
+                name="max_members"
+                label="Selecione um plano"
+              />
+              {/* buttons: cancel and register */}
+              <div className="flex justify-center md:justify-between gap-2 mb-20">
+                <Button
+                  type="button"
+                  variant={"outline"}
+                  onClick={() => setFormStep(2)}
+                >
+                  <ArrowLeft />
+                </Button>
+                <Button type="submit" className="flex-1 bg-green-400">
+                  {isPending ? (
+                    <>
+                      <FaSpinner className="mr-2 animate-spin" />
+                      "Cadastrando"
+                    </>
+                  ) : (
+                    "Cadastrar"
+                  )}
+                </Button>
+              </div>
+            </div>
 
             {isError && (
               <div className="border-destructive p-2 border rounded-md w-full text-center text-destructive text-sm">

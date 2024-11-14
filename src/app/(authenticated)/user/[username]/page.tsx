@@ -209,7 +209,7 @@ export default function UserDetails() {
                   </div>
                 </div>
                 <div className="flex flex-col gap-4">
-                  {/* <ShareProfileButton username={user_data.username} /> */}
+                  <ShareProfileButton username={user_data.username} />
                   {own_page && <LogoutButton />}
                 </div>
               </div>
