@@ -15,3 +15,42 @@ export interface TrainingRegisterData {
     comments?: string | undefined;
   }[];
 }
+
+export interface TrainingsResponse {
+  trainings: Training[];
+}
+
+export interface Training {
+  club_id: string;
+  created_at: Date;
+  icon_url: string;
+  id: string;
+  level_id: number;
+  time: number;
+  title: string;
+  training_items: {
+    comments: string;
+    counting_mode: "time" | "reps";
+    movement: {
+      average_time: number;
+      description: string;
+      image_url: string;
+      name: string;
+      video_url: string;
+    };
+    queue: number;
+    reps: number;
+    time: number;
+  }[];
+  updated_at: Date;
+  user: {
+    name: string;
+    username: string;
+  };
+  level: {
+    title: string;
+    description: string;
+  };
+  user_id: string;
+  visibility_type_id: number;
+}

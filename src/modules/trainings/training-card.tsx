@@ -1,11 +1,13 @@
+import api from "@/lib/axios";
 import { Flag, Clock } from "@phosphor-icons/react/dist/ssr";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 
 interface TrainingCardProps {
   urlToTraining: string;
   level: string;
   title: string;
-  duration: string;
+  duration: number;
   by: string;
 }
 

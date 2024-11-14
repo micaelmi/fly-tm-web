@@ -10,21 +10,36 @@ import Autoplay from "embla-carousel-autoplay";
 import { useEventsData } from "@/hooks/use-events";
 import { format } from "date-fns";
 import TrainingCard from "./training-card";
+import { useTrainingsDataByUser } from "@/hooks/use-trainings";
+import Loading from "@/app/loading";
+import Link from "next/link";
+import { Training } from "@/interfaces/training";
+import { useSession } from "next-auth/react";
+import api from "@/lib/axios";
+import { useQuery } from "@tanstack/react-query";
+import { Level } from "@/interfaces/level";
 
 export default function TrainingsCarousel() {
-  // const { data, isLoading, error } = useTrainingsData();
+  const { data, isLoading, error } = useTrainingsDataByUser();
+  const trainingsByUser = data?.data.trainings;
 
-  // if (isLoading)
-  //   return (
-  //     <p className="w-full text-center animate-pulse">Carregando eventos...</p>
-  //   );
-  // if (error) return <p>Erro ao carregar eventos: {error.message}</p>;
-  // if (data && data.events.length < 1)
-  //   return (
-  //     <p className="w-full font-medium text-center text-lg text-primary">
-  //       Nenhum evento cadastrado, seja o primeiro a publicar seu evento aqui!
-  //     </p>
-  //   );
+  if (isLoading) return <Loading />;
+  if (error) return <p>Erro ao carregar seus treinos: {error.message}</p>;
+  if (data && trainingsByUser && trainingsByUser?.length < 1)
+    return (
+      <p className="w-full font-medium text-center text-lg text-muted-foreground">
+        Nenhum treino cadastrado, crie seu primeiro treino{" "}
+        <Link
+          href={"/trainings/register"}
+          className="text-primary hover:underline"
+        >
+          aqui
+        </Link>
+        !
+      </p>
+    );
+
+  console.log(trainingsByUser);
 
   return (
     <Carousel
@@ -40,58 +55,24 @@ export default function TrainingsCarousel() {
       ]}
     >
       <CarouselContent>
-        {/* {data?.events.map((event) => {
-          return (
-            <CarouselItem
-              key={event.id}
-              className="md:basis-1/2 lg:basis-1/3 py-2"
-            >
-              <TrainingCard
-              by="Micael Inácio"
-              duration="1h 10min"
-              level="Avançado"
-              title="Movimentação"
-              urlToTraining="#"
-            />
-            </CarouselItem>
-          );
-        })} */}
-        <CarouselItem className="md:basis-1/2 lg:basis-1/3 py-2">
-          <TrainingCard
-            by="Micael Inácio"
-            duration="1h 10min"
-            level="Avançado"
-            title="Movimentação"
-            urlToTraining="#"
-          />
-        </CarouselItem>
-        <CarouselItem className="md:basis-1/2 lg:basis-1/3 py-2">
-          <TrainingCard
-            by="Micael Inácio"
-            duration="1h 10min"
-            level="Avançado"
-            title="Movimentação"
-            urlToTraining="#"
-          />
-        </CarouselItem>
-        <CarouselItem className="md:basis-1/2 lg:basis-1/3 py-2">
-          <TrainingCard
-            by="Micael Inácio"
-            duration="1h 10min"
-            level="Avançado"
-            title="Movimentação"
-            urlToTraining="#"
-          />
-        </CarouselItem>
-        <CarouselItem className="md:basis-1/2 lg:basis-1/3 py-2">
-          <TrainingCard
-            by="Micael Inácio"
-            duration="1h 10min"
-            level="Avançado"
-            title="Movimentação"
-            urlToTraining="#"
-          />
-        </CarouselItem>
+        {trainingsByUser
+          ? trainingsByUser.map((training: Training) => {
+              return (
+                <CarouselItem
+                  key={training.id}
+                  className="md:basis-1/2 lg:basis-1/3 py-2"
+                >
+                  <TrainingCard
+                    by={training.user.name}
+                    duration={training.time}
+                    level={training.level.title}
+                    title={training.title}
+                    urlToTraining={`/trainings/${training.id}`}
+                  />
+                </CarouselItem>
+              );
+            })
+          : null}
       </CarouselContent>
       <CarouselPrevious />
       <CarouselNext />
