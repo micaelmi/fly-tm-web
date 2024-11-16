@@ -17,7 +17,7 @@ import { Location } from "@/interfaces/location";
 import api from "@/lib/axios";
 import { handleFileUpload } from "@/lib/firebase-upload";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, CalendarDots } from "@phosphor-icons/react/dist/ssr";
+import { ArrowLeft } from "@phosphor-icons/react/dist/ssr";
 import { useQuery } from "@tanstack/react-query";
 import { AxiosResponse } from "axios";
 import { useSession } from "next-auth/react";
@@ -27,6 +27,10 @@ import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
 import * as z from "zod";
 import { PlanCards } from "./plan-cards";
+import ClubStepIndicator from "./club-step-indicator";
+import { UserData } from "@/interfaces/user";
+import { toast } from "react-toastify";
+import { useManageCredits } from "@/hooks/use-credits";
 
 const FormSchema = z.object({
   name: z.string().min(4, { message: "Mínimo de 4 caracteres" }),
@@ -35,7 +39,6 @@ const FormSchema = z.object({
   background: z.enum(["image", "color"]),
   background_url: z.instanceof(File).optional().nullable(),
   background_color: z.string().optional(),
-  owner_username: z.string(),
   email: z.string(),
   phone: z.string().optional(),
   instagram: z.string().optional(),
@@ -50,12 +53,14 @@ const FormSchema = z.object({
   address_number: z.string().optional(),
   complement: z.string().optional(),
   maps_url: z.string().optional(),
-  max_members: z.coerce.number(),
+  selected_plan: z.coerce.number(),
 });
 export default function ClubRegisterForm() {
   const { data: session } = useSession();
 
-  const user = session?.payload.username || "";
+  const userId = session?.payload.sub || "";
+  const username = session?.payload.username || "";
+  const token = session?.token.user.token;
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -66,7 +71,6 @@ export default function ClubRegisterForm() {
       background: "color",
       background_url: new File([], ""),
       background_color: "fff",
-      owner_username: "",
       email: "",
       phone: "",
       instagram: "",
@@ -81,32 +85,88 @@ export default function ClubRegisterForm() {
       address_number: "",
       complement: "",
       maps_url: "",
-      max_members: 5,
+      selected_plan: 1,
     },
   });
 
+  const plans = [
+    { id: 1, price: 0, members: 5 },
+    { id: 2, price: 250, members: 35 },
+    { id: 3, price: 600, members: 150 },
+  ];
+
+  const [loading, setLoading] = useState(false);
+
   const router = useRouter();
-  const { mutate, isPending, isError } = useCreateClub();
+  const { mutate: createClub, isError } = useCreateClub();
+  const { mutate: manageCredits } = useManageCredits();
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
-    let file;
+    setLoading(true);
+    let successes = 0;
+    if (!session) return;
+    // passo 1 - verificar se o plano escolhido é pago
+    const price =
+      plans.find((plan) => plan.id === data.selected_plan)?.price || 0;
+    if (price > 0) {
+      // passo 2 - verificar se o usuario possui saldo
+      try {
+        const user = await api.get<UserData>(`/users/${username}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (user.data.user.credits && user.data.user.credits < price) {
+          toast.error(
+            "Você não possui créditos suficientes para escolher este plano."
+          );
+          return;
+        }
+        successes++;
+      } catch (error) {
+        console.error("Erro ao obter dados:", error);
+      }
+    } else {
+      successes++;
+    }
+
+    // passo 3 - fazer upload das imagens
+    if (successes == 0) return;
+    // logo
+    let logoFile;
     if (data.logo_url && data.logo_url.size > 0) {
       const timestamp = new Date().toISOString();
       const fileExtension = data.logo_url.name.split(".").pop();
-      file = await handleFileUpload(
+      logoFile = await handleFileUpload(
         data.logo_url,
         `clubs/logo-${timestamp}.${fileExtension}`
       );
-    } else file = "";
-    if (file === undefined) file = "";
+    } else logoFile = "";
+    if (logoFile === undefined) logoFile = "";
+    // background
+    let background;
+    if (
+      data.background === "image" &&
+      data.background_url &&
+      data.background_url.size > 0
+    ) {
+      const timestamp = new Date().toISOString();
+      const fileExtension = data.background_url.name.split(".").pop();
+      background = await handleFileUpload(
+        data.background_url,
+        `clubs/background-${timestamp}.${fileExtension}`
+      );
+    }
+    if (background === undefined) background = data.background_color || "#fff";
 
-    mutate(
+    // passo 4 - criar clube
+    createClub(
       {
         name: data.name,
         description: data.description,
-        logo_url: file,
-        background: data.background,
-        owner_username: user,
+        logo_url: logoFile,
+        background: background,
+        owner_username: username,
         email: data.email,
         phone: data.phone,
         instagram: data.instagram,
@@ -121,15 +181,30 @@ export default function ClubRegisterForm() {
         address_number: Number(data.address_number),
         complement: data.complement,
         maps_url: data.maps_url,
-        max_members: data.max_members,
+        max_members: plans[data.selected_plan + 1].members,
       },
       {
-        onSuccess: () => {
-          router.push("/home");
+        onSuccess: async (club) => {
+          // passo 5 - subtrair créditos do usuário e registrar transação (efetuar pagamento)
+          if (price > 0) {
+            manageCredits({
+              action: "spend",
+              amount: price,
+              description: `Criação do clube ${data.name}`,
+              user_id: userId,
+            });
+          }
+          // passo 6 - redirecionar para a pagina do clube criado
+          router.push(`/clubs/${club.clubId}`);
         },
       }
     );
+    setLoading(false);
   };
+
+  function goBack() {
+    router.back();
+  }
 
   const informedCep = form.watch("cep");
 
@@ -179,6 +254,7 @@ export default function ClubRegisterForm() {
             E inicie uma nova jornada como gerente de uma comunidade.
           </p>
         </div>
+        <ClubStepIndicator step={formStep} />
         <Form {...form}>
           <form
             className="flex flex-col gap-5"
@@ -273,7 +349,7 @@ export default function ClubRegisterForm() {
                 name="prices"
               />
               <div className="flex justify-center md:justify-between gap-2 mt-4 mb-12">
-                <Button type="button" variant={"outline"}>
+                <Button type="button" variant={"outline"} onClick={goBack}>
                   Cancelar
                 </Button>
                 <Button
@@ -370,7 +446,7 @@ export default function ClubRegisterForm() {
             >
               <PlanCards
                 control={form.control}
-                name="max_members"
+                name="selected_plan"
                 label="Selecione um plano"
               />
               {/* buttons: cancel and register */}
@@ -382,11 +458,14 @@ export default function ClubRegisterForm() {
                 >
                   <ArrowLeft />
                 </Button>
-                <Button type="submit" className="flex-1 bg-green-400">
-                  {isPending ? (
+                <Button
+                  type="submit"
+                  className="flex-1 bg-green-400 hover:bg-green-700"
+                >
+                  {loading ? (
                     <>
                       <FaSpinner className="mr-2 animate-spin" />
-                      "Cadastrando"
+                      Cadastrando...
                     </>
                   ) : (
                     "Cadastrar"
@@ -397,7 +476,8 @@ export default function ClubRegisterForm() {
 
             {isError && (
               <div className="border-destructive p-2 border rounded-md w-full text-center text-destructive text-sm">
-                Erro ao criar evento
+                Erro ao criar clube, verifique se todos os campos foram
+                preenchidos
               </div>
             )}
           </form>

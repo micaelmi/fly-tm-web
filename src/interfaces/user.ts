@@ -8,7 +8,7 @@ export interface User {
   updated_at: string;
   bio: string | null;
   training_days: number;
-  credits: number;
+  credits?: number;
   state: string | null;
   city: string | null;
   instagram: string | null;

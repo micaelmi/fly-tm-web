@@ -29,11 +29,12 @@ export function useCreateClub() {
   const token = dataSession?.token.user.token;
   return useMutation({
     mutationFn: async (data: ClubRegisterData) => {
-      return await api.post("clubs", data, {
+      const response = await api.post("clubs", data, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
+      return response.data;
     },
     onError: (error) => {
       console.error("Erro ao criar clube:", error);

@@ -48,12 +48,18 @@ export default function UserDetails() {
           style={{ backgroundColor: club.background }}
         />
       ) : (
-        <div className={`bg-white w-full h-40`} />
+        <div className={`bg-white w-full h-40`}>
+          <img
+            src={club.background}
+            alt={club.name + " background"}
+            className="w-full max-h-full object-cover"
+          />
+        </div>
       )}
       <img
         src={club.logo_url}
         alt={`Logo ${club.name}`}
-        className="border-secondary bg-black mx-auto -mt-32 border rounded-full"
+        className="z-20 border-secondary bg-black mx-auto -mt-32 border rounded-full"
         width={250}
         height={250}
       />
