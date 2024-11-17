@@ -7,17 +7,11 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
-import { useEventsData } from "@/hooks/use-events";
-import { format } from "date-fns";
 import TrainingCard from "./training-card";
 import { useTrainingsDataByUser } from "@/hooks/use-trainings";
 import Loading from "@/app/loading";
 import Link from "next/link";
 import { Training } from "@/interfaces/training";
-import { useSession } from "next-auth/react";
-import api from "@/lib/axios";
-import { useQuery } from "@tanstack/react-query";
-import { Level } from "@/interfaces/level";
 
 export default function TrainingsCarousel() {
   const { data, isLoading, error } = useTrainingsDataByUser();
@@ -38,8 +32,6 @@ export default function TrainingsCarousel() {
         !
       </p>
     );
-
-  console.log(trainingsByUser);
 
   return (
     <Carousel

@@ -1,5 +1,6 @@
 export interface TrainingRegisterData {
   title: string;
+  description: string;
   time: number;
   icon_url: string | undefined;
   user_id: string | undefined;
@@ -21,6 +22,7 @@ export interface TrainingsResponse {
 }
 
 export interface Training {
+  description: string;
   club_id: string;
   created_at: Date;
   icon_url: string;

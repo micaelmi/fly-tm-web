@@ -4,18 +4,15 @@ import { useState } from "react";
 import AddMovementModal from "../add-item-modal";
 import { Item } from "@/modules/trainings/training-register-form";
 
-interface TrainingItemCardProps extends Item {
+interface TrainingItemCardProps extends Partial<Item> {
   removeItem: () => void;
 }
 
 export default function TrainingItemCard({
-  movement_id,
-  image_url,
-  comments,
-  counting_mode,
-  queue,
+  image_url = "",
   reps,
   time,
+  name,
   removeItem,
 }: TrainingItemCardProps) {
   return (
@@ -28,12 +25,10 @@ export default function TrainingItemCard({
         className="aspect-square"
       />
       <div className="flex flex-col justify-between">
-        <h1 className="text-ellipsis whitespace-nowrap">{movement_id}</h1>
-        <p>Comentários: {comments}</p>
-        <p>Contagem por: {counting_mode}</p>
-        <p>Lugar na fila: {queue}</p>
-        <p>Repetições: {reps}</p>
-        <p>Tempo: {time}</p>
+        <h1 className="font-semibold text-ellipsis whitespace-nowrap">
+          {name}
+        </h1>
+        <p>{reps ? reps + "x" : time + "s"}</p>
         <button
           onClick={removeItem}
           type="button"

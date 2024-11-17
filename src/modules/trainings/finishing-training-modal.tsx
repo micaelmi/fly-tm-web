@@ -7,14 +7,16 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import InputImage from "../../components/form/input-image";
 import { handleFileUpload } from "@/lib/firebase-upload";
 import DefaultCombobox from "../../components/form/combobox-default";
-import { FormEvent, useState } from "react";
+import { useEffect, useState } from "react";
 import { Item } from "@/modules/trainings/training-register-form";
 import { useCreateTraining } from "@/hooks/use-trainings";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { FaSpinner } from "react-icons/fa";
 
 interface FinishingTrainingModalProps {
   items: Item[];
+  description: string;
   closeFinishinTrainingModal: () => void;
 }
 
@@ -30,24 +32,13 @@ const FormSchema = z.object({
   icon_file: z
     .instanceof(File)
     .refine((file) => file.size > 0, { message: "Selecione uma imagem" }),
-  //   user_id: z.string().uuid(),
   level_id: z.number(),
   visibility_type_id: z.number(),
-  // club_id: z.string().optional(),
-  items: z.array(
-    z.object({
-      counting_mode: z.enum(["reps", "time"]),
-      reps: z.number(),
-      time: z.number(),
-      queue: z.number(),
-      comments: z.string().optional(),
-      movement_id: z.number(),
-    })
-  ),
 });
 
 export default function FinishingTrainingModal({
   items,
+  description,
   closeFinishinTrainingModal,
 }: FinishingTrainingModalProps) {
   const { data: session } = useSession();
@@ -87,21 +78,14 @@ export default function FinishingTrainingModal({
       title: "",
       time: 0,
       icon_file: new File([], ""),
-      //   user_id: "",
       level_id: undefined,
       visibility_type_id: undefined,
     },
   });
 
-  const handleFormSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    form.setValue("items", items);
-    form.handleSubmit(onSubmit)();
-  };
-
   const router = useRouter();
 
-  const { mutate, isPending, isError } = useCreateTraining();
+  const { mutate, isPending, isError, error } = useCreateTraining();
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     let file;
@@ -121,13 +105,14 @@ export default function FinishingTrainingModal({
     mutate(
       {
         title: filteredData.title,
+        description: description,
         time: filteredData.time,
         icon_url: filteredData.icon_url,
         user_id: user_id,
         level_id: filteredData.level_id,
         visibility_type_id: filteredData.visibility_type_id,
         club_id: undefined,
-        items: filteredData.items,
+        items: items,
       },
       {
         onSuccess: () => {
@@ -137,12 +122,16 @@ export default function FinishingTrainingModal({
     );
   };
 
+  useEffect(() => {
+    console.log(form.formState.errors);
+  }, [form.formState.errors]);
+
   return (
     <div className="fixed inset-0 flex justify-center items-center bg-background/60">
       <div className="bg-secondary">
         Modal para finalização do treino
         <Form {...form}>
-          <form onSubmit={handleFormSubmit}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
             <InputDefault
               control={form.control}
               name="title"
@@ -179,7 +168,23 @@ export default function FinishingTrainingModal({
                 form.setValue("visibility_type_id", value);
               }}
             />
-            <Button type="submit">Enviar</Button>
+
+            {isError ? (
+              <p className="border-destructive border text-destructive">
+                {error.message}
+              </p>
+            ) : null}
+
+            <Button type="submit">
+              {isPending ? (
+                <>
+                  <FaSpinner className="mr-2 animate-spin" />
+                  Criando
+                </>
+              ) : (
+                "Criar"
+              )}
+            </Button>
             <Button type="button" onClick={closeFinishinTrainingModal}>
               Voltar
             </Button>

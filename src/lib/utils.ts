@@ -1,4 +1,5 @@
 import { type ClassValue, clsx } from "clsx";
+import { useEffect, useState } from "react";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
@@ -24,3 +25,29 @@ export function isValidUrl(url: string): boolean {
     /^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d+)?(\/.*)?$/;
   return urlPattern.test(url);
 }
+
+export function Timer() {
+  const [elapsedTime, setElapsedTime] = useState<number>(0); // Armazena o tempo em segundos
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setElapsedTime((prevTime) => prevTime + 1); // Incrementa o tempo a cada segundo
+    }, 1000);
+
+    return () => clearInterval(interval); // Limpa o intervalo ao desmontar o componente
+  }, []);
+
+  return elapsedTime;
+}
+
+export const formatTime = (seconds: number) => {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+
+  const formattedHours = String(hours).padStart(2, "0");
+  const formattedMinutes = String(minutes).padStart(2, "0");
+  const formattedSeconds = String(secs).padStart(2, "0");
+
+  return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+};

@@ -1,3 +1,5 @@
+"use client";
+
 import PageTitleWithIcon from "@/components/page-title-with-icon";
 import Search from "@/components/search";
 import TrainingsSession from "@/modules/trainings/trainings-session";

@@ -56,8 +56,6 @@ export default function AddItemModal({
     }
 
     setError("");
-    data.append("movement_id", movement_id.toString());
-    data.append("image_url", movement_image_url);
 
     const item = {
       counting_mode: data.get("counting_mode")?.toString() as "reps" | "time",
@@ -65,8 +63,9 @@ export default function AddItemModal({
       time: Number(data.get("time")),
       queue: 0,
       comments: data.get("comments")?.toString() ?? "",
-      movement_id: Number(data.get("movement_id")),
-      image_url: data.get("image_url")?.toString() ?? "",
+      movement_id: movement_id,
+      image_url: movement_image_url ?? "",
+      name: movement_name,
     };
 
     addNewItem(item);
