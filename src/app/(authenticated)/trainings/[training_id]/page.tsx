@@ -1,5 +1,5 @@
 import ListTraining from "@/modules/trainings/list-training";
 
-export default function TrainingById() {
+export default function TrainingDetails() {
   return <ListTraining />;
 }

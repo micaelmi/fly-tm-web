@@ -7,7 +7,10 @@ import Navbar from "@/components/navbar";
 import PageTitleWithIcon from "@/components/page-title-with-icon";
 import Search from "@/components/search";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 import api from "@/lib/axios";
 import FinishingTrainingModal from "@/modules/trainings/finishing-training-modal";
 import TrainingsSession from "@/modules/trainings/trainings-session";
@@ -25,6 +28,7 @@ export interface Item {
   comments: string;
   movement_id: number;
   image_url: string;
+  name: string;
 }
 
 interface Movement {
@@ -41,6 +45,7 @@ export default function TrainingRegisterForm() {
   const token = session.data?.token.user.token;
 
   const [items, setItems] = useState<Item[]>([]);
+  const [description, setDescription] = useState<string>("");
   const [addItemModal, setAddItemModal] = useState({
     movement_id: 0,
     movement_name: "",
@@ -128,40 +133,48 @@ export default function TrainingRegisterForm() {
             </span>
           </p>
           <TrainingsSession sessionTitle="Seu conjunto de movimentos" />
-          <div className="flex flex-col gap-3 overflow-y-auto">
-            {items.length > 0 ? (
-              items.map((item) => {
-                return (
-                  <TrainingItemCard
-                    key={item.movement_id + crypto.randomUUID()}
-                    movement_id={item.movement_id}
-                    image_url={item.image_url}
-                    reps={item.reps}
-                    time={item.time}
-                    counting_mode={item.counting_mode}
-                    comments={item.comments}
-                    queue={item.queue}
-                    removeItem={() => removeItem(item.movement_id)}
+          <ScrollArea
+            className={`border-input p-4 border rounded-sm ${items.length === 0 && "p-0 border-none"}`}
+          >
+            <div className="flex flex-col gap-3 h-max">
+              {items.length > 0 ? (
+                items.map((item) => {
+                  return (
+                    <TrainingItemCard
+                      key={item.movement_id + crypto.randomUUID()}
+                      image_url={item.image_url}
+                      reps={item.reps}
+                      time={item.time}
+                      name={item.name}
+                      removeItem={() => removeItem(item.movement_id)}
+                    />
+                  );
+                })
+              ) : (
+                <div className="flex justify-around items-center gap-2 p-3 border border-border rounded">
+                  <Image
+                    src="/mascot-sad.svg"
+                    alt="Sem treinos"
+                    width={80}
+                    height={80}
+                    className="opacity-60 aspect-square"
                   />
-                );
-              })
-            ) : (
-              <div className="flex justify-around items-center gap-2 p-3 border border-border rounded">
-                <Image
-                  src="/mascot-sad.svg"
-                  alt="Sem treinos"
-                  width={80}
-                  height={80}
-                  className="opacity-60 aspect-square"
-                />
-                <p className="text-muted-foreground">
-                  Nenhum
-                  <br /> movimento
-                  <br /> adicionado
-                </p>
-              </div>
-            )}
-          </div>
+                  <p className="text-muted-foreground">
+                    Nenhum
+                    <br /> movimento
+                    <br /> adicionado
+                  </p>
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+          <Label>Descrição</Label>
+          <Textarea
+            name="description"
+            rows={10}
+            placeholder="Descreva sua ideia de treino..."
+            onChange={(event) => setDescription(event.target.value)}
+          />
           <div className="flex justify-between">
             <Button variant={"outline"}>Cancelar</Button>
             <Button onClick={openFinishinTrainingModal}>Continuar</Button>
@@ -205,6 +218,7 @@ export default function TrainingRegisterForm() {
         {finishingTrainingModal.is_open && (
           <FinishingTrainingModal
             items={items}
+            description={description}
             closeFinishinTrainingModal={closeFinishinTrainingModal}
           />
         )}
