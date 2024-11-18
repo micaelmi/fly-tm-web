@@ -1,3 +1,5 @@
+import { User } from "./user";
+
 export interface ClubRegisterData {
   name: string;
   description: string;
@@ -28,8 +30,13 @@ export interface Club extends ClubRegisterData {
   _count: {
     users: number;
   };
+  users: User[];
+}
+
+export interface ClubsResponse {
+  clubs: Club[];
 }
 
 export interface ClubResponse {
-  clubs: Club[];
+  club: Club;
 }

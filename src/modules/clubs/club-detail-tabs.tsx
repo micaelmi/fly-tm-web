@@ -10,15 +10,24 @@ import {
   Phone,
   CalendarCheck,
   MapPin,
+  Gear,
 } from "@phosphor-icons/react/dist/ssr";
+import { AddClubMemberDialog } from "./add-club-member-dialog";
+import { DeleteClub } from "./delete-club";
 
-export default function ClubDetailTabs({ club }: { club: Club }) {
+export default function ClubDetailTabs({
+  club,
+  isOwner,
+}: {
+  club: Club;
+  isOwner: boolean;
+}) {
   return (
     <Tabs
       defaultValue="contact"
       className="flex flex-col justify-center items-center mt-4 w-full"
     >
-      <TabsList className="space-x-8 py-6 w-full">
+      <TabsList className="space-x-8 py-6 rounded-b-none w-full">
         <TabsTrigger className="flex gap-2 text-lg" value="contact">
           <ChatCircle size={20} /> Contato
         </TabsTrigger>
@@ -31,12 +40,17 @@ export default function ClubDetailTabs({ club }: { club: Club }) {
         <TabsTrigger className="flex gap-2 text-lg" value="location">
           <MapPin size={20} /> Como chegar
         </TabsTrigger>
+        {isOwner && (
+          <TabsTrigger className="flex gap-2 text-lg" value="config">
+            <Gear size={20} /> Configurações
+          </TabsTrigger>
+        )}
       </TabsList>
       <TabsContent
         value="contact"
-        className="flex flex-col justify-center items-center space-y-4 w-full"
+        className="flex flex-col justify-center items-center m-0 p-0 w-full"
       >
-        <div className="flex flex-col justify-center items-center space-x-2 space-y-2 border-secondary p-4 border rounded-xl w-full font-medium text-lg">
+        <div className="flex flex-col justify-center items-center space-x-2 space-y-2 border-secondary p-4 border rounded-b-xl w-full font-medium text-lg">
           <p className="flex items-center gap-2">
             <Envelope /> Email: {club.email}
           </p>
@@ -50,25 +64,25 @@ export default function ClubDetailTabs({ club }: { club: Club }) {
       </TabsContent>
       <TabsContent
         value="schedules"
-        className="flex flex-col justify-center items-center space-y-4 w-full"
+        className="flex flex-col justify-center items-center m-0 p-0 w-full"
       >
-        <div className="flex flex-col justify-center items-center space-x-2 space-y-2 border-secondary p-4 border rounded-xl w-full font-medium text-lg">
+        <div className="flex flex-col justify-center items-center space-x-2 space-y-2 border-secondary p-4 border rounded-b-xl w-full font-medium text-lg">
           <p>{club.schedule}</p>
         </div>
       </TabsContent>
       <TabsContent
         value="prices"
-        className="flex flex-col justify-center items-center space-y-4 w-full"
+        className="flex flex-col justify-center items-center m-0 p-0 w-full"
       >
-        <div className="flex flex-col justify-center items-center space-x-2 space-y-2 border-secondary p-4 border rounded-xl w-full font-medium text-lg">
+        <div className="flex flex-col justify-center items-center space-x-2 space-y-2 border-secondary p-4 border rounded-b-xl w-full font-medium text-lg">
           <p>{club.prices}</p>
         </div>
       </TabsContent>
       <TabsContent
         value="location"
-        className="flex flex-col justify-center items-center space-y-4 w-full"
+        className="flex flex-col justify-center items-center m-0 p-0 w-full"
       >
-        <div className="flex flex-col justify-center items-center space-x-2 space-y-2 border-secondary p-4 border rounded-xl w-full font-medium text-lg">
+        <div className="flex flex-col justify-center items-center space-x-2 space-y-2 border-secondary p-4 border rounded-b-xl w-full font-medium text-lg">
           <div>
             <p className="font-semibold text-xl">Endereço:</p>
             <p>
@@ -89,6 +103,17 @@ export default function ClubDetailTabs({ club }: { club: Club }) {
           )}
         </div>
       </TabsContent>
+      {isOwner && (
+        <TabsContent
+          value="config"
+          className="flex flex-col justify-center items-center m-0 p-0 w-full"
+        >
+          <div className="flex flex-col justify-center items-center space-x-2 space-y-2 border-secondary p-4 border rounded-b-xl w-full font-medium text-lg">
+            <p>Painel do Proprietário</p>
+            <DeleteClub clubId={club.id} />
+          </div>
+        </TabsContent>
+      )}
     </Tabs>
   );
 }

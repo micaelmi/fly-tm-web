@@ -46,8 +46,12 @@ export interface User {
   };
 }
 
-export interface UserResponse {
+export interface UsersResponse {
   users: User[];
+}
+
+export interface UserResponse {
+  user: User;
 }
 
 export interface UserRegisterData {

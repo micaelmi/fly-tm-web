@@ -8,12 +8,22 @@ import {
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import ClubCard from "./club-card";
+import { useClubsData } from "@/hooks/use-clubs";
 
 export default function ClubsCarousel() {
-  // const { data, isLoading, error } = useClubsData();
+  const { data, isLoading, error } = useClubsData();
 
-  // if (isLoading) return <p>Carregando clubes...</p>;
-  // if (error) return <p>Erro ao carregar clubes: {error.message}</p>;
+  if (isLoading)
+    return (
+      <p className="w-full text-center animate-pulse">Carregando clubes...</p>
+    );
+  if (error) return <p>Erro ao carregar clubes: {error.message}</p>;
+  if (data && data.clubs.length < 1)
+    return (
+      <p className="w-full font-medium text-center text-lg text-primary">
+        Nenhum clube cadastrado, seja o primeiro a criar seu clube aqui!
+      </p>
+    );
 
   return (
     <Carousel
@@ -29,60 +39,22 @@ export default function ClubsCarousel() {
       ]}
     >
       <CarouselContent>
-        {/* {data?.clubs.map((club) => {
+        {data?.clubs.map((club) => {
           return (
             <CarouselItem
               key={club.id}
               className="md:basis-1/2 lg:basis-1/3 py-2"
             >
               <ClubCard
-                buttonContent={}
-                imageUrl={}
-                local={}
-                members={}
-                name={}
+                clubId={club.id}
+                name={club.name}
+                imageUrl={club.logo_url}
+                members={club._count.users}
+                local={club.city + " - " + club.state}
               />
             </CarouselItem>
           );
-        })} */}
-        <CarouselItem className="md:basis-1/2 lg:basis-1/3 py-2">
-          <ClubCard
-            buttonContent="Conhecer"
-            imageUrl="/tm-1.avif"
-            local="São Paulo - SP"
-            members={50}
-            name="SP Table Tennis"
-          />
-        </CarouselItem>
-
-        <CarouselItem className="md:basis-1/2 lg:basis-1/3 py-2">
-          <ClubCard
-            buttonContent="Conhecer"
-            imageUrl="club-logo.svg"
-            local="Piracaia - SP"
-            members={30}
-            name="TM Piracaia"
-          />
-        </CarouselItem>
-
-        <CarouselItem className="md:basis-1/2 lg:basis-1/3 py-2">
-          <ClubCard
-            buttonContent="Conhecer"
-            imageUrl="/tm-2.avif"
-            local="São Paulo - SP"
-            members={22}
-            name="Ping Pong Academy"
-          />
-        </CarouselItem>
-        {/* <CarouselItem className="md:basis-1/2 lg:basis-1/3 py-2">
-          <ClubCard
-            buttonContent="Conhecer"
-            imageUrl="club-logo.svg"
-            local="Piracaia - SP"
-            members={30}
-            name="Centro de Treinamento F. Oliveira"
-          />
-        </CarouselItem> */}
+        })}
       </CarouselContent>
       <CarouselPrevious />
       <CarouselNext />

@@ -1,11 +1,11 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import { AxiosResponse } from "axios";
-import { User, UserRegisterData, UserResponse } from "@/interfaces/user";
+import { User, UserRegisterData, UsersResponse } from "@/interfaces/user";
 import { useSession } from "next-auth/react";
 
-const fetchUsers = async (): Promise<AxiosResponse<UserResponse>> => {
-  const response = await api.get<UserResponse>("/users", {
+const fetchUsers = async (): Promise<AxiosResponse<UsersResponse>> => {
+  const response = await api.get<UsersResponse>("/users", {
     headers: {},
   });
   console.log(response);
@@ -25,14 +25,20 @@ export function useUsersData() {
   return { ...query, data: query.data?.data };
 }
 
-export const useGetUser = (userId: string) => {
+export const useGetUser = (username: string) => {
+  const { data: dataSession } = useSession();
+  const token = dataSession?.token.user.token;
   return useQuery<User>({
-    queryKey: ["user", userId],
+    queryKey: ["userByUsername", username],
     queryFn: async () => {
-      const response = await api.get(`/users/${userId}`);
+      const response = await api.get(`/users/${username}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       return response.data;
     },
-    enabled: !!userId, // Isso evita que a query seja executada sem um userId válido
+    enabled: !!username && !!token,
   });
 };
 

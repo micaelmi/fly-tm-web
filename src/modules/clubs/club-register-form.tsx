@@ -108,6 +108,8 @@ export default function ClubRegisterForm() {
     // passo 1 - verificar se o plano escolhido é pago
     const price =
       plans.find((plan) => plan.id === data.selected_plan)?.price || 0;
+    const planMembers =
+      plans.find((plan) => plan.id === data.selected_plan)?.members || 1;
     if (price > 0) {
       // passo 2 - verificar se o usuario possui saldo
       try {
@@ -181,7 +183,7 @@ export default function ClubRegisterForm() {
         address_number: Number(data.address_number),
         complement: data.complement,
         maps_url: data.maps_url,
-        max_members: plans[data.selected_plan + 1].members,
+        max_members: planMembers,
       },
       {
         onSuccess: async (club) => {
