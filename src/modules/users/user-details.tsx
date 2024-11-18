@@ -158,7 +158,9 @@ export default function UserDetails() {
                 <div className="flex flex-col gap-2">
                   <h2 className="font-semibold text-xl">Apresentação</h2>
                   <p className="max-w-lg text-justify text-sm">
-                    {user_data.bio ?? "Nenhuma descrição fornecida"}
+                    {user_data.bio === null || !user_data.bio
+                      ? "Nenhum descrição fornecida."
+                      : user_data.bio}
                   </p>
                 </div>
                 <div className="flex gap-32">

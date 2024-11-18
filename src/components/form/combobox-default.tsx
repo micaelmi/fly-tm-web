@@ -29,6 +29,13 @@ interface DefaultComboboxProps {
   isLoading?: boolean;
   disabled?: boolean;
   className?: string;
+  buttonVariant?:
+    | "destructive"
+    | "ghost"
+    | "outline"
+    | "default"
+    | "link"
+    | "secondary";
   onSelect: (value: number) => void;
 }
 
@@ -42,6 +49,7 @@ export default function DefaultCombobox({
   isLoading = false,
   disabled = isLoading ? true : false,
   className,
+  buttonVariant = "outline",
   onSelect,
 }: DefaultComboboxProps) {
   return (
@@ -55,10 +63,11 @@ export default function DefaultCombobox({
             <PopoverTrigger asChild>
               <FormControl>
                 <Button
-                  variant="outline"
+                  variant={buttonVariant}
                   role="combobox"
                   className={cn(
                     "flex justify-between",
+                    className,
                     !field.value && "text-muted-foreground"
                   )}
                   disabled={disabled}

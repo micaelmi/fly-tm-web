@@ -18,6 +18,7 @@ interface AddItemModalProps {
   movement_id: number;
   movement_name: string;
   movement_image_url: string;
+  movement_average_time: number;
   closeAddItemModal: () => void;
   addNewItem: (data: Item) => void;
 }
@@ -26,11 +27,16 @@ export default function AddItemModal({
   movement_id,
   movement_name,
   movement_image_url,
+  movement_average_time,
   closeAddItemModal,
   addNewItem,
 }: AddItemModalProps) {
   const [selectedOption, setSelectedOption] = useState("");
   const [error, setError] = useState("");
+
+  const convertToSeconds = (hh: number, mm: number, ss: number) => {
+    return hh * 3600 + mm * 60 + ss;
+  };
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -49,21 +55,34 @@ export default function AddItemModal({
     }
 
     if (data.get("countOption") === "time") {
-      if (data.get("time") === "") {
-        setError("Defina a duração do movimento.");
+      if (data.get("timeHH") === "") {
+        setError("Defina o campo de horas.");
+        return;
+      } else if (data.get("timeMM") === "") {
+        setError("Defina o campo de minutos.");
+        return;
+      } else if (data.get("timeSS") === "") {
+        setError("Defina o campo de segundos.");
         return;
       }
     }
 
     setError("");
 
+    const time = convertToSeconds(
+      Number(data.get("timeHH")),
+      Number(data.get("timeMM")),
+      Number(data.get("timeSS"))
+    );
+
     const item = {
       counting_mode: data.get("counting_mode")?.toString() as "reps" | "time",
       reps: Number(data.get("reps")),
-      time: Number(data.get("time")),
+      time: time,
       queue: 0,
       comments: data.get("comments")?.toString() ?? "",
       movement_id: movement_id,
+      movement_average_time: movement_average_time,
       image_url: movement_image_url ?? "",
       name: movement_name,
     };
@@ -115,9 +134,17 @@ export default function AddItemModal({
                   <Label>Número de repetições</Label>
                   <Input name="reps" type="number" />
                 </div>
-                <div className={selectedOption !== "time" ? "hidden" : ""}>
-                  <Label>Execurar durante (segundos):</Label>
-                  <Input name="time" type="number" />
+                <div className={selectedOption !== "time" ? "hidden" : "w-min"}>
+                  <Label className="truncate">
+                    Executar durante (hh:mm:ss):
+                  </Label>
+                  <div className="flex items-center">
+                    <Input name="timeHH" type="number" />
+                    :
+                    <Input name="timeMM" type="number" />
+                    :
+                    <Input name="timeSS" type="number" />
+                  </div>
                 </div>
               </div>
 

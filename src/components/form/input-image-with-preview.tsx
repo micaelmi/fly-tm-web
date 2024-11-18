@@ -7,6 +7,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import { X } from "@phosphor-icons/react/dist/ssr";
 import { FolderCheck, Upload } from "lucide-react";
 import { ChangeEvent, useRef, useState } from "react";
@@ -14,9 +15,17 @@ import { useFormContext } from "react-hook-form";
 
 interface InputImageProps {
   name: string;
+  formItemClassname?: string;
+  parentClassname?: string;
+  labelClassname?: string;
 }
 
-export default function InputImageWithPreview({ name }: InputImageProps) {
+export default function InputImageWithPreview({
+  name,
+  formItemClassname,
+  parentClassname,
+  labelClassname,
+}: InputImageProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -48,9 +57,12 @@ export default function InputImageWithPreview({ name }: InputImageProps) {
     setValue(name, new File([], ""));
   };
   return (
-    <div className="flex items-center gap-2 w-full">
+    <div className={cn("flex items-center gap-2 w-full", parentClassname)}>
       {selectedImage ? (
-        <div className="relative">
+        <label
+          htmlFor="image"
+          className={cn("relative hover:cursor-pointer", labelClassname)}
+        >
           <button
             onClick={removeImage}
             className="top-0 right-0 absolute bg-red-500 hover:bg-red-700 p-1 rounded-full text-white"
@@ -60,19 +72,25 @@ export default function InputImageWithPreview({ name }: InputImageProps) {
           <img
             src={selectedImage}
             alt="Preview"
-            className="rounded-md w-16 h-16 object-cover"
+            className="rounded-md object-cover"
           />
-        </div>
+        </label>
       ) : (
-        <div className="flex justify-center items-center bg-stone-800 p-2 rounded-md w-16 h-16 text-center">
+        <label
+          htmlFor="image"
+          className={cn(
+            "flex justify-center items-center bg-stone-800 p-2 rounded-md w-16 h-16 text-center hover:cursor-pointer",
+            labelClassname
+          )}
+        >
           <p className="text-xs">Sem imagem</p>
-        </div>
+        </label>
       )}
       <FormField
         control={control}
         name={name}
         render={({ field }) => (
-          <FormItem className="w-full">
+          <FormItem className={cn("w-full", formItemClassname)}>
             <FormLabel className="flex justify-center items-center gap-4 hover:border-card hover:bg-card-foreground/10 py-4 border border-dashed rounded-lg w-full transition-colors cursor-pointer">
               {selectedImage ? (
                 <>
@@ -95,6 +113,7 @@ export default function InputImageWithPreview({ name }: InputImageProps) {
                 className="hidden"
                 type="file"
                 accept="image/*"
+                id="image"
                 onChange={(e) => {
                   handleImageChange(e);
                   if (e.target.files && e.target.files[0]) {

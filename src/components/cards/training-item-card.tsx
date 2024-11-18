@@ -1,8 +1,7 @@
-import { Question, TrashSimple } from "@phosphor-icons/react/dist/ssr";
+import { TrashSimple } from "@phosphor-icons/react/dist/ssr";
 import Image from "next/image";
-import { useState } from "react";
-import AddMovementModal from "../add-item-modal";
 import { Item } from "@/modules/trainings/training-register-form";
+import { formatTime } from "@/lib/utils";
 
 interface TrainingItemCardProps extends Partial<Item> {
   removeItem: () => void;
@@ -28,7 +27,7 @@ export default function TrainingItemCard({
         <h1 className="font-semibold text-ellipsis whitespace-nowrap">
           {name}
         </h1>
-        <p>{reps ? reps + "x" : time + "s"}</p>
+        <p>{reps ? reps + "x" : time && formatTime(time)}</p>
         <button
           onClick={removeItem}
           type="button"

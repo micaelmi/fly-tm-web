@@ -5,10 +5,12 @@ interface AddMovementCardProps {
   movement_id: number;
   movement_name: string;
   movement_image_url: string;
+  movement_average_time: number;
   openAddItemModal: (
     movement_id: number,
     movement_name: string,
-    movement_image_url: string
+    movement_image_url: string,
+    movement_average_time: number
   ) => void;
 }
 
@@ -16,6 +18,7 @@ export default function AddMovementCard({
   movement_id,
   movement_name,
   movement_image_url,
+  movement_average_time,
   openAddItemModal,
 }: AddMovementCardProps) {
   return (
@@ -35,7 +38,12 @@ export default function AddMovementCard({
         type="button"
         className="flex items-center gap-2 text-primary"
         onClick={() =>
-          openAddItemModal(movement_id, movement_name, movement_image_url)
+          openAddItemModal(
+            movement_id,
+            movement_name,
+            movement_image_url,
+            movement_average_time
+          )
         }
       >
         <p className="text-sm">Adicionar</p>

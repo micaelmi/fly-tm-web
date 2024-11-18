@@ -18,6 +18,7 @@ interface InputDefaultProps {
   type?: string;
   description?: string;
   className?: string;
+  inputClassname?: string;
   readOnly?: boolean;
   disabled?: boolean;
   maxLength?: number | undefined;
@@ -32,6 +33,7 @@ export default function InputDefault({
   type = "text",
   description,
   className,
+  inputClassname,
   readOnly = false,
   disabled = false,
   maxLength = undefined,
@@ -46,6 +48,7 @@ export default function InputDefault({
           {label && <FormLabel>{label}</FormLabel>}
           <FormControl>
             <Input
+              className={cn(inputClassname)}
               type={type}
               placeholder={placeholder}
               autoComplete="off"

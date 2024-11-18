@@ -1,18 +1,30 @@
-import { useForm } from "react-hook-form";
-import { Button } from "../../components/ui/button";
-import { Form } from "../../components/ui/form";
-import InputDefault from "../../components/form/input-default";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import InputImage from "../../components/form/input-image";
-import { handleFileUpload } from "@/lib/firebase-upload";
-import DefaultCombobox from "../../components/form/combobox-default";
-import { useEffect, useState } from "react";
-import { Item } from "@/modules/trainings/training-register-form";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { useCreateTraining } from "@/hooks/use-trainings";
-import { useRouter } from "next/navigation";
+import { handleFileUpload } from "@/lib/firebase-upload";
+import { Item } from "@/modules/trainings/training-register-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { DialogClose } from "@radix-ui/react-dialog";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Button } from "../../components/ui/button";
+import DefaultCombobox from "@/components/form/combobox-default";
+import { Form } from "@/components/ui/form";
+import InputDefault from "@/components/form/input-default";
+import InputImageWithPreview from "@/components/form/input-image-with-preview";
 import { FaSpinner } from "react-icons/fa";
+import { Clock, Flag } from "@phosphor-icons/react/dist/ssr";
+import { formatTime } from "@/lib/utils";
 
 interface FinishingTrainingModalProps {
   items: Item[];
@@ -28,7 +40,6 @@ interface Level {
 
 const FormSchema = z.object({
   title: z.string().min(1, { message: "Ao mínimo 1 caractere é necessário" }),
-  time: z.coerce.number(),
   icon_file: z
     .instanceof(File)
     .refine((file) => file.size > 0, { message: "Selecione uma imagem" }),
@@ -72,11 +83,23 @@ export default function FinishingTrainingModal({
     },
   ]);
 
+  const estimated_time_to_finish_training = () => {
+    let time = 0;
+    items.forEach((item) => {
+      if (item.time) {
+        time += item.time;
+      } else if (item.reps) {
+        time += item.reps * item.movement_average_time;
+      }
+    });
+
+    return time;
+  };
+
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      title: "",
-      time: 0,
+      title: "Treino sem título",
       icon_file: new File([], ""),
       level_id: undefined,
       visibility_type_id: undefined,
@@ -106,7 +129,7 @@ export default function FinishingTrainingModal({
       {
         title: filteredData.title,
         description: description,
-        time: filteredData.time,
+        time: estimated_time_to_finish_training(),
         icon_url: filteredData.icon_url,
         user_id: user_id,
         level_id: filteredData.level_id,
@@ -122,41 +145,59 @@ export default function FinishingTrainingModal({
     );
   };
 
-  useEffect(() => {
-    console.log(form.formState.errors);
-  }, [form.formState.errors]);
-
   return (
     <div className="fixed inset-0 flex justify-center items-center bg-background/60">
-      <div className="bg-secondary">
-        Modal para finalização do treino
+      <div className="border-white bg-modal px-8 py-4 border rounded-lg">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <InputDefault
-              control={form.control}
-              name="title"
-              placeholder="Título do treino"
-              label="Título"
-            />
-            <InputDefault
-              control={form.control}
-              name="time"
-              placeholder="Duração"
-              label="Tempo do treino"
-              type="number"
-            />
-            <InputImage name="icon_file" />
-            <DefaultCombobox
-              control={form.control}
-              name="level_id"
-              object={levels}
-              label="Nível do treino"
-              searchLabel="Buscar nível..."
-              selectLabel="Nível"
-              onSelect={(value: number) => {
-                form.setValue("level_id", value);
-              }}
-            />
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-col gap-5"
+          >
+            <div className="flex justify-center items-center gap-3">
+              <div>
+                {/* level */}
+                <div className="flex items-center gap-2 text-primary">
+                  <Flag />
+                  <DefaultCombobox
+                    control={form.control}
+                    name="level_id"
+                    object={levels}
+                    searchLabel="Buscar nível..."
+                    selectLabel="Selecione o nível do treino"
+                    buttonVariant="ghost"
+                    onSelect={(value: number) => {
+                      form.setValue("level_id", value);
+                    }}
+                    className="flex gap-2 p-0"
+                  />
+                </div>
+
+                {/* title */}
+                <InputDefault
+                  control={form.control}
+                  name="title"
+                  placeholder="Título do treino"
+                  inputClassname="border-none text-xl font-semibold p-0"
+                  className="mb-5"
+                />
+
+                <div className="flex flex-col font-semibold">
+                  <p>Tempo estimado</p>
+                  <p className="flex items-center gap-2 text-lg">
+                    <Clock /> {formatTime(estimated_time_to_finish_training())}
+                  </p>
+                </div>
+              </div>
+
+              <InputImageWithPreview
+                name="icon_file"
+                formItemClassname="hidden"
+                parentClassname="w-min"
+                labelClassname="w-32 h-32"
+              />
+            </div>
+
+            {/* visibility */}
             <DefaultCombobox
               control={form.control}
               name="visibility_type_id"
@@ -169,25 +210,33 @@ export default function FinishingTrainingModal({
               }}
             />
 
+            {/* error message */}
             {isError ? (
               <p className="border-destructive border text-destructive">
                 {error.message}
               </p>
             ) : null}
 
-            <Button type="submit">
-              {isPending ? (
-                <>
-                  <FaSpinner className="mr-2 animate-spin" />
-                  Criando
-                </>
-              ) : (
-                "Criar"
-              )}
-            </Button>
-            <Button type="button" onClick={closeFinishinTrainingModal}>
-              Voltar
-            </Button>
+            {/* buttons */}
+            <div className="flex justify-between">
+              <Button
+                type="button"
+                onClick={closeFinishinTrainingModal}
+                className="bg-transparent hover:bg-transparent p-0 text-primary hover:text-primary/60 underline"
+              >
+                Voltar
+              </Button>
+              <Button type="submit">
+                {isPending ? (
+                  <>
+                    <FaSpinner className="mr-2 animate-spin" />
+                    Criando
+                  </>
+                ) : (
+                  "Criar"
+                )}
+              </Button>
+            </div>
           </form>
         </Form>
       </div>

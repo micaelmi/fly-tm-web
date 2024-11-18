@@ -27,6 +27,7 @@ export interface Item {
   queue: number;
   comments: string;
   movement_id: number;
+  movement_average_time: number;
   image_url: string;
   name: string;
 }
@@ -50,6 +51,7 @@ export default function TrainingRegisterForm() {
     movement_id: 0,
     movement_name: "",
     movement_image_url: "",
+    movement_average_time: 0,
     is_open: false,
   });
   const [finishingTrainingModal, setFinishinTrainingModal] = useState({
@@ -73,12 +75,14 @@ export default function TrainingRegisterForm() {
   function openAddItemModal(
     movement_id: number,
     movement_name: string,
-    movement_image_url: string
+    movement_image_url: string,
+    movement_average_time: number
   ) {
     setAddItemModal({
       movement_id: movement_id,
       movement_name: movement_name,
       movement_image_url: movement_image_url,
+      movement_average_time: movement_average_time,
       is_open: true,
     });
   }
@@ -88,6 +92,7 @@ export default function TrainingRegisterForm() {
       movement_id: 0,
       movement_name: "",
       movement_image_url: "",
+      movement_average_time: 0,
       is_open: false,
     });
   }
@@ -195,6 +200,7 @@ export default function TrainingRegisterForm() {
                     movement_id={movement.id}
                     movement_image_url={movement.image_url}
                     movement_name={movement.name}
+                    movement_average_time={movement.average_time}
                     openAddItemModal={openAddItemModal}
                   />
                 );
@@ -210,6 +216,7 @@ export default function TrainingRegisterForm() {
             movement_id={addItemModal.movement_id}
             movement_name={addItemModal.movement_name}
             movement_image_url={addItemModal.movement_image_url}
+            movement_average_time={addItemModal.movement_average_time}
             closeAddItemModal={closeAddItemModal}
             addNewItem={addNewItem}
           />
