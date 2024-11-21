@@ -14,6 +14,8 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import { AddClubMemberDialog } from "./add-club-member-dialog";
 import { DeleteClub } from "./delete-club";
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
 
 export default function ClubDetailTabs({
   club,
@@ -110,7 +112,15 @@ export default function ClubDetailTabs({
         >
           <div className="flex flex-col justify-center items-center space-x-2 space-y-2 border-secondary p-4 border rounded-b-xl w-full font-medium text-lg">
             <p>Painel do Proprietário</p>
-            <DeleteClub clubId={club.id} />
+            <div className="flex gap-4">
+              <DeleteClub clubId={club.id} />
+              <Link
+                href={`/clubs/${club.id}/update`}
+                className={buttonVariants({ variant: "default" })}
+              >
+                Atualizar informações
+              </Link>
+            </div>
           </div>
         </TabsContent>
       )}

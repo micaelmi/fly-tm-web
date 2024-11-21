@@ -163,6 +163,7 @@ export default function TrainingRegisterForm() {
                     width={80}
                     height={80}
                     className="opacity-60 aspect-square"
+                    unoptimized={true}
                   />
                   <p className="text-muted-foreground">
                     Nenhum

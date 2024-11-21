@@ -22,6 +22,8 @@ export default function TrainingItemCard({
         width={80}
         height={80}
         className="aspect-square"
+        priority
+        unoptimized={true}
       />
       <div className="flex flex-col justify-between">
         <h1 className="font-semibold text-ellipsis whitespace-nowrap">

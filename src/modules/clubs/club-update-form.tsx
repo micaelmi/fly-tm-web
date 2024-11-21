@@ -1,4 +1,5 @@
 "use client";
+import { Club } from "@/interfaces/club";
 import ColorPicker from "@/components/form/color-picker";
 import InputDefault from "@/components/form/input-default";
 import InputImage from "@/components/form/input-image";
@@ -8,12 +9,12 @@ import Navbar from "@/components/navbar";
 import RadioButton from "@/components/radio-button";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import { useCreateClub } from "@/hooks/use-clubs";
+import { useUpdateClub } from "@/hooks/use-clubs";
 import { useManageCredits } from "@/hooks/use-credits";
 import { Location } from "@/interfaces/location";
 import { UserData } from "@/interfaces/user";
 import api from "@/lib/axios";
-import { handleFileUpload } from "@/lib/firebase-upload";
+import { deleteFile, handleFileUpload } from "@/lib/firebase-upload";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft } from "@phosphor-icons/react/dist/ssr";
 import { useQuery } from "@tanstack/react-query";
@@ -27,6 +28,8 @@ import { toast } from "react-toastify";
 import * as z from "zod";
 import ClubStepIndicator from "./club-step-indicator";
 import { PlanCards } from "./plan-cards";
+import Image from "next/image";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const FormSchema = z.object({
   name: z.string().min(4, { message: "Mínimo de 4 caracteres" }),
@@ -49,41 +52,14 @@ const FormSchema = z.object({
   address_number: z.string().optional(),
   complement: z.string().optional(),
   maps_url: z.string().optional(),
-  selected_plan: z.coerce.number(),
+  selected_plan: z.string(),
 });
-export default function ClubRegisterForm() {
+export default function ClubUpdateForm({ clubData: club }: { clubData: Club }) {
   const { data: session } = useSession();
 
   const userId = session?.payload.sub || "";
   const username = session?.payload.username || "";
   const token = session?.token.user.token;
-
-  const form = useForm<z.infer<typeof FormSchema>>({
-    resolver: zodResolver(FormSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      logo_url: new File([], ""),
-      background: "color",
-      background_url: new File([], ""),
-      background_color: "fff",
-      email: "",
-      phone: "",
-      instagram: "",
-      other_contacts: "",
-      schedule: "",
-      prices: "",
-      cep: "",
-      state: "",
-      city: "",
-      neighborhood: "",
-      street: "",
-      address_number: "",
-      complement: "",
-      maps_url: "",
-      selected_plan: 1,
-    },
-  });
 
   const plans = [
     { id: 1, price: 0, members: 5 },
@@ -91,11 +67,44 @@ export default function ClubRegisterForm() {
     { id: 3, price: 600, members: 150 },
   ];
 
+  const selectedPlan = plans.find((plan) => plan.members === club.max_members);
+
+  const form = useForm<z.infer<typeof FormSchema>>({
+    resolver: zodResolver(FormSchema),
+    defaultValues: {
+      name: club.name,
+      description: club.description,
+      logo_url: new File([], ""),
+      background: club.background.startsWith("#") ? "color" : "image",
+      background_url: new File([], ""),
+      background_color: club.background.startsWith("#")
+        ? club.background
+        : "fff",
+      email: club.email,
+      phone: club.phone,
+      instagram: club.instagram,
+      other_contacts: club.other_contacts,
+      schedule: club.schedule,
+      prices: club.prices,
+      cep: club.cep,
+      state: club.state,
+      city: club.city,
+      neighborhood: club.neighborhood,
+      street: club.street,
+      address_number: club.address_number?.toString(),
+      complement: club.complement,
+      maps_url: club.maps_url,
+      selected_plan: (selectedPlan?.id || 1).toString(),
+    },
+  });
+
   const [loading, setLoading] = useState(false);
 
   const router = useRouter();
-  const { mutate: createClub, isError } = useCreateClub();
+  const { mutate: updateClub, isError } = useUpdateClub();
   const { mutate: manageCredits } = useManageCredits();
+
+  const [removeLogo, setRemoveLogo] = useState(false);
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     setLoading(true);
@@ -103,10 +112,11 @@ export default function ClubRegisterForm() {
     if (!session) return;
     // passo 1 - verificar se o plano escolhido é pago
     const price =
-      plans.find((plan) => plan.id === data.selected_plan)?.price || 0;
+      plans.find((plan) => plan.id === Number(data.selected_plan))?.price || 0;
     const planMembers =
-      plans.find((plan) => plan.id === data.selected_plan)?.members || 1;
-    if (price > 0) {
+      plans.find((plan) => plan.id === Number(data.selected_plan))?.members ||
+      1;
+    if (price > 0 && planMembers !== club.max_members) {
       // passo 2 - verificar se o usuario possui saldo
       try {
         const user = await api.get<UserData>(`/users/${username}`, {
@@ -130,62 +140,73 @@ export default function ClubRegisterForm() {
 
     // passo 3 - fazer upload das imagens
     if (successes == 0) return;
+
     // logo
-    let logoFile: string;
-    if (data.logo_url && data.logo_url.size > 0) {
-      const timestamp = new Date().toISOString();
-      const fileExtension = data.logo_url.name.split(".").pop();
+    let logoFile = club.logo_url; // Por padrão, reutilizar a logo atual
+
+    if (removeLogo) {
+      logoFile = "";
+      if (club.logo_url) deleteFile(club.logo_url);
+    } else if (data.logo_url instanceof File && data.logo_url.size > 0) {
       logoFile =
         (await handleFileUpload(
           data.logo_url,
-          `clubs/logo-${timestamp}.${fileExtension}`
+          `clubs/logo-${Date.now()}.${data.logo_url.name.split(".").pop()}`
         )) || "";
-    } else logoFile = "";
-    if (logoFile === undefined) logoFile = "";
+      if (club.logo_url) deleteFile(club.logo_url);
+    }
+
     // background
-    let background;
+    let background = data.background_color || "#fff"; // Cor padrão
+
     if (
       data.background === "image" &&
       data.background_url &&
-      data.background_url.size > 0
+      data.background_url?.size > 0
     ) {
-      const timestamp = new Date().toISOString();
-      const fileExtension = data.background_url.name.split(".").pop();
-      background = await handleFileUpload(
+      const uploadedBackground = await handleFileUpload(
         data.background_url,
-        `clubs/background-${timestamp}.${fileExtension}`
+        `clubs/background-${Date.now()}.${data.background_url.name.split(".").pop()}`
       );
+      if (uploadedBackground) {
+        background = uploadedBackground;
+        if (club.background.startsWith("http")) deleteFile(club.background);
+      } else {
+        toast.error("Falha ao fazer upload da imagem de fundo.");
+      }
     }
-    if (background === undefined) background = data.background_color || "#fff";
 
     // passo 4 - criar clube
-    createClub(
+    updateClub(
       {
-        name: data.name,
-        description: data.description,
-        logo_url: logoFile,
-        background: background,
-        owner_username: username,
-        email: data.email,
-        phone: data.phone,
-        instagram: data.instagram,
-        other_contacts: data.other_contacts,
-        schedule: data.schedule,
-        prices: data.prices,
-        cep: data.cep,
-        state: data.state,
-        city: data.city,
-        neighborhood: data.neighborhood,
-        street: data.street,
-        address_number: Number(data.address_number),
-        complement: data.complement,
-        maps_url: data.maps_url,
-        max_members: planMembers,
+        clubId: club.id,
+        data: {
+          name: data.name,
+          description: data.description,
+          logo_url: logoFile,
+          background: background,
+          owner_username: username,
+          email: data.email,
+          phone: data.phone,
+          instagram: data.instagram,
+          other_contacts: data.other_contacts,
+          schedule: data.schedule,
+          prices: data.prices,
+          cep: data.cep,
+          state: data.state,
+          city: data.city,
+          neighborhood: data.neighborhood,
+          street: data.street,
+          address_number: Number(data.address_number),
+          complement: data.complement,
+          maps_url: data.maps_url,
+          max_members: planMembers,
+        },
       },
       {
         onSuccess: async (club) => {
           // passo 5 - subtrair créditos do usuário e registrar transação (efetuar pagamento)
-          if (price > 0) {
+          if (price > 0 && planMembers !== club.max_members) {
             manageCredits({
               action: "spend",
               amount: price,
@@ -198,6 +219,7 @@ export default function ClubRegisterForm() {
         },
       }
     );
+
     setLoading(false);
   };
 
@@ -248,9 +270,9 @@ export default function ClubRegisterForm() {
       <Navbar />
       <div className="flex flex-col gap-5 my-8 px-4 lg:px-12 max-w-screen-sm container">
         <div className="flex flex-col justify-center items-center font-bold">
-          <h1 className="font-black text-3xl">Crie seu clube!</h1>
+          <h1 className="font-black text-3xl">Atualizar Clube</h1>
           <p className="text-center text-gray-400">
-            E inicie uma nova jornada como gerente de uma comunidade.
+            Altere as informações que precisar e salve o formulário no final.
           </p>
         </div>
         <ClubStepIndicator step={formStep} />
@@ -262,10 +284,76 @@ export default function ClubRegisterForm() {
             <div
               className={`flex flex-col gap-5 ${formStep !== 1 && "hidden"}`}
             >
-              <div className="flex flex-col gap-2 mt-4">
-                <p className="text-sm">Logo</p>
-                <InputImageWithPreview name="logo_url" />
-              </div>
+              {/* logo */}
+              <p className="-mb-4 text-sm">Logo</p>
+              {club.logo_url ? (
+                <div className="flex items-center gap-3">
+                  <Image
+                    src={club.logo_url}
+                    width={100}
+                    height={100}
+                    className="border-primary border rounded-full aspect-square"
+                    alt="Logo atual"
+                    priority
+                  />
+                  <div className="flex flex-col gap-2">
+                    <p className="text-sm leading-4 tracking-tight">
+                      Essa é a sua logo atual. Sinta-se a vontade para realizar
+                      o upload de uma nova imagem abaixo.
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="check"
+                        onClick={() => {
+                          setRemoveLogo(!removeLogo);
+                        }}
+                      />
+                      <label
+                        htmlFor="check"
+                        className="peer-disabled:opacity-70 font-medium text-sm leading-none cursor-pointer peer-disabled:cursor-not-allowed"
+                      >
+                        {removeLogo
+                          ? "Sua foto será removida"
+                          : "Clique para remover sua foto"}
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <Image
+                    src={`https://api.dicebear.com/9.x/thumbs/svg?seed=${club.id}`}
+                    width={100}
+                    height={100}
+                    className="border-primary border rounded-full aspect-square"
+                    alt="Logo atual do clube"
+                    unoptimized={true}
+                    priority
+                  />
+                  <p className="text-sm leading-4 tracking-tight">
+                    Você não possui nenhuma imagem cadastrada.{" "}
+                    <span className="text-primary">
+                      Uma imagem aleatória está sendo usada no lugar.
+                    </span>{" "}
+                    Sinta-se a vontade para realizar o upload de uma nova imagem
+                    abaixo.
+                  </p>
+                </div>
+              )}
+              <InputImageWithPreview name="logo_url" />
+
+              {/* background */}
+              {club.background.startsWith("http") &&
+                form.watch("background") === "image" && (
+                  <div className="flex flex-col gap-2">
+                    Sua imagem de capa atual
+                    <img
+                      src={club.background}
+                      className="border-primary border rounded-md w-full h-28 object-cover"
+                      alt="Capa atual"
+                    />
+                  </div>
+                )}
               <div className="flex flex-col gap-2">
                 <p className="peer-disabled:opacity-70 font-medium text-sm leading-none peer-disabled:cursor-not-allowed">
                   Defina uma capa para seu clube
@@ -292,7 +380,14 @@ export default function ClubRegisterForm() {
                     {form.watch("background") === "image" ? (
                       <InputImage name="background_url" />
                     ) : (
-                      <ColorPicker name="background_color" />
+                      <ColorPicker
+                        name="background_color"
+                        defaultValue={
+                          club.background.startsWith("#")
+                            ? club.background
+                            : "fff"
+                        }
+                      />
                     )}
                   </div>
                 </div>
@@ -464,10 +559,10 @@ export default function ClubRegisterForm() {
                   {loading ? (
                     <>
                       <FaSpinner className="mr-2 animate-spin" />
-                      Cadastrando...
+                      Atualizando...
                     </>
                   ) : (
-                    "Cadastrar"
+                    "Atualizar"
                   )}
                 </Button>
               </div>

@@ -85,6 +85,7 @@ export default function ListTraining() {
                         width={100}
                         height={100}
                         className="rounded-lg aspect-square"
+                        unoptimized
                       />
                       <div className="flex flex-col justify-between">
                         <div>

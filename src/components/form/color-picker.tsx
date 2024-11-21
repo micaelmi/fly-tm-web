@@ -11,14 +11,16 @@ import { useFormContext } from "react-hook-form";
 
 interface ColorPickerProps {
   name: string;
+  defaultValue?: string;
 }
 
 export default function ColorPicker({
   name = "defaultName",
+  defaultValue = "#fff",
 }: ColorPickerProps) {
   const [showColorPicker, setShowColorPicker] = useState<boolean>(false);
-  const [color, setColor] = useState<string>("#ffff");
-  const [colorInput, setColorInput] = useState<string>("#ffff");
+  const [color, setColor] = useState<string>(defaultValue);
+  const [colorInput, setColorInput] = useState<string>(defaultValue);
 
   const { control, setValue } = useFormContext();
 

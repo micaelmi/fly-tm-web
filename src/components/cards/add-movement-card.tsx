@@ -33,6 +33,8 @@ export default function AddMovementCard({
         width={80}
         height={80}
         className="aspect-square"
+        priority
+        unoptimized={true}
       />
       <button
         type="button"

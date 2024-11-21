@@ -108,6 +108,7 @@ export default function AddItemModal({
             width={120}
             height={120}
             className="border-white p-3 border rounded aspect-square"
+            unoptimized={true}
           />
           <form className="flex flex-col flex-1 gap-3" onSubmit={onSubmit}>
             <div className="flex flex-col gap-3">

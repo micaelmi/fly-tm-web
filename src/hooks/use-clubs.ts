@@ -131,3 +131,27 @@ export function useRemoveMemberFromClub() {
     },
   });
 }
+
+export function useUpdateClub() {
+  const { data: dataSession } = useSession();
+  const token = dataSession?.token.user.token;
+  return useMutation({
+    mutationFn: async ({
+      clubId,
+      data,
+    }: {
+      clubId: string;
+      data: ClubRegisterData;
+    }) => {
+      const response = await api.put(`clubs/${clubId}`, data, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    },
+    onError: (error) => {
+      console.error("Erro ao atualizar clube:", error);
+    },
+  });
+}

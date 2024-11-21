@@ -159,7 +159,7 @@ export default function UserDetails() {
                   <h2 className="font-semibold text-xl">Apresentação</h2>
                   <p className="max-w-lg text-justify text-sm">
                     {user_data.bio === null || !user_data.bio
-                      ? "Nenhum descrição fornecida."
+                      ? "Nenhuma descrição fornecida."
                       : user_data.bio}
                   </p>
                 </div>
