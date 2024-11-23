@@ -1,8 +1,8 @@
 "use client";
 
 import AddItemModal from "@/components/add-item-modal";
-import AddMovementCard from "@/components/cards/add-movement-card";
-import TrainingItemCard from "@/components/cards/training-item-card";
+import AddMovementCard from "@/modules/trainings/add-movement-card";
+import TrainingItemCard from "@/modules/trainings/training-item-card";
 import Navbar from "@/components/navbar";
 import PageTitleWithIcon from "@/components/page-title-with-icon";
 import Search from "@/components/search";
@@ -18,7 +18,9 @@ import { Barbell } from "@phosphor-icons/react/dist/ssr";
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import update from "immutability-helper";
+import { motion, Reorder } from "motion/react";
 
 export interface Item {
   counting_mode: "reps" | "time";
@@ -97,8 +99,11 @@ export default function TrainingRegisterForm() {
     });
   }
 
-  function removeItem(idToRemove: number) {
-    const newItemsList = items.filter((item) => item.movement_id != idToRemove);
+  function removeItem(queueToRemove: number) {
+    const newItemsList = changeQueue(
+      items.filter((item) => item.queue != queueToRemove)
+    );
+
     setItems(newItemsList);
   }
 
@@ -124,6 +129,21 @@ export default function TrainingRegisterForm() {
     });
   }
 
+  const handleOnReorder = (newList: Item[]) => {
+    setItems(newList);
+  };
+
+  const changeQueue = (items: Item[]) => {
+    return items.map((item, index) => ({
+      ...item,
+      queue: index + 1,
+    }));
+  };
+
+  useEffect(() => {
+    console.log(items);
+  }, [items]);
+
   return (
     <>
       <Navbar />
@@ -138,42 +158,47 @@ export default function TrainingRegisterForm() {
             </span>
           </p>
           <TrainingsSession sessionTitle="Seu conjunto de movimentos" />
-          <ScrollArea
-            className={`border-input p-4 border rounded-sm ${items.length === 0 && "p-0 border-none"}`}
-          >
-            <div className="flex flex-col gap-3 h-max">
-              {items.length > 0 ? (
-                items.map((item) => {
-                  return (
+          {items.length > 0 ? (
+            <ScrollArea className="border-input p-4 border rounded-sm">
+              <Reorder.Group
+                values={items}
+                onReorder={(newList) => handleOnReorder(newList)}
+                className="flex flex-col gap-3 h-max"
+              >
+                {items.map((item) => (
+                  <Reorder.Item
+                    key={item.queue}
+                    value={item}
+                    className="cursor-grab"
+                  >
                     <TrainingItemCard
-                      key={item.movement_id + crypto.randomUUID()}
                       image_url={item.image_url}
                       reps={item.reps}
                       time={item.time}
                       name={item.name}
-                      removeItem={() => removeItem(item.movement_id)}
+                      removeItem={() => removeItem(item.queue)}
                     />
-                  );
-                })
-              ) : (
-                <div className="flex justify-around items-center gap-2 p-3 border border-border rounded">
-                  <Image
-                    src="/mascot-sad.svg"
-                    alt="Sem treinos"
-                    width={80}
-                    height={80}
-                    className="opacity-60 aspect-square"
-                    unoptimized={true}
-                  />
-                  <p className="text-muted-foreground">
-                    Nenhum
-                    <br /> movimento
-                    <br /> adicionado
-                  </p>
-                </div>
-              )}
+                  </Reorder.Item>
+                ))}
+              </Reorder.Group>
+            </ScrollArea>
+          ) : (
+            <div className="flex justify-around items-center gap-2 p-3 border border-border rounded">
+              <Image
+                src="/mascot-sad.svg"
+                alt="Sem treinos"
+                width={80}
+                height={80}
+                className="opacity-60 aspect-square"
+                unoptimized={true}
+              />
+              <p className="text-muted-foreground">
+                Nenhum
+                <br /> movimento
+                <br /> adicionado
+              </p>
             </div>
-          </ScrollArea>
+          )}
           <Label>Descrição</Label>
           <Textarea
             name="description"

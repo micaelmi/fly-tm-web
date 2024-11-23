@@ -1,3 +1,5 @@
+"use client";
+
 import { TrashSimple } from "@phosphor-icons/react/dist/ssr";
 import Image from "next/image";
 import { Item } from "@/modules/trainings/training-register-form";

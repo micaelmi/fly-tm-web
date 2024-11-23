@@ -47,14 +47,14 @@ export default function AddItemModal({
 
     const data = new FormData(event.currentTarget);
 
-    if (data.get("countOption") === "reps") {
+    if (data.get("counting_mode") === "reps") {
       if (data.get("reps") === "") {
         setError("Defina o número de repetições.");
         return;
       }
     }
 
-    if (data.get("countOption") === "time") {
+    if (data.get("counting_mode") === "time") {
       if (data.get("timeHH") === "") {
         setError("Defina o campo de horas.");
         return;
