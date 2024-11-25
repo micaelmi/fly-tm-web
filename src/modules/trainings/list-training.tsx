@@ -7,7 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { Level } from "@/interfaces/level";
 import { Training } from "@/interfaces/training";
 import api from "@/lib/axios";
-import { Clock, Flag } from "@phosphor-icons/react/dist/ssr";
+import { Clock, Flag, Pencil } from "@phosphor-icons/react/dist/ssr";
 import { useQuery } from "@tanstack/react-query";
 import { AxiosResponse } from "axios";
 import { useSession } from "next-auth/react";
@@ -24,7 +24,11 @@ interface TrainingResponse {
 }
 
 export default function ListTraining() {
-  const token = useSession().data?.token.user.token;
+  const session = useSession();
+
+  const token = session.data?.token.user.token;
+  const username = session.data?.payload.username;
+
   const training_id = useParams().training_id;
 
   const { data, isLoading, isError } = useQuery({
@@ -45,15 +49,27 @@ export default function ListTraining() {
 
   if (!training) return;
 
+  const own_training = username === training.user.username;
+
   return (
     <>
       <Navbar />
       <div className="flex flex-col gap-10 mt-5 mb-5 container">
         {/* level, title, time, by */}
         <div className="flex flex-col flex-1 gap-2">
-          <div className="flex items-center gap-2 text-lg text-primary leading-4">
-            <Flag />
-            {training.level.title}
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2 text-lg text-primary leading-4">
+              <Flag />
+              {training.level.title}
+            </div>
+            {own_training ? (
+              <Link
+                href={`/trainings/${training.id}/edit`}
+                className="border-muted hover:border-muted-foreground p-2 border rounded-full text-muted hover:text-muted-foreground transition-all hover:cursor-pointer"
+              >
+                <Pencil />
+              </Link>
+            ) : null}
           </div>
           <h1 className="text-3xl">{training.title}</h1>
           <div className="flex items-center gap-2">
