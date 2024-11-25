@@ -47,6 +47,7 @@ export default function EventsCarousel() {
               className="md:basis-1/2 lg:basis-1/3 py-2"
             >
               <EventCard
+                data={event}
                 date={format(event.start_date, "dd/MM/yyyy")}
                 level={event.level.title}
                 title={event.name}

@@ -5,6 +5,7 @@ import DefaultCombobox from "@/components/form/combobox-default";
 import DatePicker from "@/components/form/date-picker";
 import InputDefault from "@/components/form/input-default";
 import InputImage from "@/components/form/input-image";
+import InputRadio from "@/components/form/input-radio";
 import { RealInput } from "@/components/form/real-input";
 import TextareaDefault from "@/components/form/textarea-default";
 import Navbar from "@/components/navbar";
@@ -12,11 +13,12 @@ import RadioButton from "@/components/radio-button";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { useLevelsData } from "@/hooks/use-auxiliaries";
-import { useCreateEvent } from "@/hooks/use-events";
+import { useCreateEvent, useUpdateEvent } from "@/hooks/use-events";
+import { Event } from "@/interfaces/event";
 import { Level, LevelResponse } from "@/interfaces/level";
 import { Location } from "@/interfaces/location";
 import api from "@/lib/axios";
-import { handleFileUpload } from "@/lib/firebase-upload";
+import { deleteFile, handleFileUpload } from "@/lib/firebase-upload";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarDots } from "@phosphor-icons/react/dist/ssr";
 import { useQuery } from "@tanstack/react-query";
@@ -28,21 +30,11 @@ import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
 import * as z from "zod";
 
-const resetTime = (date: Date) => {
-  const newDate = new Date(date);
-  newDate.setHours(0, 0, 0, 0);
-  return newDate;
-};
-
 const FormSchema = z
   .object({
     name: z.string().min(4, { message: "Mínimo de 4 caracteres" }),
     description: z.string(),
-    startsAt: z.coerce
-      .date()
-      .refine((startsAt) => resetTime(startsAt) >= resetTime(new Date()), {
-        message: "A data de início deve ser maior ou igual à data atual",
-      }),
+    startsAt: z.coerce.date(),
     endsAt: z.coerce.date(),
     cep: z.string().length(8, { message: "Deve conter 8 dígitos" }),
     state: z.string(),
@@ -62,6 +54,7 @@ const FormSchema = z
     representationColor: z.string().optional(),
     representationOption: z.enum(["image", "color"]),
     maps_url: z.string().optional(),
+    status: z.enum(["active", "inactive"]),
   })
   .superRefine((data, ctx) => {
     if (data.endsAt < data.startsAt) {
@@ -91,55 +84,56 @@ const FormSchema = z
     }
   });
 
-export default function EventRegisterForm() {
+export default function EventUpdateForm({
+  eventData: event,
+}: {
+  eventData: Event;
+}) {
   const { data: session } = useSession();
   const userId = session?.payload.sub;
 
-  const [payOption, setPayOption] = useState("no-value");
-  const [currentDate, setCurrentDate] = useState<Date | null>(null);
+  const [payOption, setPayOption] = useState(
+    event.price ? "with-value" : "no-value"
+  );
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      name: "",
-      description: "",
-      startsAt: currentDate || undefined,
-      endsAt: undefined,
-      cep: "",
-      state: "",
-      city: "",
-      neighborhood: "",
-      street: "",
-      address_number: "",
-      complement: "",
-      level: undefined,
-      price: "",
+      name: event.name,
+      description: event.description,
+      startsAt: new Date(event.start_date) || undefined,
+      endsAt: new Date(event.end_date) || undefined,
+      cep: event.cep || "",
+      state: event.state || "",
+      city: event.city || "",
+      neighborhood: event.neighborhood || "",
+      street: event.street || "",
+      address_number: event.address_number.toString(),
+      complement: event.complement || "",
+      level: event.level_id,
+      price: event.price,
       representationUrl: new File([], ""),
-      representationColor: "ffff",
-      representationOption: "image",
-      maps_url: "",
+      representationColor:
+        event.image_url && event.image_url.startsWith("#")
+          ? event.image_url
+          : "fff",
+      representationOption:
+        event.image_url && event.image_url.startsWith("#") ? "color" : "image",
+      maps_url: event.maps_url || "",
+      status: event.status,
     },
   });
 
-  useEffect(() => {
-    if (currentDate) {
-      form.reset({
-        startsAt: currentDate,
-        representationOption: "image",
-        representationColor: "ffff",
-      });
-    }
-  }, [currentDate, form]);
-
   const router = useRouter();
 
-  const { mutate, isPending, isError } = useCreateEvent();
+  const { mutate, isPending, isError } = useUpdateEvent();
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     let filteredData;
     if (data.representationUrl && data.representationUrl.size > 0) {
       let file;
       if (data.representationUrl instanceof File) {
+        if (event.image_url) deleteFile(event.image_url);
         const timestamp = new Date().toISOString();
         const fileExtension = data.representationUrl.name.split(".").pop();
         file = await handleFileUpload(
@@ -171,30 +165,32 @@ export default function EventRegisterForm() {
 
     mutate(
       {
-        name: filteredData.name,
-        description: filteredData.description,
-        start_date: filteredData.startsAt.toISOString(),
-        end_date: filteredData.endsAt.toISOString(),
-        cep: filteredData.cep,
-        state: filteredData.state,
-        city: filteredData.city,
-        neighborhood: filteredData.neighborhood,
-        street: filteredData.street,
-        address_number: Number(filteredData.address_number),
-        complement: filteredData.complement,
-        maps_url:
-          filteredData.maps_url && filteredData.maps_url?.length > 0
-            ? filteredData.maps_url
-            : undefined,
-        image_url: filteredData.representation,
-        price: filteredData.price,
-        status: "active",
-        level_id: filteredData.level,
-        user_id: userId,
+        eventId: event.id,
+        data: {
+          name: filteredData.name,
+          description: filteredData.description,
+          start_date: filteredData.startsAt.toISOString(),
+          end_date: filteredData.endsAt.toISOString(),
+          cep: filteredData.cep,
+          state: filteredData.state,
+          city: filteredData.city,
+          neighborhood: filteredData.neighborhood,
+          street: filteredData.street,
+          address_number: Number(filteredData.address_number),
+          complement: filteredData.complement,
+          maps_url:
+            filteredData.maps_url && filteredData.maps_url?.length > 0
+              ? filteredData.maps_url
+              : undefined,
+          image_url: filteredData.representation,
+          price: filteredData.price,
+          status: filteredData.status,
+          level_id: filteredData.level,
+        },
       },
       {
         onSuccess: () => {
-          router.push("/home");
+          router.back();
         },
       }
     );
@@ -219,12 +215,6 @@ export default function EventRegisterForm() {
       };
     },
   });
-
-  useEffect(() => {
-    const now = new Date();
-    now.setHours(0, 0, 0, 0); // Zera as horas, minutos e segundos
-    setCurrentDate(now);
-  }, []);
 
   useEffect(() => {
     if (location.isSuccess) {
@@ -269,6 +259,17 @@ export default function EventRegisterForm() {
     fetchLevels();
   }, [session]);
 
+  const status = [
+    {
+      value: "active",
+      label: "Ativo",
+    },
+    {
+      value: "inactive",
+      label: "Inativo",
+    },
+  ];
+
   return (
     <>
       <Navbar />
@@ -300,7 +301,7 @@ export default function EventRegisterForm() {
               <p className="peer-disabled:opacity-70 font-medium text-sm leading-none peer-disabled:cursor-not-allowed">
                 Quando?
               </p>
-              <div className="flex md:flex-row flex-col md:justify-between gap-2">
+              <div className="flex md:flex-row flex-col flex-wrap md:justify-between gap-2">
                 <div className="flex md:flex-row flex-col md:items-center gap-2">
                   <div className="md:flex md:flex-col md:gap-2 sm:hidden">
                     <p className="peer-disabled:opacity-70 font-medium text-sm leading-none peer-disabled:cursor-not-allowed">
@@ -393,6 +394,14 @@ export default function EventRegisterForm() {
                 form.setValue("level", value);
               }}
             />
+            <InputRadio
+              control={form.control}
+              name="status"
+              label="Status"
+              object={status}
+              idExtractor={(item) => item.value}
+              descriptionExtractor={(item) => item.label}
+            />
             {/* payment */}
             <div className="flex flex-col gap-2">
               <p className="peer-disabled:opacity-70 font-medium text-sm leading-none peer-disabled:cursor-not-allowed">
@@ -448,11 +457,19 @@ export default function EventRegisterForm() {
                   {form.watch("representationOption") === "image" ? (
                     <InputImage name="representationUrl" />
                   ) : (
-                    <ColorPicker name="representationColor" />
+                    <ColorPicker
+                      name="representationColor"
+                      defaultValue={
+                        event.image_url && event.image_url.startsWith("#")
+                          ? event.image_url
+                          : "fff"
+                      }
+                    />
                   )}
                 </div>
               </div>
             </div>
+
             {/* buttons: cancel and register */}
             <div className="flex md:flex-row flex-col md:justify-between gap-2 mb-16">
               <CancelButton />
@@ -460,10 +477,10 @@ export default function EventRegisterForm() {
                 {isPending ? (
                   <>
                     <FaSpinner className="mr-2 animate-spin" />
-                    "Cadastrando"
+                    Atualizando
                   </>
                 ) : (
-                  "Cadastrar"
+                  "Atualizar"
                 )}
               </Button>
             </div>

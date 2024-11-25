@@ -44,6 +44,9 @@ export interface User {
     title: string;
     description: string;
   };
+  _count: {
+    events: number;
+  };
 }
 
 export interface UsersResponse {

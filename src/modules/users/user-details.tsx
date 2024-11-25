@@ -2,6 +2,7 @@
 
 import Loading from "@/app/loading";
 import Navbar from "@/components/navbar";
+import { buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { User } from "@/interfaces/user";
 import api from "@/lib/axios";
@@ -213,6 +214,14 @@ export default function UserDetails() {
                   </div>
                 </div>
                 <div className="flex flex-col gap-4">
+                  {user_data._count.events > 0 && (
+                    <Link
+                      href={`/user/my-events/${user_data.id}`}
+                      className={buttonVariants({ variant: "default" })}
+                    >
+                      Meus Eventos
+                    </Link>
+                  )}
                   <ShareProfileButton username={user_data.username} />
                   {own_page && <LogoutButton />}
                 </div>

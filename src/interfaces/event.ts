@@ -1,5 +1,6 @@
 export interface EventRegisterData {
   name: string;
+  description: string;
   start_date: string;
   end_date: string;
   cep: string;
@@ -8,13 +9,12 @@ export interface EventRegisterData {
   neighborhood: string;
   street: string;
   address_number: number;
+  complement: string;
   maps_url: string | undefined;
-  description: string;
   image_url: string | undefined;
   status: "active" | "inactive";
-  complement: string;
-  level_id: number;
   price: string;
+  level_id: number;
   user_id: string | undefined;
 }
 
@@ -46,6 +46,10 @@ export interface Event {
   price: string;
 }
 
-export interface EventResponse {
+export interface EventsResponse {
   events: Event[];
+}
+
+export interface EventResponse {
+  event: Event;
 }

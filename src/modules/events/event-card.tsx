@@ -1,25 +1,30 @@
+import { Event } from "@/interfaces/event";
+import { cn } from "@/lib/utils";
 import {
   CalendarCheck,
   MapPinLine,
   Medal,
 } from "@phosphor-icons/react/dist/ssr";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import EventDetails from "./event-details";
 
 interface EventCardProps {
+  data: Event;
   title: string;
   date: string;
   local: string;
   level: string;
   className?: string;
+  adminView?: boolean;
 }
 
 export default function EventCard({
+  data,
   date,
   level,
   local,
   title,
   className,
+  adminView = false,
 }: EventCardProps) {
   return (
     <div
@@ -41,7 +46,7 @@ export default function EventCard({
         <Medal size={20} />
         Nível: {level}
       </div>
-      <Button className="text-sm self-end">Ver mais</Button>
+      <EventDetails data={data} adminView={adminView} />
     </div>
   );
 }
