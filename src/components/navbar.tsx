@@ -5,6 +5,7 @@ import BackButton from "./back-button";
 import Link from "next/link";
 import {
   Barbell,
+  Gear,
   HouseLine,
   Strategy,
   UserCircle,
@@ -13,6 +14,7 @@ import { useSession } from "next-auth/react";
 
 export default function Navbar({ back = true }: { back?: boolean }) {
   const username = useSession().data?.payload.username;
+  const type = useSession().data?.payload.type;
 
   return (
     <>
@@ -57,6 +59,14 @@ export default function Navbar({ back = true }: { back?: boolean }) {
               >
                 <UserCircle />
               </Link>
+              {type === 2 && (
+                <Link
+                  href={`/admin`}
+                  className="hover:text-primary transition-colors"
+                >
+                  <Gear />
+                </Link>
+              )}
             </div>
           </div>
         </div>

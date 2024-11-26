@@ -11,7 +11,6 @@ import { useQuery } from "@tanstack/react-query";
 import { AxiosResponse } from "axios";
 import { User } from "@/interfaces/user";
 import api from "@/lib/axios";
-import { useEffect, useState } from "react";
 
 interface UserData {
   user: User;
@@ -41,9 +40,6 @@ export default function FeaturesCarousel() {
   });
 
   const user = userData.data;
-
-  console.log(user?.club_logo_url);
-
   return (
     <Carousel
       opts={{

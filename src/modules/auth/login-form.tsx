@@ -58,7 +58,7 @@ export default function LoginForm() {
       }
       return;
     }
-    router.replace("/home");
+    router.push("/home");
   };
 
   return (

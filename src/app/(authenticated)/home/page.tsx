@@ -1,8 +1,8 @@
-import ContactButton from "@/components/contact-button";
 import FeaturesCarousel from "@/components/features-carousel";
 import Navbar from "@/components/navbar";
 import Search from "@/components/search";
 import ClubsCarousel from "@/modules/clubs/clubs-carousel";
+import ContactButton from "@/modules/contact/contact-button";
 import EventsCarousel from "@/modules/events/event-carousel";
 import Link from "next/link";
 
