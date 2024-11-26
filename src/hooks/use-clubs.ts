@@ -25,6 +25,7 @@ export function useClubsData() {
     refetchInterval: 5 * 60 * 1000,
     refetchOnWindowFocus: true,
     refetchOnReconnect: true,
+    enabled: !!token,
   });
   return { ...query, data: query.data?.data };
 }

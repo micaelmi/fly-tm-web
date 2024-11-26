@@ -14,7 +14,7 @@ export default function ContactButton() {
       <Tooltip>
         <TooltipTrigger className="right-8 bottom-8 fixed w-16 h-16">
           <Link
-            href={"/contacts/new"}
+            href={"/contacts/register"}
             className="right-8 bottom-8 fixed bg-primary p-2 rounded-full aspect-square"
           >
             <ChatTeardropDots size={48} color="black" />

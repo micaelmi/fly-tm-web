@@ -10,7 +10,7 @@ export default function LogoutButton() {
     await signOut({
       redirect: false,
     });
-    router.replace("/");
+    router.push("/");
   }
 
   return (
