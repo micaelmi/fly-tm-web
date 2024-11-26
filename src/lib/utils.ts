@@ -51,3 +51,27 @@ export const formatTime = (seconds: number) => {
 
   return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
 };
+
+export const convertToSeconds = (hh: number, mm: number, ss: number) => {
+  return hh * 3600 + mm * 60 + ss;
+};
+
+export const createUniqueIdGenerator = (min = 1, max = 1000000) => {
+  const usedIds = new Set();
+
+  const generateUniqueId = () => {
+    if (usedIds.size >= max - min + 1) {
+      throw new Error("Todos os IDs possíveis já foram gerados.");
+    }
+
+    let newId;
+    do {
+      newId = Math.floor(Math.random() * (max - min + 1)) + min;
+    } while (usedIds.has(newId));
+
+    usedIds.add(newId);
+    return newId;
+  };
+
+  return generateUniqueId;
+};

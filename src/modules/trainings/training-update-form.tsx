@@ -9,7 +9,7 @@ import Navbar from "@/components/navbar";
 import { Form } from "@/components/ui/form";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Training } from "@/interfaces/training";
+import { Training, TrainingItem } from "@/interfaces/training";
 import api from "@/lib/axios";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
@@ -19,27 +19,19 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import TrainingItemCard from "./training-item-card";
+import { Button } from "@/components/ui/button";
+import AddTrainingItemModal from "./add-training-item-modal";
+import { Item } from "./training-register-form";
+import PageTitleWithIcon from "@/components/page-title-with-icon";
+import { Barbell } from "@phosphor-icons/react/dist/ssr";
+import { createUniqueIdGenerator } from "@/lib/utils";
 
 interface TrainingResponse {
   training: Training;
 }
 
-interface TrainingItem {
-  comments: string;
-  counting_mode: "time" | "reps";
-  movement: {
-    average_time: number;
-    description: string;
-    image_url: string;
-    name: string;
-    video_url: string;
-  };
-  queue: number;
-  reps: number;
-  time: number;
-}
-
-interface Item {
+interface ComboboxItem {
   value: number;
   label: string;
 }
@@ -59,7 +51,6 @@ const FormSchema = z.object({
   items: z
     .array(
       z.object({
-        id: z.number().optional(),
         counting_mode: z.enum(["reps", "time"]),
         reps: z.number(),
         time: z.number(),
@@ -88,6 +79,7 @@ export default function TrainingUpdateForm() {
         },
       });
     },
+    enabled: !!token,
   });
 
   isLoading && <Loading />;
@@ -123,20 +115,34 @@ export default function TrainingUpdateForm() {
     enabled: !!token,
   });
 
-  const levels: Item[] = combobox_data?.levels.levels
+  const levels: ComboboxItem[] = combobox_data?.levels.levels
     .map((level: ComboboxOption) => ({
       value: level.id,
       label: level.title,
     }))
-    .filter((level: Item) => level.label !== "Livre");
+    .filter((level: ComboboxItem) => level.label !== "Livre");
 
-  const visibilityTypes: Item[] =
+  const visibilityTypes: ComboboxItem[] =
     combobox_data?.visibility_types.visibilityTypes.map(
       (visibilityType: Partial<ComboboxOption>) => ({
         value: visibilityType.id,
         label: visibilityType.description,
       })
     );
+
+  const movementsData = useQuery({
+    queryKey: ["movementsData"],
+    queryFn: async () => {
+      return await api.get("/movements", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    },
+    enabled: !!token,
+  });
+
+  const movementsForChoose = movementsData.data?.data.movements;
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -150,7 +156,45 @@ export default function TrainingUpdateForm() {
     },
   });
 
+  const addNewTrainingItem = (data: TrainingItem) => {
+    const newItem = {
+      ...data,
+      queue: trainingItems.length + 1,
+    };
+
+    setTrainingItems([...trainingItems, newItem]);
+  };
+
+  const removeTrainingItem = (queue: number) => {
+    if (trainingItems.length === 1) {
+      alert("Um treino precisa ter ao menos um movimento!");
+      return;
+    }
+
+    let updatedTrainingItems = trainingItems.filter((trainingItem) => {
+      return trainingItem.queue !== queue;
+    });
+
+    updatedTrainingItems = changeQueue(updatedTrainingItems);
+
+    if (updatedTrainingItems) setTrainingItems(updatedTrainingItems);
+  };
+
+  const onReorder = (newTrainingItemsList: TrainingItem[]) => {
+    const updatedTrainingItems = changeQueue(newTrainingItemsList);
+
+    setTrainingItems(updatedTrainingItems);
+  };
+
+  const changeQueue = (items: TrainingItem[]) => {
+    return items.map((item, index) => ({
+      ...item,
+      queue: index + 1,
+    }));
+  };
+
   const onSubmit = (data: z.infer<typeof FormSchema>) => {
+    console.log("submit errado");
     console.log(data);
   };
 
@@ -171,78 +215,115 @@ export default function TrainingUpdateForm() {
         <>
           <Navbar />
           <div className="mt-5 mb-5 container">
-            <h1>Página para edição de treino: {training_id}</h1>
+            <PageTitleWithIcon
+              title="Edite seu treino"
+              icon={Barbell}
+              parentClassname="mb-3"
+            />
             <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="grid grid-cols-11"
-              >
-                <ScrollArea className="border-input col-span-5 p-4 border rounded-sm">
-                  <Reorder.Group
-                    values={trainingItems}
-                    onReorder={setTrainingItems}
-                  >
-                    {trainingItems.map((trainingItem) => (
-                      <Reorder.Item
-                        key={trainingItem.queue}
-                        value={trainingItem}
-                        className="cursor-grab"
-                      >
-                        <div className="flex gap-2 border-primary border">
-                          <p>{trainingItem.movement.name}</p>
-                          <p>{trainingItem.queue}</p>
-                        </div>
-                      </Reorder.Item>
-                    ))}
-                  </Reorder.Group>
-                </ScrollArea>
-                <Separator
-                  orientation="vertical"
-                  className="col-span-1 bg-primary m-auto"
-                />
-                <div className="col-span-5">
-                  <div className="gap-3 grid grid-cols-2">
-                    <div>
-                      <InputDefault
-                        control={form.control}
-                        name="title"
-                        label="Título"
-                        placeholder="Título do treino"
-                      />
-                      <DefaultCombobox
-                        control={form.control}
-                        name="visibility_type_id"
-                        object={visibilityTypes}
-                        label="Visibilidade do treino"
-                        searchLabel="Buscar visibilidade..."
-                        selectLabel="Visibilidade"
-                        onSelect={(value: number) => {
-                          form.setValue("visibility_type_id", value);
-                        }}
-                      />
-                      <DefaultCombobox
-                        control={form.control}
-                        name="level_id"
-                        object={levels}
-                        label="Nível do treino"
-                        searchLabel="Buscar nível..."
-                        selectLabel="Nível"
-                        onSelect={(value: number) => {
-                          form.setValue("level_id", value);
-                        }}
+              <form onSubmit={form.handleSubmit(onSubmit)}>
+                <div className="grid grid-cols-11">
+                  <div className="flex flex-col gap-1 col-span-5">
+                    <p className="mb-2">
+                      Abaixo está a relação de itens desse treino.{" "}
+                      <span className="text-primary">
+                        Você pode ajustar a ordem de execução desses itens
+                        arrastando-os
+                      </span>
+                      .
+                    </p>
+                    <div className="flex justify-between items-center">
+                      <p className="font-semibold">
+                        Movimentos: {trainingItems.length}
+                      </p>
+                      <AddTrainingItemModal
+                        movementsForChoose={movementsForChoose}
+                        addNewTrainingItem={addNewTrainingItem}
                       />
                     </div>
-                    <InputImageWithPreview
-                      name="icon_file"
-                      formItemClassname="hidden"
-                      labelClassname="w-full h-full aspect-square"
+                    <ScrollArea className="border-input p-4 border rounded-sm h-96">
+                      <Reorder.Group
+                        values={trainingItems}
+                        onReorder={(newTrainingItemsList) =>
+                          onReorder(newTrainingItemsList)
+                        }
+                        className="flex flex-col gap-2"
+                      >
+                        {trainingItems.map((trainingItem) => (
+                          <Reorder.Item
+                            key={trainingItem.id}
+                            value={trainingItem}
+                            className="cursor-grab"
+                          >
+                            <TrainingItemCard
+                              image_url={trainingItem.movement.image_url}
+                              reps={trainingItem.reps}
+                              time={trainingItem.time}
+                              name={trainingItem.movement.name}
+                              removeItem={() =>
+                                removeTrainingItem(trainingItem.queue)
+                              }
+                            />
+                          </Reorder.Item>
+                        ))}
+                      </Reorder.Group>
+                    </ScrollArea>
+                  </div>
+                  <Separator
+                    orientation="vertical"
+                    className="col-span-1 bg-primary m-auto"
+                  />
+                  <div className="flex flex-col gap-3 col-span-5 h-96">
+                    <div className="items-end gap-3 grid grid-cols-2">
+                      <div className="space-y-3">
+                        <InputDefault
+                          control={form.control}
+                          name="title"
+                          label="Título"
+                          placeholder="Título do treino"
+                        />
+                        <DefaultCombobox
+                          control={form.control}
+                          name="visibility_type_id"
+                          object={visibilityTypes}
+                          label="Visibilidade do treino"
+                          searchLabel="Buscar visibilidade..."
+                          selectLabel="Visibilidade"
+                          onSelect={(value: number) => {
+                            form.setValue("visibility_type_id", value);
+                          }}
+                        />
+                        <DefaultCombobox
+                          control={form.control}
+                          name="level_id"
+                          object={levels}
+                          label="Nível do treino"
+                          searchLabel="Buscar nível..."
+                          selectLabel="Nível"
+                          onSelect={(value: number) => {
+                            form.setValue("level_id", value);
+                          }}
+                        />
+                      </div>
+                      <InputImageWithPreview
+                        name="icon_file"
+                        formItemClassname="hidden"
+                        parentClassname="aspect-square"
+                        labelClassname="w-full h-full aspect-square"
+                      />
+                    </div>
+                    <TextareaDefault
+                      control={form.control}
+                      name="description"
+                      placeholder="Descrição"
+                      className="resize-none"
+                      rows={10}
                     />
                   </div>
-                  <TextareaDefault
-                    control={form.control}
-                    name="description"
-                    placeholder="Descrição"
-                  />
+                </div>
+                <div className="flex justify-between mt-3">
+                  <Button variant={"outline"}>Esquece, tava legal.</Button>
+                  <Button>Salvar alterações</Button>
                 </div>
               </form>
             </Form>

@@ -1,18 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
+    unoptimized: true, // Remove otimizações específicas de imagens
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "api.dicebear.com",
-        port: "",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "firebasestorage.googleapis.com",
-        port: "",
-        pathname: "/**",
+        hostname: "*",
+        port: "*",
+        pathname: "**",
       },
     ],
   },

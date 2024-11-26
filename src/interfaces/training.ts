@@ -31,6 +31,7 @@ export interface Training {
   time: number;
   title: string;
   training_items: {
+    id: number;
     comments: string;
     counting_mode: "time" | "reps";
     movement: {
@@ -55,4 +56,22 @@ export interface Training {
   };
   user_id: string;
   visibility_type_id: number;
+}
+
+interface Movement {
+  average_time: number;
+  description: string;
+  image_url: string;
+  name: string;
+  video_url: string;
+}
+
+export interface TrainingItem {
+  id: number;
+  comments: string;
+  counting_mode: "time" | "reps";
+  movement: Partial<Movement>;
+  queue: number;
+  reps: number;
+  time: number;
 }

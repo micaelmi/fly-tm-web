@@ -59,22 +59,24 @@ export default function InputImageWithPreview({
   return (
     <div className={cn("flex items-center gap-2 w-full", parentClassname)}>
       {selectedImage ? (
-        <label
-          htmlFor="image"
-          className={cn("relative hover:cursor-pointer", labelClassname)}
-        >
+        <div>
           <button
             onClick={removeImage}
-            className="top-0 right-0 absolute bg-red-500 hover:bg-red-700 p-1 rounded-full text-white"
+            className="z-50 absolute bg-red-500 hover:bg-red-700 p-1 rounded-full text-white"
           >
             <X weight="bold" />
           </button>
-          <img
-            src={selectedImage}
-            alt="Preview"
-            className="rounded-md object-cover"
-          />
-        </label>
+          <label
+            htmlFor="image"
+            className={cn("relative hover:cursor-pointer", labelClassname)}
+          >
+            <img
+              src={selectedImage}
+              alt="Preview"
+              className="rounded-md object-cover"
+            />
+          </label>
+        </div>
       ) : (
         <label
           htmlFor="image"

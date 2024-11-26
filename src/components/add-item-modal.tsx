@@ -13,6 +13,7 @@ import {
 } from "./ui/select";
 import { Input } from "./ui/input";
 import { Item } from "@/modules/trainings/training-register-form";
+import { convertToSeconds } from "@/lib/utils";
 
 interface AddItemModalProps {
   movement_id: number;
@@ -33,10 +34,6 @@ export default function AddItemModal({
 }: AddItemModalProps) {
   const [selectedOption, setSelectedOption] = useState("");
   const [error, setError] = useState("");
-
-  const convertToSeconds = (hh: number, mm: number, ss: number) => {
-    return hh * 3600 + mm * 60 + ss;
-  };
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
