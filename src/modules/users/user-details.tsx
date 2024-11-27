@@ -214,14 +214,24 @@ export default function UserDetails() {
                   </div>
                 </div>
                 <div className="flex flex-col gap-4">
-                  {user_data._count.events > 0 && (
-                    <Link
-                      href={`/user/my-events/${user_data.id}`}
-                      className={buttonVariants({ variant: "default" })}
-                    >
-                      Meus Eventos
-                    </Link>
-                  )}
+                  <div className="flex gap-2">
+                    {user_data._count.events > 0 && (
+                      <Link
+                        href={`/user/my-events/${user_data.id}`}
+                        className={`${buttonVariants({ variant: "default" })} flex-1`}
+                      >
+                        Meus Eventos
+                      </Link>
+                    )}
+                    {user_data._count.contacts > 0 && (
+                      <Link
+                        href={`/user/my-contacts/${user_data.id}`}
+                        className={`${buttonVariants({ variant: "default" })} flex-1`}
+                      >
+                        Meus Contatos
+                      </Link>
+                    )}
+                  </div>
                   <ShareProfileButton username={user_data.username} />
                   {own_page && <LogoutButton />}
                 </div>

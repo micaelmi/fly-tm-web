@@ -46,6 +46,7 @@ export interface User {
   };
   _count: {
     events: number;
+    contacts: number;
   };
 }
 
