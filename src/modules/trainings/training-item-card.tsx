@@ -2,10 +2,14 @@
 
 import { TrashSimple } from "@phosphor-icons/react/dist/ssr";
 import Image from "next/image";
-import { Item } from "@/modules/trainings/training-register-form";
 import { formatTime } from "@/lib/utils";
+import { TrainingItem } from "@/interfaces/training";
 
-interface TrainingItemCardProps extends Partial<Item> {
+interface TrainingItemCardProps {
+  image_url: string | undefined;
+  reps: number;
+  time: number;
+  name: string | undefined;
   removeItem: () => void;
 }
 

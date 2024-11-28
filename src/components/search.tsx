@@ -30,7 +30,7 @@ export default function Search({
   }, 300);
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 w-full">
       <MagnifyingGlass size={35} />
       <Input
         type="search"

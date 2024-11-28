@@ -21,8 +21,13 @@ import FinishingStrategyModal from "./finishing-strategy-modal";
 import { handleFileUpload } from "@/lib/firebase-upload";
 import Navbar from "@/components/navbar";
 import { Separator } from "@/components/ui/separator";
+import { useCreateStrategy } from "@/hooks/use-strategies";
+import MovementsForChoose from "@/components/movements-for-choose";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 const FormSchema = z.object({
+  title: z.string().min(1),
   against_whom: z
     .string()
     .min(1, { message: "Ao mínimo 1 caractere é necessário" }),
@@ -30,10 +35,8 @@ const FormSchema = z.object({
   icon_file: z
     .instanceof(File)
     .refine((file) => file.size > 0, { message: "Selecione um ícone" }),
-  // user_id: z.string().uuid(),
   level_id: z.number(),
   visibility_type_id: z.number(),
-  club_id: z.string().optional(),
   items: z.array(
     z.object({
       description: z.string(),
@@ -43,52 +46,30 @@ const FormSchema = z.object({
 });
 
 export default function StrategyRegisterForm() {
-  const [movesForChoose, setMovesForChoose] = useState([
-    {
-      movement_id: 1,
-      movement_description: "Drive de Forehand",
-      movement_image_url: "/mascot-hitting.svg",
-    },
-    {
-      movement_id: 2,
-      movement_description: "Smash",
-      movement_image_url: "/mascot-hitting.svg",
-    },
-    {
-      movement_id: 3,
-      movement_description: "Drive de Backhand",
-      movement_image_url: "/mascot-hitting.svg",
-    },
-  ]);
-  const [finishingStrategyModal, setFinishingStrategyModal] = useState({
-    isOpen: false,
-  });
+  const user_id = useSession().data?.payload.sub;
+
+  const [isFinishingStrategyModalOpen, setIsFinishingStrategyModalOpen] =
+    useState<boolean>(false);
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
+      title: "",
       against_whom: "",
       how_it_works: "",
       icon_file: new File([], ""),
-      // user_id: "",
       level_id: undefined,
       visibility_type_id: undefined,
-      club_id: "",
       items: [],
     },
   });
   const items = form.watch("items");
 
-  const closeFinishingStrategyModal = (open: boolean) => {
-    setFinishingStrategyModal({
-      ...finishingStrategyModal,
-      isOpen: open,
-    });
-  };
+  const router = useRouter();
+
+  const { mutate, isPending, isError, error } = useCreateStrategy();
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
-    console.log("Foi para envio");
-
     let file;
     if (data.icon_file && data.icon_file.size > 0) {
       if (data.icon_file instanceof File) {
@@ -103,21 +84,38 @@ export default function StrategyRegisterForm() {
 
     const { icon_file, ...rest } = data;
     const filteredData = { ...rest, icon_url: file };
-    console.log(filteredData);
+
+    mutate(
+      {
+        title: filteredData.title,
+        how_it_works: filteredData.how_it_works,
+        against_whom: filteredData.against_whom,
+        icon_url: filteredData.icon_url ?? "",
+        user_id: user_id ?? "",
+        level_id: filteredData.level_id,
+        visibility_type_id: filteredData.visibility_type_id,
+        items: filteredData.items,
+      },
+      {
+        onSuccess: () => {
+          router.push("/strategies");
+        },
+      }
+    );
   };
   return (
     <>
       <Navbar />
-      <div className="flex mt-5 mb-5 container">
+      <div className="grid grid-cols-12 mt-5 mb-5 container">
         {/* Formulário */}
-        <div className="space-y-3 mr-16 w-full max-w-lg">
+        <div className="space-y-3 col-span-7">
           <div className="flex items-center gap-3 font-semibold text-4xl">
             <Strategy />
             Elabore uma estratégia
           </div>
-          <p className="text-xl">
+          <p className="">
             Ao lado, caso deseje, escolha movimentos coerentes à estratégia
-            elaborada e relacione-os
+            elaborada e <span className="text-primary">relacione-os</span>.
           </p>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -170,70 +168,82 @@ export default function StrategyRegisterForm() {
                 <Button variant={"outline"}>Cancelar</Button>
                 <Button
                   type="button"
-                  onClick={() =>
-                    setFinishingStrategyModal({
-                      ...finishingStrategyModal,
-                      isOpen: true,
-                    })
-                  }
+                  onClick={() => {
+                    if (
+                      form.getValues("against_whom") === "" ||
+                      form.getValues("how_it_works") === ""
+                    ) {
+                      alert(
+                        "Preecha todos os campos dessa sessão antes de continuar."
+                      );
+                      return;
+                    }
+                    setIsFinishingStrategyModalOpen(true);
+                  }}
                 >
                   Continuar
                 </Button>
               </div>
               {/* Modal para finalização da estratégia */}
               <FinishingStrategyModal
-                isOpen={finishingStrategyModal.isOpen}
-                closeFinishingStrategyModal={closeFinishingStrategyModal}
+                isPending={isPending}
+                isError={isError}
+                error={error}
+                isOpen={isFinishingStrategyModalOpen}
+                closeFinishingStrategyModal={() =>
+                  setIsFinishingStrategyModalOpen(false)
+                }
               />
             </form>
           </Form>
         </div>
+        <Separator
+          orientation="vertical"
+          className="col-span-1 bg-primary shadow shadow-primary m-auto"
+        />
         {/* Movimentos para relação */}
-        <div className="space-y-3 ml-16 w-full max-w-72">
-          <h1 className="font-semibold text-4xl text-center">Movimentos</h1>
-          <Search pagination={false} placeholder="Buscar..." />
-          {movesForChoose.map((move) => {
+        <MovementsForChoose
+          h1Classname="text-3xl font-bold"
+          parentClassname="col-span-4 flex flex-col items-center gap-3"
+          movement_card={(move) => {
             return (
               <div
-                key={move.movement_id}
-                className="flex flex-col justify-center items-center gap-2 p-4 border rounded-xl"
+                key={move.id}
+                className="flex flex-col gap-2 border-primary p-2 border rounded-lg"
               >
-                <div className="flex justify-between items-center gap-2 w-full font-medium text-lg">
-                  {move.movement_description}
-                  <Question size={24} />
+                <div className="flex justify-between items-center font-semibold">
+                  {move.name}
+                  <Question size={21} />
                 </div>
                 <Image
-                  src={move.movement_image_url}
+                  src={move.image_url}
+                  className="w-full"
                   width={100}
                   height={100}
-                  className="aspect-square"
                   alt="Imagem do movimento"
+                  priority
                 />
                 <button
                   type="button"
                   onClick={() => {
-                    if (
-                      items.some(
-                        (item) => item.movement_id === move.movement_id
-                      )
-                    ) {
+                    if (items.some((item) => item.movement_id === move.id)) {
                       alert("O item selecionado já está relacionado.");
                     } else {
                       const newItem = {
-                        movement_id: move.movement_id,
-                        description: move.movement_description,
+                        movement_id: move.id,
+                        description: move.name,
                       };
                       form.setValue("items", [...items, newItem]);
                     }
                   }}
-                  className="font-semibold text-primary hover:underline cursor-pointer"
+                  className="hover:bg-secondary hover:rounded-lg text-primary transition-all"
                 >
                   Relacionar
                 </button>
               </div>
             );
-          })}
-        </div>
+          }}
+        />
       </div>
     </>
   );

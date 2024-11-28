@@ -7,7 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { Level } from "@/interfaces/level";
 import { Training } from "@/interfaces/training";
 import api from "@/lib/axios";
-import { Clock, Flag, Pencil } from "@phosphor-icons/react/dist/ssr";
+import { Clock, Flag, Pencil, Trash } from "@phosphor-icons/react/dist/ssr";
 import { useQuery } from "@tanstack/react-query";
 import { AxiosResponse } from "axios";
 import { useSession } from "next-auth/react";
@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import ShareButton from "@/components/share-button";
 import Link from "next/link";
 import { formatTime } from "@/lib/utils";
+import { DeleteTraining } from "./delete-training";
 
 interface TrainingResponse {
   training: Training;
@@ -40,6 +41,7 @@ export default function ListTraining() {
         },
       });
     },
+    enabled: !!token,
   });
 
   isLoading && <Loading />;
@@ -54,6 +56,13 @@ export default function ListTraining() {
   return (
     <>
       <Navbar />
+      <div className={`w-full h-40`}>
+        <img
+          src={training.icon_url}
+          alt="Ícone do treino"
+          className="w-full max-h-full object-cover"
+        />
+      </div>
       <div className="flex flex-col gap-10 mt-5 mb-5 container">
         {/* level, title, time, by */}
         <div className="flex flex-col flex-1 gap-2">
@@ -63,12 +72,15 @@ export default function ListTraining() {
               {training.level.title}
             </div>
             {own_training ? (
-              <Link
-                href={`/trainings/${training.id}/edit`}
-                className="border-muted hover:border-muted-foreground p-2 border rounded-full text-muted hover:text-muted-foreground transition-all hover:cursor-pointer"
-              >
-                <Pencil />
-              </Link>
+              <div className="flex gap-2">
+                <Link
+                  href={`/trainings/${training.id}/edit`}
+                  className="border-muted hover:border-muted-foreground p-2 border rounded-full text-muted hover:text-muted-foreground transition-all hover:cursor-pointer"
+                >
+                  <Pencil />
+                </Link>
+                <DeleteTraining trainingId={training.id} />
+              </div>
             ) : null}
           </div>
           <h1 className="text-3xl">{training.title}</h1>

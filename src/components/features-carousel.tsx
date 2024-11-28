@@ -65,7 +65,7 @@ export default function FeaturesCarousel() {
             alt="Patola criando estratégia"
             imageUrl="mascot-strategy.svg"
             text="Estratégias"
-            linkToFeaturePage="#"
+            linkToFeaturePage="strategies"
           />
         </CarouselItem>
         <CarouselItem className="md:basis-1/3 lg:basis-1/5">

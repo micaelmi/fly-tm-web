@@ -14,7 +14,6 @@ import AddMovementCard from "./add-movement-card";
 import { FormEvent, useState } from "react";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { convertToSeconds, createUniqueIdGenerator } from "@/lib/utils";
-import { Item } from "./training-register-form";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -131,6 +130,7 @@ export default function AddTrainingItemModal({
       queue: 0,
       comments: data.get("comments")?.toString() ?? "",
       movement: {
+        id: addTrainingItemForm.movement_id,
         average_time: addTrainingItemForm.movement_average_time,
         image_url: addTrainingItemForm.movement_image_url ?? "",
         name: addTrainingItemForm.movement_name,
@@ -144,9 +144,12 @@ export default function AddTrainingItemModal({
   return (
     <Dialog open={modalOpenState}>
       <DialogTrigger asChild onClick={() => setModalOpenState(true)}>
-        <p className="bg-primary hover:bg-primary/90 shadow px-2 rounded-lg text-primary-foreground cursor-pointer">
+        <button
+          type="button"
+          className="bg-primary hover:bg-primary/90 shadow px-2 rounded-lg text-primary-foreground cursor-pointer"
+        >
           + Adicionar
-        </p>
+        </button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
@@ -157,7 +160,7 @@ export default function AddTrainingItemModal({
           </DialogTitle>
           <DialogDescription>
             {addTrainingItemForm.is_open ? (
-              <p>
+              <span>
                 Você selecionou a opção{" "}
                 <span className="font-bold">
                   {addTrainingItemForm.movement_name}
@@ -166,7 +169,7 @@ export default function AddTrainingItemModal({
                 <br />
                 Abaixo defina como será contabilizada a execução do movimento
                 (tempo ou repetições).
-              </p>
+              </span>
             ) : (
               "Adicione um novo movimento ao seu treino e deixe-o ainda mais massa!"
             )}
@@ -238,7 +241,7 @@ export default function AddTrainingItemModal({
                         movement_image_url={movement.image_url}
                         movement_name={movement.name}
                         movement_average_time={movement.average_time}
-                        parentClassname="w-fit"
+                        parentClassname="w-48"
                         openAddItemModal={openAddTrainingItemForm}
                       />
                     );

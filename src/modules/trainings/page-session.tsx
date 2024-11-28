@@ -1,12 +1,10 @@
 import { Separator } from "../../components/ui/separator";
 
-interface TrainingsSessionProps {
+interface PageSessionProps {
   sessionTitle: string;
 }
 
-export default function TrainingsSession({
-  sessionTitle,
-}: TrainingsSessionProps) {
+export default function PageSession({ sessionTitle }: PageSessionProps) {
   return (
     <div className="flex items-center gap-3">
       <h2 className="font-semibold text-lg whitespace-nowrap">

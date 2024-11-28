@@ -31,16 +31,16 @@ export default function AddMovementCard({
         parentClassname
       )}
     >
-      <div className="flex items-center gap-5">
+      <div className="flex justify-between items-center w-full">
         <h1 className="w-32 truncate">{movement_name}</h1>
         <Question size={20} />
       </div>
       <Image
         src={movement_image_url}
         alt="imagem do movimento"
-        width={80}
-        height={80}
-        className="aspect-square"
+        width={0}
+        height={0}
+        className="w-full h-full aspect-square"
         priority
         unoptimized={true}
       />

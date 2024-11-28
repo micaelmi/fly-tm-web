@@ -1,3 +1,9 @@
+import { Club } from "./club";
+import { GameStyle } from "./game-style";
+import { HandGrip } from "./hand-grip";
+import { Level } from "./level";
+import { UserType } from "./user-type";
+
 export interface User {
   id: string;
   name: string;
@@ -47,6 +53,33 @@ export interface User {
   _count: {
     events: number;
     contacts: number;
+  };
+}
+
+export interface UserByUsernameApiResponse {
+  user: Partial<UserByUsername>;
+}
+
+export interface UserByUsername {
+  bio: string;
+  city: string;
+  club: Partial<Club>;
+  created_at: string;
+  credits: number;
+  email: string;
+  game_style: GameStyle;
+  hand_grip: HandGrip;
+  id: string;
+  image_url: string;
+  instagram: string;
+  level: Level;
+  name: string;
+  state: string;
+  training_days: number;
+  user_type: UserType;
+  username: string;
+  _count: {
+    events: number;
   };
 }
 

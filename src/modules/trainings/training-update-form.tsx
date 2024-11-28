@@ -15,31 +15,23 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
 import { Reorder } from "motion/react";
 import { useSession } from "next-auth/react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import TrainingItemCard from "./training-item-card";
 import { Button } from "@/components/ui/button";
 import AddTrainingItemModal from "./add-training-item-modal";
-import { Item } from "./training-register-form";
 import PageTitleWithIcon from "@/components/page-title-with-icon";
 import { Barbell } from "@phosphor-icons/react/dist/ssr";
-import { createUniqueIdGenerator } from "@/lib/utils";
+import { createUniqueIdGenerator, formatTime } from "@/lib/utils";
+import { useEditTraining } from "@/hooks/use-trainings";
+import { deleteFile, handleFileUpload } from "@/lib/firebase-upload";
+import { FaSpinner } from "react-icons/fa";
+import { ComboboxItem, ComboboxOption } from "@/interfaces/level";
 
 interface TrainingResponse {
   training: Training;
-}
-
-interface ComboboxItem {
-  value: number;
-  label: string;
-}
-
-interface ComboboxOption {
-  id: number;
-  title: string;
-  description: string;
 }
 
 const FormSchema = z.object({
@@ -63,11 +55,15 @@ const FormSchema = z.object({
 });
 
 export default function TrainingUpdateForm() {
+  const [estimatedTime, setEstimatedTime] = useState<number>(0);
   const [trainingItems, setTrainingItems] = useState<TrainingItem[]>([]);
 
   const params = useParams();
 
-  const token = useSession().data?.token.user.token;
+  const session = useSession().data;
+
+  const token = session?.token.user.token;
+
   const training_id = params.training_id;
 
   const { data, isLoading, isError } = useQuery({
@@ -163,6 +159,7 @@ export default function TrainingUpdateForm() {
     };
 
     setTrainingItems([...trainingItems, newItem]);
+    changeTime([...trainingItems, newItem]);
   };
 
   const removeTrainingItem = (queue: number) => {
@@ -178,12 +175,29 @@ export default function TrainingUpdateForm() {
     updatedTrainingItems = changeQueue(updatedTrainingItems);
 
     if (updatedTrainingItems) setTrainingItems(updatedTrainingItems);
+    changeTime(updatedTrainingItems);
   };
 
   const onReorder = (newTrainingItemsList: TrainingItem[]) => {
     const updatedTrainingItems = changeQueue(newTrainingItemsList);
 
     setTrainingItems(updatedTrainingItems);
+  };
+
+  const changeTime = (items: TrainingItem[]) => {
+    let time = 0;
+
+    items.forEach((item) => {
+      if (item.movement.average_time) {
+        if (item.reps) {
+          time += item.reps * item.movement.average_time;
+        } else if (item.time) {
+          time += item.time;
+        }
+      }
+    });
+
+    setEstimatedTime(time);
   };
 
   const changeQueue = (items: TrainingItem[]) => {
@@ -193,14 +207,66 @@ export default function TrainingUpdateForm() {
     }));
   };
 
-  const onSubmit = (data: z.infer<typeof FormSchema>) => {
-    console.log("submit errado");
-    console.log(data);
+  const router = useRouter();
+
+  const { mutate, isPending, isError: isEditError } = useEditTraining();
+
+  const onSubmit = async (data: z.infer<typeof FormSchema>) => {
+    if (!training) return;
+    let file;
+    if (data.icon_file && data.icon_file.size > 0) {
+      if (data.icon_file instanceof File) {
+        const timestamp = new Date().toISOString();
+        const file_extension = data.icon_file.name.split(".").pop();
+        file = await handleFileUpload(
+          data.icon_file,
+          `treinos/icone-representacao-${timestamp}.${file_extension}`
+        );
+        if (training.icon_url) {
+          deleteFile(training.icon_url);
+        }
+      } else file = "";
+    } else file = "";
+
+    const { icon_file, ...rest } = data;
+
+    const updatedTrainingItems = trainingItems.map(
+      ({ id, movement, ...rest }) => ({
+        ...rest,
+        movement_id: movement.id, // Adiciona a nova propriedade com o valor de movement.id
+      })
+    );
+
+    const filteredData = {
+      ...rest,
+      ...(file && { icon_url: file }),
+      items: updatedTrainingItems,
+    };
+
+    const trainingData = {
+      trainingId: training.id,
+      data: {
+        title: filteredData.title,
+        description: filteredData.description,
+        time: estimatedTime,
+        ...(file && { icon_url: filteredData.icon_url }),
+        level_id: filteredData.level_id,
+        visibility_type_id: filteredData.visibility_type_id,
+        items: filteredData.items,
+      },
+    };
+
+    mutate(trainingData, {
+      onSuccess: () => {
+        router.push(`/trainings/${training.id}`);
+      },
+    });
   };
 
   useEffect(() => {
     if (training?.training_items) {
       setTrainingItems(training.training_items);
+      setEstimatedTime(training.time);
       form.reset(training);
     }
   }, [training]);
@@ -232,14 +298,22 @@ export default function TrainingUpdateForm() {
                       </span>
                       .
                     </p>
-                    <div className="flex justify-between items-center">
-                      <p className="font-semibold">
-                        Movimentos: {trainingItems.length}
+                    <div className="space-y-4">
+                      <p className="bg-secondary px-2 rounded-lg w-fit">
+                        Tempo estimado para conclusão do treino:{" "}
+                        <span className="font-semibold">
+                          {formatTime(estimatedTime)}
+                        </span>
                       </p>
-                      <AddTrainingItemModal
-                        movementsForChoose={movementsForChoose}
-                        addNewTrainingItem={addNewTrainingItem}
-                      />
+                      <div className="flex justify-between items-center">
+                        <p className="font-semibold">
+                          Movimentos: {trainingItems.length}
+                        </p>
+                        <AddTrainingItemModal
+                          movementsForChoose={movementsForChoose}
+                          addNewTrainingItem={addNewTrainingItem}
+                        />
+                      </div>
                     </div>
                     <ScrollArea className="border-input p-4 border rounded-sm h-96">
                       <Reorder.Group
@@ -306,6 +380,7 @@ export default function TrainingUpdateForm() {
                         />
                       </div>
                       <InputImageWithPreview
+                        image_url={training.icon_url}
                         name="icon_file"
                         formItemClassname="hidden"
                         parentClassname="aspect-square"
@@ -322,8 +397,23 @@ export default function TrainingUpdateForm() {
                   </div>
                 </div>
                 <div className="flex justify-between mt-3">
-                  <Button variant={"outline"}>Esquece, tava legal.</Button>
-                  <Button>Salvar alterações</Button>
+                  <Button
+                    type="button"
+                    variant={"outline"}
+                    onClick={() => router.back()}
+                  >
+                    Esquece, tava legal.
+                  </Button>
+                  <Button disabled={isPending ? true : false}>
+                    {isPending ? (
+                      <>
+                        <FaSpinner className="mr-2 animate-spin" />
+                        Salvando
+                      </>
+                    ) : (
+                      "Salvar alterações"
+                    )}
+                  </Button>
                 </div>
               </form>
             </Form>

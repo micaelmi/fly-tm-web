@@ -1,7 +1,14 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, UseQueryResult } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import { AxiosResponse } from "axios";
-import { User, UserRegisterData, UsersResponse } from "@/interfaces/user";
+import {
+  User,
+  UserByUsername,
+  UserByUsernameApiResponse,
+  UserData,
+  UserRegisterData,
+  UsersResponse,
+} from "@/interfaces/user";
 import { useSession } from "next-auth/react";
 
 const fetchUsers = async (): Promise<AxiosResponse<UsersResponse>> => {
@@ -45,6 +52,7 @@ export const useGetUser = (username: string) => {
 const postUser = async (data: UserRegisterData) => {
   return await api.post("users", data);
 };
+
 export function useCreateUser() {
   return useMutation({
     mutationFn: postUser,
@@ -69,6 +77,7 @@ export function useChangePassword() {
 export function useEditUser() {
   const { data: dataSession } = useSession();
   const token = dataSession?.token.user.token;
+
   return useMutation({
     mutationFn: async ({
       userId,
@@ -84,4 +93,43 @@ export function useEditUser() {
       });
     },
   });
+}
+
+export function useGetUserByUsername(
+  selectData?: (data: UserByUsernameApiResponse) => UserByUsernameApiResponse
+) {
+  const { data: dataSession } = useSession();
+  const username = dataSession?.payload.username;
+  const token = dataSession?.token.user.token;
+  return useQuery<UserByUsernameApiResponse>({
+    queryKey: ["userData", username],
+    queryFn: async () => {
+      const response = await api.get(`/users/${username}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    },
+    enabled: !!token && !!username,
+    ...(selectData && {
+      select: selectData,
+    }),
+  });
+}
+
+export function useGetUserClubId() {
+  const queryData = useGetUserByUsername((data) => {
+    return {
+      user: {
+        club: {
+          id: data.user.club?.id,
+        },
+      },
+    };
+  });
+
+  const club_id = queryData.data?.user.club?.id;
+
+  return club_id;
 }

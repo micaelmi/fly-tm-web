@@ -12,8 +12,8 @@ import {
   SelectValue,
 } from "./ui/select";
 import { Input } from "./ui/input";
-import { Item } from "@/modules/trainings/training-register-form";
-import { convertToSeconds } from "@/lib/utils";
+import { convertToSeconds, createUniqueIdGenerator } from "@/lib/utils";
+import { TrainingItem } from "@/interfaces/training";
 
 interface AddItemModalProps {
   movement_id: number;
@@ -21,7 +21,7 @@ interface AddItemModalProps {
   movement_image_url: string;
   movement_average_time: number;
   closeAddItemModal: () => void;
-  addNewItem: (data: Item) => void;
+  addNewItem: (data: TrainingItem) => void;
 }
 
 export default function AddItemModal({
@@ -35,8 +35,11 @@ export default function AddItemModal({
   const [selectedOption, setSelectedOption] = useState("");
   const [error, setError] = useState("");
 
+  const generateId = createUniqueIdGenerator(1, 100000);
+
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    event.stopPropagation();
     if (selectedOption === "") {
       setError("Selecione uma opção.");
       return;
@@ -73,18 +76,22 @@ export default function AddItemModal({
     );
 
     const item = {
+      id: generateId(),
       counting_mode: data.get("counting_mode")?.toString() as "reps" | "time",
       reps: Number(data.get("reps")),
       time: time,
       queue: 0,
       comments: data.get("comments")?.toString() ?? "",
-      movement_id: movement_id,
-      movement_average_time: movement_average_time,
-      image_url: movement_image_url ?? "",
-      name: movement_name,
+      movement: {
+        id: movement_id,
+        average_time: movement_average_time,
+        image_url: movement_image_url ?? "",
+        name: movement_name,
+      },
     };
 
     addNewItem(item);
+    closeAddItemModal();
   };
 
   return (
