@@ -1,14 +1,17 @@
 "use client";
 import { Button } from "@/components/ui/button";
+import { useCreateGame } from "@/hooks/use-scoreboards";
 import { Match } from "@/interfaces/match";
 import clsx from "clsx";
 import { ArrowRightLeft } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 
 export default function Score() {
+  const searchParams = useSearchParams();
+  const matchId = searchParams.get("id");
   const [match, setMatch] = useState<Match>({
     games: 0,
     player1: {
@@ -92,7 +95,9 @@ export default function Score() {
     }
   }
 
+  const { mutate: registerGame } = useCreateGame();
   function checkEndOfGame(pointsPlayer1: number, pointsPlayer2: number) {
+    if (!matchId) return; //não continua se não houver um id da partida
     if (pointsPlayer1 > 10 && pointsPlayer1 > pointsPlayer2 + 1) {
       Swal.fire({
         title: `Vitória de ${match.player1.name}!`,
@@ -109,13 +114,18 @@ export default function Score() {
           match.player1.points.push(pointsPlayer1);
           match.player2.points.push(pointsPlayer2);
           match.datetime = new Date();
-          console.log("(1) MATCH");
-          console.log(match);
+
           localStorage.setItem("match", JSON.stringify(match));
           setGamesPlayer1((prevPoints) => {
             const gamesCount = prevPoints + 1;
             checkEndOfMatch(gamesCount, gamesPlayer2);
             return gamesCount;
+          });
+          registerGame({
+            points_player1: pointsPlayer1,
+            points_player2: pointsPlayer2,
+            game_number: gamesPlayer1 + gamesPlayer2 + 1,
+            match_history_id: matchId,
           });
           setPointsPlayer1(0);
           setPointsPlayer2(0);
@@ -139,13 +149,18 @@ export default function Score() {
           match.player2.points.push(pointsPlayer2);
           match.player1.points.push(pointsPlayer1);
           match.datetime = new Date();
-          console.log("(2) MATCH");
-          console.log(match);
+
           localStorage.setItem("match", JSON.stringify(match));
           setGamesPlayer2((prevPoints) => {
             const gamesCount = prevPoints + 1;
             checkEndOfMatch(gamesPlayer1, gamesCount);
             return gamesCount;
+          });
+          registerGame({
+            points_player1: pointsPlayer1,
+            points_player2: pointsPlayer2,
+            game_number: gamesPlayer1 + gamesPlayer2 + 1,
+            match_history_id: matchId,
           });
           setPointsPlayer1(0);
           setPointsPlayer2(0);
@@ -242,7 +257,7 @@ export default function Score() {
             />
           </div>
           <div className="flex gap-4 mt-8 self-end">
-            <Link href="/">
+            <Link href="/scoreboard">
               <Button variant={"outline"}>Voltar para o início</Button>
             </Link>
           </div>

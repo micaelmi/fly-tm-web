@@ -31,6 +31,9 @@ import {
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import InputDefault from "@/components/form/input-default";
+import { PlusCircle } from "@phosphor-icons/react/dist/ssr";
+import { useCreateMatch } from "@/hooks/use-scoreboards";
+import { useSession } from "next-auth/react";
 
 const FormSchema = z.object({
   player1: z.string().min(2, {
@@ -53,10 +56,14 @@ export default function CreateMatch() {
       firstService: "",
     },
   });
+  const userId = useSession().data?.payload.sub;
+  const { mutate, isError, error } = useCreateMatch();
   const router = useRouter();
   async function onSubmit(data: z.infer<typeof FormSchema>) {
-    console.log(data);
-
+    if (!userId) {
+      toast.error("Você precisa estar logado para continuar.");
+      return;
+    }
     const match = {
       games: Number(data.games),
       player1: {
@@ -75,13 +82,29 @@ export default function CreateMatch() {
 
     localStorage.setItem("match", JSON.stringify(match));
 
-    toast.success("Sucesso! O jogo foi criado.");
-    router.push("/scoreboard/match");
+    mutate(
+      {
+        player1: data.player1,
+        player2: data.player2,
+        better_of: Number(data.games),
+        user_id: userId,
+      },
+      {
+        onSuccess: async (match) => {
+          toast.success("Sucesso! O jogo foi criado.");
+          setTimeout(() => {
+            router.push(`/scoreboard/match?id=${match.matchId}`);
+          }, 2000);
+        },
+      }
+    );
   }
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button>Novo jogo</Button>
+        <Button className="flex gap-2 font-semibold">
+          <PlusCircle size={24} /> Novo jogo
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
