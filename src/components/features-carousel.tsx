@@ -87,9 +87,9 @@ export default function FeaturesCarousel() {
         <CarouselItem className="md:basis-1/3 lg:basis-1/5">
           <FeatureCard
             alt="Placar"
-            imageUrl="scoreboard.svg"
+            imageUrl="mascot-scoreboard.svg"
             text="Placar"
-            linkToFeaturePage="#"
+            linkToFeaturePage="/scoreboard"
           />
         </CarouselItem>
       </CarouselContent>
