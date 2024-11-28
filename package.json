@@ -55,6 +55,7 @@
     "react-number-format": "^5.4.2",
     "react-toastify": "^10.0.5",
     "sharp": "^0.33.5",
+    "sweetalert2": "^11.14.5",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
     "use-debounce": "^10.0.4",
