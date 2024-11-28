@@ -10,15 +10,16 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useGetUserClubId } from "./use-users";
 import { useMemo } from "react";
+import { StrategyRegisterData, StrategyResponse } from "@/interfaces/strategy";
 
-export function useTrainingsData() {
+export function useStrategiesData() {
   const { data: sessionData } = useSession();
   const token = sessionData?.token.user.token;
 
   return useQuery({
-    queryKey: ["trainings"],
+    queryKey: ["strategies"],
     queryFn: async () => {
-      const response = await api.get<TrainingsResponse>("/trainings", {
+      const response = await api.get<StrategyResponse>("/strategies", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -29,43 +30,38 @@ export function useTrainingsData() {
   });
 }
 
-export function useTrainingsDataByClub() {
+export function useStrategiesDataByClub() {
   const club_id = useGetUserClubId();
-  const stableKey = useMemo(() => ["trainingsByClub", club_id], [club_id]);
   const { data: dataSession } = useSession();
   const token = dataSession?.token.user.token;
-  const stableToken = useMemo(
-    () => dataSession?.token.user.token,
-    [dataSession]
-  );
+
   return useQuery({
-    queryKey: stableKey,
+    queryKey: ["strategiesByClub", club_id],
     queryFn: async () => {
-      const response = await api.get(`/trainings/club/${club_id}`, {
-        headers: {
-          Authorization: `Bearer ${stableToken}`,
-        },
-      });
+      const response = await api.get<StrategyResponse>(
+        `/strategies/club/${club_id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       return response;
     },
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    refetchOnMount: false,
-    staleTime: 1000 * 60 * 5,
     enabled: !!club_id && !!token,
   });
 }
 
-export function useTrainingsDataByUser() {
+export function useStrategiesDataByUser() {
   const { data: sessionData } = useSession();
   const user_id = sessionData?.payload.sub;
   const token = sessionData?.token.user.token;
 
   return useQuery({
-    queryKey: ["trainingsByUser", user_id],
+    queryKey: ["strategiesByUser", user_id],
     queryFn: async () => {
-      const response = await api.get<TrainingsResponse>(
-        `/trainings/user/${user_id}`,
+      const response = await api.get<StrategyResponse>(
+        `/strategies/user/${user_id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -78,20 +74,20 @@ export function useTrainingsDataByUser() {
   });
 }
 
-export function useCreateTraining() {
+export function useCreateStrategy() {
   const { data: sessionData } = useSession();
   const token = sessionData?.token.user.token;
 
   return useMutation({
-    mutationFn: async (data: TrainingRegisterData) => {
-      return await api.post("/trainings", data, {
+    mutationFn: async (data: StrategyRegisterData) => {
+      return await api.post("/strategies", data, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
     },
     onError: (error) => {
-      console.error("Erro ao criar o treinamento: ", error);
+      console.error("Erro ao criar a estratégia: ", error);
     },
   });
 }

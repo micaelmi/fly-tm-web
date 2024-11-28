@@ -10,10 +10,11 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { X } from "@phosphor-icons/react/dist/ssr";
 import { FolderCheck, Upload } from "lucide-react";
-import { ChangeEvent, useRef, useState } from "react";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { useFormContext } from "react-hook-form";
 
 interface InputImageProps {
+  image_url?: string;
   name: string;
   formItemClassname?: string;
   parentClassname?: string;
@@ -21,12 +22,15 @@ interface InputImageProps {
 }
 
 export default function InputImageWithPreview({
+  image_url,
   name,
   formItemClassname,
   parentClassname,
   labelClassname,
 }: InputImageProps) {
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(
+    image_url ?? null
+  );
   const [fileName, setFileName] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -56,6 +60,7 @@ export default function InputImageWithPreview({
     }
     setValue(name, new File([], ""));
   };
+
   return (
     <div className={cn("flex items-center gap-2 w-full", parentClassname)}>
       {selectedImage ? (

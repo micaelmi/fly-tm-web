@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Dialog,
   DialogContent,
@@ -9,7 +11,6 @@ import {
 } from "@/components/ui/dialog";
 import { useCreateTraining } from "@/hooks/use-trainings";
 import { handleFileUpload } from "@/lib/firebase-upload";
-import { Item } from "@/modules/trainings/training-register-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DialogClose } from "@radix-ui/react-dialog";
 import { useSession } from "next-auth/react";
@@ -25,9 +26,14 @@ import InputImageWithPreview from "@/components/form/input-image-with-preview";
 import { FaSpinner } from "react-icons/fa";
 import { Clock, Flag } from "@phosphor-icons/react/dist/ssr";
 import { formatTime } from "@/lib/utils";
+import { TrainingItem } from "@/interfaces/training";
+import { useLevelsData, useVisibilityTypesData } from "@/hooks/use-auxiliaries";
+import { ComboboxItem, ComboboxOption } from "@/interfaces/level";
+import { useQuery } from "@tanstack/react-query";
+import api from "@/lib/axios";
 
 interface FinishingTrainingModalProps {
-  items: Item[];
+  trainingItems: TrainingItem[];
   description: string;
   closeFinishinTrainingModal: () => void;
 }
@@ -48,48 +54,39 @@ const FormSchema = z.object({
 });
 
 export default function FinishingTrainingModal({
-  items,
+  trainingItems,
   description,
   closeFinishinTrainingModal,
 }: FinishingTrainingModalProps) {
   const { data: session } = useSession();
   const user_id = session?.payload.sub;
 
-  const [levels, setLevels] = useState<Level[]>([
-    {
-      value: 1,
-      label: "Iniciante",
-      description: "Para jogadores novatos",
-    },
-    {
-      value: 2,
-      label: "Intermediário",
-      description: "Para jogadores com 2 ou mais anos de experiência",
-    },
-    {
-      value: 3,
-      label: "Avançado",
-      description: "Para jogadores veteranos",
-    },
-  ]);
-  const [visibilityTypes, setVisibilityTypes] = useState([
-    {
-      value: 1,
-      label: "Público",
-    },
-    {
-      value: 2,
-      label: "Privado",
-    },
-  ]);
+  const levelsData = useLevelsData().data?.levels ?? [];
+
+  const visibilityTypesData =
+    useVisibilityTypesData().data?.visibilityTypes ?? [];
+
+  const levels: ComboboxItem[] = levelsData
+    .map((level: ComboboxOption) => ({
+      value: level.id,
+      label: level.title,
+    }))
+    .filter((level: ComboboxItem) => level.label !== "Livre");
+
+  const visibilityTypes: ComboboxItem[] = visibilityTypesData.map(
+    (visibilityType: Partial<ComboboxOption>) => ({
+      value: visibilityType.id,
+      label: visibilityType.description,
+    })
+  );
 
   const estimated_time_to_finish_training = () => {
     let time = 0;
-    items.forEach((item) => {
+    trainingItems.forEach((item) => {
       if (item.time) {
         time += item.time;
-      } else if (item.reps) {
-        time += item.reps * item.movement_average_time;
+      } else if (item.reps && item.movement.average_time) {
+        time += item.reps * item.movement.average_time;
       }
     });
 
@@ -125,6 +122,21 @@ export default function FinishingTrainingModal({
     const { icon_file, ...rest } = data;
     const filteredData = { ...rest, icon_url: file };
 
+    const updatedTrainingItems = trainingItems.map(
+      ({ id, movement, ...rest }) => {
+        if (!movement?.id) {
+          throw new Error(
+            `Movement ID is missing for training item with ID ${id}`
+          );
+        }
+
+        return {
+          ...rest,
+          movement_id: movement.id,
+        };
+      }
+    );
+
     mutate(
       {
         title: filteredData.title,
@@ -135,7 +147,7 @@ export default function FinishingTrainingModal({
         level_id: filteredData.level_id,
         visibility_type_id: filteredData.visibility_type_id,
         club_id: undefined,
-        items: items,
+        items: updatedTrainingItems,
       },
       {
         onSuccess: () => {
@@ -156,7 +168,7 @@ export default function FinishingTrainingModal({
             <div className="flex justify-center items-center gap-3">
               <div>
                 {/* level */}
-                <div className="flex items-center gap-2 text-primary">
+                <div className="flex items-center gap-2 w-full text-primary">
                   <Flag />
                   <DefaultCombobox
                     control={form.control}
@@ -192,7 +204,7 @@ export default function FinishingTrainingModal({
               <InputImageWithPreview
                 name="icon_file"
                 formItemClassname="hidden"
-                parentClassname="w-min"
+                parentClassname="w-32 h-32"
                 labelClassname="w-32 h-32"
               />
             </div>

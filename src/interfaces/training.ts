@@ -58,7 +58,8 @@ export interface Training {
   visibility_type_id: number;
 }
 
-interface Movement {
+export interface Movement {
+  id: number;
   average_time: number;
   description: string;
   image_url: string;

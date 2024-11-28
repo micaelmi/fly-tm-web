@@ -7,7 +7,6 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
-import TrainingCard from "./training-card";
 import { useTrainingsDataByUser } from "@/hooks/use-trainings";
 import Loading from "@/app/loading";
 import Link from "next/link";
@@ -15,28 +14,30 @@ import { Training, TrainingsResponse } from "@/interfaces/training";
 import { UseQueryResult } from "@tanstack/react-query";
 import { AxiosResponse } from "axios";
 import { ReactNode } from "react";
+import { Strategy, StrategyResponse } from "@/interfaces/strategy";
+import StrategyCard from "./strategy-card";
 
-interface TrainingsCarouselProps {
-  trainings: UseQueryResult<AxiosResponse<TrainingsResponse, any>, Error>;
-  noTrainingsMessage: ReactNode;
+interface StrategyCarouselProps {
+  strategies: UseQueryResult<AxiosResponse<StrategyResponse, any>, Error>;
+  noStrategiesMessage: ReactNode;
 }
 
-export default function TrainingsCarousel({
-  trainings,
-  noTrainingsMessage,
-}: TrainingsCarouselProps) {
-  const { isLoading, error, data } = trainings;
+export default function StrategyCarousel({
+  strategies,
+  noStrategiesMessage,
+}: StrategyCarouselProps) {
+  const { isLoading, error, data } = strategies;
 
-  let trainingsData: Training[] = [];
-  if (data?.data.trainings) trainingsData = data.data.trainings;
+  let strategiesData: Strategy[] = [];
+  if (data?.data.strategies) strategiesData = data.data.strategies;
 
   if (isLoading) return <Loading />;
-  if (error) return <p>Erro ao carregar treinos: {error.message}</p>;
+  if (error) return <p>Erro ao carregar estratégias: {error.message}</p>;
 
-  if (trainingsData.length < 1) {
+  if (strategiesData.length < 1) {
     return (
       <p className="w-full font-medium text-center text-lg text-muted-foreground">
-        {noTrainingsMessage}
+        {noStrategiesMessage}
       </p>
     );
   }
@@ -55,19 +56,18 @@ export default function TrainingsCarousel({
       ]}
     >
       <CarouselContent>
-        {trainingsData
-          ? trainingsData.map((training: Training) => {
+        {strategiesData
+          ? strategiesData.map((strategy: Strategy) => {
               return (
                 <CarouselItem
-                  key={training.id}
+                  key={strategy.id}
                   className="md:basis-1/2 lg:basis-1/3 py-2"
                 >
-                  <TrainingCard
-                    by={training.user.name}
-                    duration={training.time}
-                    level={training.level.title}
-                    title={training.title}
-                    urlToTraining={`/trainings/${training.id}`}
+                  <StrategyCard
+                    by={strategy.user.username}
+                    level={strategy.level.title}
+                    title={strategy.title}
+                    urlToStrategy={`/strategies/${strategy.id}`}
                   />
                 </CarouselItem>
               );
