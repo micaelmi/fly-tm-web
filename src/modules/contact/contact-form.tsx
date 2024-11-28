@@ -5,7 +5,7 @@ import TextareaDefault from "@/components/form/textarea-default";
 import Navbar from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import { useContactTypesData, useCreateContact } from "@/hooks/use-contact";
+import { useContactTypesData, useCreateContact } from "@/hooks/use-contacts";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";

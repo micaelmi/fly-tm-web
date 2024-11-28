@@ -79,10 +79,7 @@ export default function FeaturesCarousel() {
         <CarouselItem className="md:basis-1/3 lg:basis-1/5">
           <FeatureCard
             alt="Logo de clube"
-            imageUrl={
-              user?.club_logo_url ??
-              `https://api.dicebear.com/9.x/big-smile/svg?seed=${user?.club_id}`
-            }
+            imageUrl={user?.club_logo_url ?? `mascot-default.svg`}
             text="Meu clube"
             linkToFeaturePage={`/clubs/${user?.club_id}`}
           />

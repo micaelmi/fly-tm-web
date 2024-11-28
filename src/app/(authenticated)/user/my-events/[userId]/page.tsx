@@ -3,7 +3,7 @@ import UserEventList from "@/modules/events/user-event-list";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Meus Eventos",
+  title: "Meus Eventos | Fly TM",
 };
 
 export default function MyEvents() {

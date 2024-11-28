@@ -8,9 +8,15 @@ export interface ContactRegisterData {
 export interface Contact extends ContactRegisterData {
   id: string;
   status: "active" | "inactive";
-  answer: string;
+  answer: string | null;
   created_at: string;
   updated_at: string;
+  contact_type: ContactType;
+  user: {
+    id: string;
+    name: string;
+    username: string;
+  };
 }
 
 export interface ContactResponse {
@@ -28,4 +34,8 @@ export interface ContactType {
 
 export interface ContactTypesResponse {
   contactTypes: ContactType[];
+}
+
+export interface ContactReplyData {
+  answer: string;
 }

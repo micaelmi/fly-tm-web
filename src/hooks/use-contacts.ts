@@ -1,5 +1,6 @@
 import {
   ContactRegisterData,
+  ContactReplyData,
   ContactsResponse,
   ContactTypesResponse,
 } from "@/interfaces/contact";
@@ -63,3 +64,62 @@ export function useContactTypesData() {
   });
   return { ...query, data: query.data?.data };
 }
+
+export function useDeleteContact() {
+  const { data: dataSession } = useSession();
+  const token = dataSession?.token.user.token;
+  return useMutation({
+    mutationFn: async (contactId: string) => {
+      const response = await api.delete(`contacts/${contactId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    },
+    onError: (error) => {
+      console.error("Erro ao excluir contato:", error);
+    },
+  });
+}
+
+export function useReplyContact() {
+  const { data: dataSession } = useSession();
+  const token = dataSession?.token.user.token;
+  return useMutation({
+    mutationFn: async ({
+      contactId,
+      data,
+    }: {
+      contactId: string;
+      data: ContactReplyData;
+    }) => {
+      const response = await api.patch(`contacts/${contactId}`, data, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    },
+    onError: (error) => {
+      console.error("Erro ao reponder o contato:", error);
+    },
+  });
+}
+
+export const useGetContactsByUser = (userId: string) => {
+  const { data: dataSession } = useSession();
+  const token = dataSession?.token.user.token;
+  return useQuery<ContactsResponse>({
+    queryKey: ["ContactsByUserId", userId],
+    queryFn: async () => {
+      const response = await api.get(`/contacts/user/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    },
+    enabled: !!userId && !!token,
+  });
+};
