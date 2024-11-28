@@ -30,21 +30,7 @@ export interface Training {
   level_id: number;
   time: number;
   title: string;
-  training_items: {
-    id: number;
-    comments: string;
-    counting_mode: "time" | "reps";
-    movement: {
-      average_time: number;
-      description: string;
-      image_url: string;
-      name: string;
-      video_url: string;
-    };
-    queue: number;
-    reps: number;
-    time: number;
-  }[];
+  training_items: TrainingItem[];
   updated_at: Date;
   user: {
     name: string;

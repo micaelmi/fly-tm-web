@@ -1,3 +1,5 @@
+import { Movement } from "./training";
+
 export interface StrategyRegisterData {
   title: string;
   how_it_works: string;
@@ -17,7 +19,13 @@ export interface StrategyResponse {
   strategies: Strategy[];
 }
 
+export interface StrategyByIdResponse {
+  strategy: Strategy;
+}
+
 export interface Strategy {
+  title: string;
+  updated_at: string;
   against_whom: string;
   club_id: string | null;
   created_at: string;
@@ -25,18 +33,8 @@ export interface Strategy {
   icon_url: string;
   id: string;
   level_id: number;
-  strategy_items: {
-    description: string;
-    movement: {
-      average_time: number;
-      description: string;
-      image_url: string;
-      name: string;
-      video_url: string;
-    };
-  };
-  title: string;
-  updated_at: string;
+  visibility_type_id: number;
+  strategy_items: StrategyItem[];
   user: {
     name: string;
     username: string;
@@ -46,5 +44,9 @@ export interface Strategy {
     title: string;
     description: string;
   };
-  visibility_type_id: number;
+}
+
+export interface StrategyItem {
+  description: string;
+  movement: Movement;
 }

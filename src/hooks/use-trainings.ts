@@ -129,7 +129,7 @@ export function useDeleteTraining() {
       return response.data;
     },
     onError: (error) => {
-      console.error("Erro ao excluir evento:", error);
+      console.error("Erro ao excluir treino:", error);
     },
   });
 }

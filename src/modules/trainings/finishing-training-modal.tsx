@@ -103,6 +103,8 @@ export default function FinishingTrainingModal({
     },
   });
 
+  const errors = form.formState.errors;
+
   const router = useRouter();
 
   const { mutate, isPending, isError, error } = useCreateTraining();
@@ -163,9 +165,9 @@ export default function FinishingTrainingModal({
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="flex flex-col gap-5"
+            className="flex flex-col"
           >
-            <div className="flex justify-center items-center gap-3">
+            <div className="flex justify-center items-center gap-3 mb-3">
               <div>
                 {/* level */}
                 <div className="flex items-center gap-2 w-full text-primary">
@@ -222,6 +224,23 @@ export default function FinishingTrainingModal({
               }}
             />
 
+            {Object.keys(errors).length > 0 && (
+              <div className="border-destructive mt-4 mb-3 p-2 border rounded-lg text-destructive">
+                <h3 className="font-semibold">Erros de Validação:</h3>
+                <ul>
+                  {Object.entries(errors).map(([key, error]) => {
+                    return (
+                      <li key={key} className="text-sm">
+                        {error?.message && typeof error.message === "string"
+                          ? error.message
+                          : "Erro desconhecido"}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+
             {/* error message */}
             {isError ? (
               <p className="border-destructive border text-destructive">
@@ -233,7 +252,10 @@ export default function FinishingTrainingModal({
             <div className="flex justify-between">
               <Button
                 type="button"
-                onClick={closeFinishinTrainingModal}
+                onClick={() => {
+                  form.setValue("icon_file", new File([], ""));
+                  closeFinishinTrainingModal();
+                }}
                 className="bg-transparent hover:bg-transparent p-0 text-primary hover:text-primary/60 underline"
               >
                 Voltar

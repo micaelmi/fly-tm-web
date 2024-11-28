@@ -10,7 +10,12 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useGetUserClubId } from "./use-users";
 import { useMemo } from "react";
-import { StrategyRegisterData, StrategyResponse } from "@/interfaces/strategy";
+import {
+  Strategy,
+  StrategyByIdResponse,
+  StrategyRegisterData,
+  StrategyResponse,
+} from "@/interfaces/strategy";
 
 export function useStrategiesData() {
   const { data: sessionData } = useSession();
@@ -74,6 +79,26 @@ export function useStrategiesDataByUser() {
   });
 }
 
+export function useStrategyById(strategy_id: string) {
+  const token = useSession().data?.token.user.token;
+
+  return useQuery({
+    queryKey: ["strategyData", strategy_id],
+    queryFn: async () => {
+      const response = await api.get<StrategyByIdResponse>(
+        `/strategies/${strategy_id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data;
+    },
+    enabled: !!token && !!strategy_id,
+  });
+}
+
 export function useCreateStrategy() {
   const { data: sessionData } = useSession();
   const token = sessionData?.token.user.token;
@@ -92,18 +117,18 @@ export function useCreateStrategy() {
   });
 }
 
-export function useEditTraining() {
+export function useEditStrategy() {
   const token = useSession().data?.token.user.token;
 
   return useMutation({
     mutationFn: async ({
-      trainingId,
+      strategyId,
       data,
     }: {
-      trainingId: string;
-      data: Partial<Training>;
+      strategyId: string;
+      data: Partial<Strategy>;
     }) => {
-      return await api.put(`/trainings/${trainingId}`, data, {
+      return await api.put(`/strategies/${strategyId}`, data, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -112,12 +137,12 @@ export function useEditTraining() {
   });
 }
 
-export function useDeleteTraining() {
+export function useDeleteStrategy() {
   const { data: dataSession } = useSession();
   const token = dataSession?.token.user.token;
   return useMutation({
-    mutationFn: async (trainingId: string) => {
-      const response = await api.delete(`trainings/${trainingId}`, {
+    mutationFn: async (strategyId: string) => {
+      const response = await api.delete(`strategies/${strategyId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -125,7 +150,7 @@ export function useDeleteTraining() {
       return response.data;
     },
     onError: (error) => {
-      console.error("Erro ao excluir evento:", error);
+      console.error("Erro ao excluir estratégia:", error);
     },
   });
 }

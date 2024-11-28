@@ -55,14 +55,12 @@ export default function AddItemModal({
     }
 
     if (data.get("counting_mode") === "time") {
-      if (data.get("timeHH") === "") {
-        setError("Defina o campo de horas.");
-        return;
-      } else if (data.get("timeMM") === "") {
-        setError("Defina o campo de minutos.");
-        return;
-      } else if (data.get("timeSS") === "") {
-        setError("Defina o campo de segundos.");
+      if (
+        (data.get("timeHH") === "" || data.get("timeHH") === "0") &&
+        (data.get("timeMM") === "" || data.get("timeMM") === "0") &&
+        (data.get("timeSS") === "" || data.get("timeSS") === "0")
+      ) {
+        setError("Defina uma duração");
         return;
       }
     }
@@ -137,18 +135,18 @@ export default function AddItemModal({
 
                 <div className={selectedOption !== "reps" ? "hidden" : ""}>
                   <Label>Número de repetições</Label>
-                  <Input name="reps" type="number" />
+                  <Input name="reps" type="number" min={1} />
                 </div>
                 <div className={selectedOption !== "time" ? "hidden" : "w-min"}>
                   <Label className="truncate">
                     Executar durante (hh:mm:ss):
                   </Label>
                   <div className="flex items-center">
-                    <Input name="timeHH" type="number" />
+                    <Input name="timeHH" type="number" min={0} />
                     :
-                    <Input name="timeMM" type="number" />
+                    <Input name="timeMM" type="number" min={0} />
                     :
-                    <Input name="timeSS" type="number" />
+                    <Input name="timeSS" type="number" min={0} />
                   </div>
                 </div>
               </div>

@@ -13,14 +13,14 @@ import { ReactNode } from "react";
 interface MovementsForChooseProps {
   parentClassname?: string;
   h1Classname?: string;
-  componentInside_addMovementCard_parentClassname?: string;
+  scrollAreaClassname?: string;
   movement_card: (movement: Movement) => ReactNode;
 }
 
 export default function MovementsForChoose({
   parentClassname,
   h1Classname,
-  componentInside_addMovementCard_parentClassname,
+  scrollAreaClassname,
   movement_card,
 }: MovementsForChooseProps) {
   const session = useSession().data;
@@ -44,7 +44,9 @@ export default function MovementsForChoose({
     <div className={cn(parentClassname)}>
       <h1 className={cn(h1Classname)}>Movimentos</h1>
       <Search pagination={false} placeholder="Procurar..." className="" />
-      <ScrollArea className="flex justify-center w-full h-96">
+      <ScrollArea
+        className={cn("flex justify-center w-full", scrollAreaClassname)}
+      >
         <div className="space-y-3 mx-auto w-4/5">
           {movementsForChoose?.length ? (
             movementsForChoose.map((movement: Movement) =>

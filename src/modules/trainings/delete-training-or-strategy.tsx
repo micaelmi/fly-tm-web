@@ -12,15 +12,22 @@ import {
 import { Button } from "@/components/ui/button";
 import { useDeleteTraining } from "@/hooks/use-trainings";
 import { Trash } from "@phosphor-icons/react/dist/ssr";
+import { UseMutationResult } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export function DeleteTraining({ trainingId }: { trainingId: string }) {
-  const { mutate: deleteTraining } = useDeleteTraining();
+export function DeleteTrainingOrStrategy({
+  id,
+  useFunction,
+}: {
+  id: string;
+  useFunction: () => UseMutationResult<any, Error, string, unknown>;
+}) {
+  const { mutate } = useFunction();
   const router = useRouter();
-  function handleDeleteTraining() {
-    deleteTraining(trainingId);
-    router.back();
+  function handleDelete() {
+    mutate(id);
+    router.push("/strategies");
   }
   return (
     <AlertDialog>
@@ -38,7 +45,7 @@ export function DeleteTraining({ trainingId }: { trainingId: string }) {
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction onClick={handleDeleteTraining}>
+          <AlertDialogAction onClick={handleDelete}>
             Continuar
           </AlertDialogAction>
         </AlertDialogFooter>

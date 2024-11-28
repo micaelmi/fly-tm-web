@@ -53,6 +53,7 @@ export default function FinishingStrategyModal({
   );
 
   const form = useFormContext();
+  const errors = form.formState.errors;
 
   return (
     isOpen && (
@@ -109,6 +110,25 @@ export default function FinishingStrategyModal({
               }}
             />
 
+            {/* Mostrar erros gerais de validação */}
+            {Object.keys(errors).length > 0 && (
+              <div className="border-destructive mt-4 p-2 border rounded-lg text-destructive">
+                <h3 className="font-semibold">Erros de Validação:</h3>
+                <ul>
+                  {Object.keys(errors).map((key) => {
+                    const error = errors[key];
+                    return (
+                      <li key={key} className="text-sm">
+                        {error?.message && typeof error.message == "string"
+                          ? error.message
+                          : "Erro desconhecido"}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+
             {/* error message */}
             {isError ? (
               <p className="border-destructive border text-destructive">
@@ -140,33 +160,5 @@ export default function FinishingStrategyModal({
         </div>
       </>
     )
-    // <Dialog open={isOpen} onOpenChange={closeFinishingStrategyModal}>
-    //   <DialogContent className="sm:max-w-[425px]">
-    //     <DialogHeader className="hidden">
-    //       <DialogTitle>Edit profile</DialogTitle>
-    //       <DialogDescription>
-    //         Make changes to your profile here. Click save when you're done.
-    //       </DialogDescription>
-    //     </DialogHeader>
-    //     <div>
-    //       <div className="flex items-center gap-2">
-    //         <Flag className="text-primary" />
-    //         <DefaultCombobox
-    //           control={form.control}
-    //           name={name}
-    //           object={levels}
-    //           searchLabel="Buscar nível..."
-    //           selectLabel="Selecione o nível de complexidade"
-    //           onSelect={(value: number) => {
-    //             form.setValue(name, value);
-    //           }}
-    //         />
-    //       </div>
-    //     </div>
-    //     <DialogFooter>
-    //       <Button type="submit">Save changes</Button>
-    //     </DialogFooter>
-    //   </DialogContent>
-    // </Dialog>
   );
 }

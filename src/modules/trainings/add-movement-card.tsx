@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Question } from "@phosphor-icons/react/dist/ssr";
 import Image from "next/image";
@@ -25,39 +26,39 @@ export default function AddMovementCard({
   openAddItemModal,
 }: AddMovementCardProps) {
   return (
-    <div
-      className={cn(
-        "flex flex-col justify-center items-center gap-3 border-primary p-3 border rounded",
-        parentClassname
-      )}
-    >
-      <div className="flex justify-between items-center w-full">
-        <h1 className="w-32 truncate">{movement_name}</h1>
-        <Question size={20} />
-      </div>
-      <Image
-        src={movement_image_url}
-        alt="imagem do movimento"
-        width={0}
-        height={0}
-        className="w-full h-full aspect-square"
-        priority
-        unoptimized={true}
-      />
-      <button
-        type="button"
-        className="flex items-center gap-2 text-primary"
-        onClick={() =>
-          openAddItemModal(
-            movement_id,
-            movement_name,
-            movement_image_url,
-            movement_average_time
-          )
-        }
+    <>
+      <div
+        key={movement_id}
+        className="flex flex-col gap-2 border-primary p-2 border rounded-lg"
       >
-        <p className="text-sm">Adicionar</p>
-      </button>
-    </div>
+        <div className="flex justify-between items-center font-semibold">
+          {movement_name}
+          <Question size={21} />
+        </div>
+        <Image
+          src={movement_image_url}
+          className="w-full"
+          width={100}
+          height={100}
+          alt="Imagem do movimento"
+          priority
+        />
+        <Button
+          variant="ghost"
+          type="button"
+          onClick={() =>
+            openAddItemModal(
+              movement_id,
+              movement_name,
+              movement_image_url,
+              movement_average_time
+            )
+          }
+          className="text-primary"
+        >
+          Adicionar
+        </Button>
+      </div>
+    </>
   );
 }

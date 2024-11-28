@@ -18,7 +18,8 @@ import { Button } from "@/components/ui/button";
 import ShareButton from "@/components/share-button";
 import Link from "next/link";
 import { formatTime } from "@/lib/utils";
-import { DeleteTraining } from "./delete-training";
+import { DeleteTrainingOrStrategy } from "./delete-training-or-strategy";
+import { useDeleteTraining } from "@/hooks/use-trainings";
 
 interface TrainingResponse {
   training: Training;
@@ -79,7 +80,10 @@ export default function ListTraining() {
                 >
                   <Pencil />
                 </Link>
-                <DeleteTraining trainingId={training.id} />
+                <DeleteTrainingOrStrategy
+                  id={training.id}
+                  useFunction={useDeleteTraining}
+                />
               </div>
             ) : null}
           </div>

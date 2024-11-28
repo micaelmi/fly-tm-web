@@ -2,7 +2,6 @@
 
 import InputDefault from "@/components/form/input-default";
 import TextareaDefault from "@/components/form/textarea-default";
-import Search from "@/components/search";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
@@ -14,20 +13,25 @@ import {
   TrashSimple,
 } from "@phosphor-icons/react/dist/ssr";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import FinishingStrategyModal from "./finishing-strategy-modal";
-import { handleFileUpload } from "@/lib/firebase-upload";
 import Navbar from "@/components/navbar";
 import { Separator } from "@/components/ui/separator";
-import { useCreateStrategy } from "@/hooks/use-strategies";
+import { useEditStrategy, useStrategyById } from "@/hooks/use-strategies";
 import MovementsForChoose from "@/components/movements-for-choose";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import DefaultCombobox from "@/components/form/combobox-default";
+import InputImageWithPreview from "@/components/form/input-image-with-preview";
+import Loading from "@/app/loading";
+import { useLevelsData, useVisibilityTypesData } from "@/hooks/use-auxiliaries";
+import { ComboboxItem, ComboboxOption } from "@/interfaces/level";
+import { FaSpinner } from "react-icons/fa";
 import { StrategyItem } from "@/interfaces/strategy";
 import RelateMovementModal from "./relate-movement-modal";
 import { Movement } from "@/interfaces/training";
+import { deleteFile, handleFileUpload } from "@/lib/firebase-upload";
 
 const FormSchema = z.object({
   title: z.string().min(1),
@@ -35,20 +39,46 @@ const FormSchema = z.object({
     .string()
     .min(1, { message: "Ao mínimo 1 caractere é necessário" }),
   how_it_works: z.string(),
-  icon_file: z
-    .instanceof(File)
-    .refine((file) => file.size > 0, { message: "Selecione um ícone" }),
+  icon_file: z.instanceof(File),
   level_id: z.number(),
   visibility_type_id: z.number(),
 });
 
-export default function StrategyRegisterForm() {
+export default function StrategyUpdateForm() {
   const [strategyItems, setStrategyItems] = useState<StrategyItem[]>([]);
 
-  const user_id = useSession().data?.payload.sub;
+  const session = useSession();
+  const user_id = session.data?.payload.sub;
+  const username = session.data?.payload.username;
 
-  const [isFinishingStrategyModalOpen, setIsFinishingStrategyModalOpen] =
-    useState<boolean>(false);
+  const params = useParams();
+  const strategy_id = params.strategy_id.toLocaleString();
+
+  const { data, isLoading, isError } = useStrategyById(strategy_id);
+
+  isLoading && <Loading />;
+  isError && <p>Ocorreu um erro ao carregar os dados da estratégia</p>;
+
+  const strategy = data?.strategy;
+
+  const levelsData = useLevelsData().data?.levels ?? [];
+
+  const visibilityTypesData =
+    useVisibilityTypesData().data?.visibilityTypes ?? [];
+
+  const levels: ComboboxItem[] = levelsData
+    .map((level: ComboboxOption) => ({
+      value: level.id,
+      label: level.title,
+    }))
+    .filter((level: ComboboxItem) => level.label !== "Livre");
+
+  const visibilityTypes: ComboboxItem[] = visibilityTypesData.map(
+    (visibilityType: Partial<ComboboxOption>) => ({
+      value: visibilityType.id,
+      label: visibilityType.description,
+    })
+  );
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -73,9 +103,11 @@ export default function StrategyRegisterForm() {
 
   const router = useRouter();
 
-  const { mutate, isPending, isError, error } = useCreateStrategy();
+  const { mutate, isPending, isError: isEditError } = useEditStrategy();
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
+    if (!strategy) return;
+
     let file;
     if (data.icon_file && data.icon_file.size > 0) {
       if (data.icon_file instanceof File) {
@@ -85,6 +117,9 @@ export default function StrategyRegisterForm() {
           data.icon_file,
           `estrategias/icone-representacao-${timestamp}.${file_extension}`
         );
+        if (strategy.icon_url) {
+          deleteFile(strategy.icon_url);
+        }
       } else file = "";
     } else file = "";
 
@@ -97,28 +132,40 @@ export default function StrategyRegisterForm() {
 
     const filteredData = {
       ...rest,
-      icon_url: file,
-      strategyItems: updatedStrategyItems,
+      ...(file && { icon_url: file }),
+      items: updatedStrategyItems,
     };
 
-    mutate(
-      {
+    const strategyData = {
+      strategyId: strategy.id,
+      data: {
         title: filteredData.title,
         how_it_works: filteredData.how_it_works,
         against_whom: filteredData.against_whom,
-        icon_url: filteredData.icon_url ?? "",
-        user_id: user_id ?? "",
+        ...(file && { icon_url: filteredData.icon_url }),
+        user_id: user_id,
         level_id: filteredData.level_id,
         visibility_type_id: filteredData.visibility_type_id,
-        items: filteredData.strategyItems,
+        items: filteredData.items,
       },
-      {
-        onSuccess: () => {
-          router.push("/strategies");
-        },
-      }
-    );
+    };
+
+    mutate(strategyData, {
+      onSuccess: () => {
+        router.push(`/strategies/${strategy.id}`);
+      },
+    });
   };
+
+  useEffect(() => {
+    if (strategy?.strategy_items) {
+      setStrategyItems(strategy.strategy_items);
+      form.reset(strategy);
+    }
+  }, [strategy]);
+
+  if (!strategy) return;
+
   return (
     <>
       <Navbar />
@@ -127,14 +174,53 @@ export default function StrategyRegisterForm() {
         <div className="space-y-3 col-span-7">
           <div className="flex items-center gap-3 font-semibold text-4xl">
             <Strategy />
-            Elabore uma estratégia
+            Edite sua estratégia
           </div>
-          <p className="">
-            Ao lado, caso deseje, escolha movimentos coerentes à estratégia
-            elaborada e <span className="text-primary">relacione-os</span>.
-          </p>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+              <div className="grid grid-cols-2">
+                <div className="flex-1 space-y-4">
+                  <InputDefault
+                    control={form.control}
+                    name="title"
+                    label="Título"
+                    placeholder="Título da estratégia"
+                  />
+                  <DefaultCombobox
+                    control={form.control}
+                    name="visibility_type_id"
+                    object={visibilityTypes}
+                    label="Visibilidade da estratégia"
+                    searchLabel="Buscar visibilidade..."
+                    selectLabel="Visibilidade"
+                    onSelect={(value: number) => {
+                      form.setValue("visibility_type_id", value);
+                    }}
+                  />
+                  <DefaultCombobox
+                    control={form.control}
+                    name="level_id"
+                    object={levels}
+                    label="Nível da estratégia"
+                    searchLabel="Buscar nível..."
+                    selectLabel="Nível"
+                    onSelect={(value: number) => {
+                      form.setValue("level_id", value);
+                    }}
+                  />
+                </div>
+
+                <div className="flex flex-col justify-between mx-auto">
+                  <Label>Ícone</Label>
+                  <InputImageWithPreview
+                    image_url={strategy.icon_url}
+                    name="icon_file"
+                    formItemClassname="hidden"
+                    parentClassname="w-44"
+                    labelClassname="w-44 h-full aspect-square"
+                  />
+                </div>
+              </div>
               <InputDefault
                 control={form.control}
                 name="against_whom"
@@ -146,6 +232,7 @@ export default function StrategyRegisterForm() {
                 name="how_it_works"
                 label="Como funciona?"
                 placeholder="Descreva quais movimentos devem ser usados e em qual sequência. Considerando também destacar os contextos apropriados para o uso dessa estratégia."
+                className="resize-none"
               />
               {strategyItems.length > 0 ? (
                 <div className="space-y-3">
@@ -183,43 +270,23 @@ export default function StrategyRegisterForm() {
               ) : null}
               <div className="flex justify-between">
                 <Button
+                  type="button"
                   variant={"outline"}
-                  type="button"
-                  onClick={() => {
-                    router.push("/strategies");
-                  }}
+                  onClick={() => router.back()}
                 >
-                  Cancelar
+                  Esquece, tava legal.
                 </Button>
-                <Button
-                  type="button"
-                  onClick={() => {
-                    if (
-                      form.getValues("against_whom") === "" ||
-                      form.getValues("how_it_works") === ""
-                    ) {
-                      alert(
-                        "Preecha todos os campos dessa sessão antes de continuar."
-                      );
-                      return;
-                    }
-                    setIsFinishingStrategyModalOpen(true);
-                  }}
-                >
-                  Continuar
+                <Button type="submit" disabled={isPending ? true : false}>
+                  {isPending ? (
+                    <>
+                      <FaSpinner className="mr-2 animate-spin" />
+                      Salvando
+                    </>
+                  ) : (
+                    "Salvar alterações"
+                  )}
                 </Button>
               </div>
-              {/* Modal para finalização da estratégia */}
-              <FinishingStrategyModal
-                isPending={isPending}
-                isError={isError}
-                error={error}
-                isOpen={isFinishingStrategyModalOpen}
-                closeFinishingStrategyModal={() => {
-                  form.setValue("icon_file", new File([], ""));
-                  setIsFinishingStrategyModalOpen(false);
-                }}
-              />
             </form>
           </Form>
         </div>

@@ -22,6 +22,7 @@ import { useCallback, useEffect, useState } from "react";
 import update from "immutability-helper";
 import { motion, Reorder } from "motion/react";
 import { Movement, TrainingItem } from "@/interfaces/training";
+import MovementsForChoose from "@/components/movements-for-choose";
 
 export default function TrainingRegisterForm() {
   const session = useSession();
@@ -152,8 +153,8 @@ export default function TrainingRegisterForm() {
   return (
     <>
       <Navbar />
-      <div className="flex gap-20 mt-5 mb-5 h-screen container">
-        <div className="flex flex-col gap-3">
+      <div className="grid grid-cols-12 mt-5 mb-5 container">
+        <div className="flex flex-col gap-3 col-span-7">
           <PageTitleWithIcon icon={Barbell} title="Monte seu treino" />
           <p>
             Ao lado, selecione o movimento desejado e o adicione em seu conjunto
@@ -217,31 +218,29 @@ export default function TrainingRegisterForm() {
           </div>
         </div>
 
-        <Separator orientation="vertical" className="bg-primary" />
+        <Separator
+          orientation="vertical"
+          className="col-span-1 bg-primary shadow shadow-primary m-auto"
+        />
 
-        <div className="flex flex-col gap-3">
-          <h1 className="font-bold text-3xl">Movimentos</h1>
-          <Search pagination={false} placeholder="Procurar..." />
-          <div className="flex flex-col gap-3 overflow-y-auto">
-            {movementsForChoose?.length ? (
-              movementsForChoose.map((movement: Movement) => {
-                return (
-                  <AddMovementCard
-                    key={movement.id}
-                    movement_id={movement.id}
-                    movement_image_url={movement.image_url}
-                    movement_name={movement.name}
-                    movement_average_time={movement.average_time}
-                    openAddItemModal={openAddItemModal}
-                    parentClassname="w-min"
-                  />
-                );
-              })
-            ) : (
-              <p>Nenhum movimento cadastrado</p>
-            )}
-          </div>
-        </div>
+        <MovementsForChoose
+          h1Classname="text-3xl font-bold"
+          scrollAreaClassname="h-[500px]"
+          parentClassname="col-span-4 flex flex-col items-center gap-3"
+          movement_card={(move) => {
+            return (
+              <AddMovementCard
+                key={move.id}
+                movement_id={move.id}
+                movement_image_url={move.image_url}
+                movement_name={move.name}
+                movement_average_time={move.average_time}
+                openAddItemModal={openAddItemModal}
+                parentClassname="w-min"
+              />
+            );
+          }}
+        />
 
         {addItemModal.is_open && (
           <AddItemModal
