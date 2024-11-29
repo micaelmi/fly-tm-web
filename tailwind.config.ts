@@ -21,6 +21,9 @@ const config = {
     },
     extend: {
       colors: {
+        carousel: {
+          shadow: "#012E58",
+        },
         modal: "#15141A",
         navbar: "#001448",
         event: {
