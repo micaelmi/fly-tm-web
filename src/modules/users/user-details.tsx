@@ -130,9 +130,12 @@ export default function UserDetails() {
                     <Separator orientation="vertical" />
                     <div className="flex flex-col flex-1 justify-center items-center">
                       {user_data.credits + " créditos"}
-                      <a className="text-primary text-xs underline">
+                      <Link
+                        href={`/credits/${user_data.id}`}
+                        className="text-primary text-xs underline"
+                      >
                         ver detalhes
-                      </a>
+                      </Link>
                     </div>
                   </div>
                 )}
