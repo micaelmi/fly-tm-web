@@ -8,11 +8,6 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from "@/components/ui/resizable";
 import { Separator } from "@/components/ui/separator";
 import ContactButton from "@/modules/contact/contact-button";
 import Autoplay from "embla-carousel-autoplay";
