@@ -5,13 +5,19 @@ import Navbar from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Training } from "@/interfaces/training";
+import {
+  useIncrementTrainingDays,
+  useTrainingById,
+} from "@/hooks/use-trainings";
+import { useEditUser } from "@/hooks/use-users";
+import { Training, TrainingItem } from "@/interfaces/training";
 import api from "@/lib/axios";
 import { formatTime, Timer } from "@/lib/utils";
 import {
   ArrowCircleLeft,
   ArrowCircleRight,
   Clock,
+  Fire,
   Flag,
   Star,
 } from "@phosphor-icons/react/dist/ssr";
@@ -21,55 +27,29 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import Confetti from "react-confetti";
 
-interface TrainingResponse {
-  training: Training;
-}
-
-interface Item {
-  comments: string;
-  counting_mode: string;
-  movement: {
-    average_time: number;
-    description: String;
-    image_url: string;
-    name: string;
-    video_url: string;
-  };
-  queue: number;
-  reps: number;
-  time: number;
-}
+import TrainingComplete from "./training-complete";
 
 export default function PerformingTrainingFeature() {
-  const training_slapsed_time = Timer();
+  const [trainingSlapsedTime, setTrainingSlapsedTime] = useState<number>(0);
   const [itemSlapsedTime, setItemSlapsedTime] = useState<number>(0);
 
-  const token = useSession().data?.token.user.token;
-  const training_id = useParams().training_id;
+  const training_id = useParams().training_id.toLocaleString();
 
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["trainingData", training_id],
-    queryFn: async () => {
-      return await api.get<TrainingResponse>(`/trainings/${training_id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-    },
-  });
+  const { data, isLoading, isError } = useTrainingById(training_id);
 
   isLoading && <Loading />;
   isError && <p>Ocorreu um erro ao carregar os dados do treino</p>;
 
-  const training = data?.data.training;
+  const training = data?.training;
 
   const [isTrainingFinished, setIsTrainingFinished] = useState<boolean>(false);
-  const [currentItem, setCurrentItem] = useState<Item>({
+  const [currentItem, setCurrentItem] = useState<TrainingItem>({
+    id: 0,
     comments: "",
-    counting_mode: "",
+    counting_mode: "reps",
     movement: {
+      id: 0,
       average_time: 0,
       description: "",
       image_url: "",
@@ -86,7 +66,7 @@ export default function PerformingTrainingFeature() {
     const currentQueue = currentItem.queue;
 
     if (currentQueue === total && direction === "next") {
-      setIsTrainingFinished(true);
+      updateTrainingDays();
       return;
     }
 
@@ -103,6 +83,28 @@ export default function PerformingTrainingFeature() {
     }
   };
 
+  const {
+    mutate,
+    data: trainingDays,
+    isPending,
+    isError: isIncrementError,
+  } = useIncrementTrainingDays();
+  const user_id = useSession().data?.payload.sub;
+
+  const updateTrainingDays = () => {
+    if (!user_id) return;
+    mutate(
+      {
+        userId: user_id,
+      },
+      {
+        onSuccess: () => {
+          setIsTrainingFinished(true);
+        },
+      }
+    );
+  };
+
   useEffect(() => {
     if (training?.training_items[0]) {
       setCurrentItem(training.training_items[0]);
@@ -110,14 +112,15 @@ export default function PerformingTrainingFeature() {
   }, [training?.training_items]);
 
   useEffect(() => {
-    // Define o intervalo para atualizar o valor a cada 1 segundo
+    if (isTrainingFinished) return;
+
     const intervalId = setInterval(() => {
-      setItemSlapsedTime((prevValue) => prevValue + 1); // Atualiza o valor
+      setTrainingSlapsedTime((prevValue) => prevValue + 1);
+      setItemSlapsedTime((prevValue) => prevValue + 1);
     }, 1000);
 
-    // Limpa o intervalo quando o componente for desmontado
     return () => clearInterval(intervalId);
-  }, []);
+  }, [isTrainingFinished]);
 
   useEffect(() => {
     setItemSlapsedTime(0);
@@ -128,26 +131,8 @@ export default function PerformingTrainingFeature() {
   return (
     <>
       <Navbar />
-      {isTrainingFinished ? (
-        <div className="flex flex-col justify-center items-center gap-10 mt-10">
-          <Confetti
-            width={window.innerWidth}
-            height={window.innerHeight}
-            numberOfPieces={500}
-            gravity={0.1}
-            colors={["#3B82F6", "#FFFFFF", "#C1272D", "#2CADC5", "#E0D4CA"]}
-            recycle={false}
-          />
-          <h1 className="font-bold text-4xl">Parabéns, mandou ver!</h1>
-          <div className="flex items-center gap-4 text-xl">
-            <Star weight="fill" className="text-primary animate-pulse" />
-            <p>Treino finalizado!</p>
-            <Star weight="fill" className="text-primary animate-pulse" />
-          </div>
-          <Link href={"/trainings"}>
-            <Button>Voltar para a lista de treinos</Button>
-          </Link>
-        </div>
+      {isTrainingFinished && trainingDays ? (
+        <TrainingComplete trainingDays={trainingDays} />
       ) : (
         <div className="space-y-5 mt-5 mb-5 container">
           {/* header */}
@@ -177,7 +162,7 @@ export default function PerformingTrainingFeature() {
                 />
                 <div className="flex flex-col items-center">
                   <p>Decorrido</p>
-                  <p>{formatTime(training_slapsed_time)}</p>
+                  <p>{formatTime(trainingSlapsedTime)}</p>
                 </div>
               </div>
             </div>
@@ -189,7 +174,7 @@ export default function PerformingTrainingFeature() {
                 <h1 className="text-4xl text-primary">
                   {currentItem?.movement.name} -{" "}
                   {currentItem?.time
-                    ? currentItem.time + " s"
+                    ? formatTime(currentItem.time)
                     : currentItem.reps + " x"}
                 </h1>
                 <div className="flex gap-2">
@@ -236,7 +221,7 @@ export default function PerformingTrainingFeature() {
                     <Label>Vídeo explicativo</Label>
                     <iframe
                       className="aspect-video"
-                      src="https://www.youtube.com/embed/EBoCkd3kP6U?si=zwH2dMvm93npetIf&amp;controls=0&amp;start=37;end=47"
+                      src={currentItem.movement.video_url}
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                       referrerPolicy="strict-origin-when-cross-origin"
                       allowFullScreen

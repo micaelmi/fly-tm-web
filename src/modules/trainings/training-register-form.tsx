@@ -231,10 +231,7 @@ export default function TrainingRegisterForm() {
             return (
               <AddMovementCard
                 key={move.id}
-                movement_id={move.id}
-                movement_image_url={move.image_url}
-                movement_name={move.name}
-                movement_average_time={move.average_time}
+                movement={move}
                 openAddItemModal={openAddItemModal}
                 parentClassname="w-min"
               />

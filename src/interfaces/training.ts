@@ -21,6 +21,15 @@ export interface TrainingsResponse {
   trainings: Training[];
 }
 
+export interface TrainingsByIdResponse {
+  training: Training;
+}
+
+export interface IncrementTrainingDaysResponse {
+  userId: string;
+  trainingDays: number;
+}
+
 export interface Training {
   description: string;
   club_id: string;
@@ -57,7 +66,7 @@ export interface TrainingItem {
   id: number;
   comments: string;
   counting_mode: "time" | "reps";
-  movement: Partial<Movement>;
+  movement: Movement;
   queue: number;
   reps: number;
   time: number;

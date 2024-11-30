@@ -249,7 +249,7 @@ export default function FinishingTrainingModal({
             ) : null}
 
             {/* buttons */}
-            <div className="flex justify-between">
+            <div className="flex justify-between mt-2">
               <Button
                 type="button"
                 onClick={() => {

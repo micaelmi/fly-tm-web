@@ -12,6 +12,7 @@ import {
   Question,
   Strategy,
   TrashSimple,
+  X,
 } from "@phosphor-icons/react/dist/ssr";
 import Image from "next/image";
 import { useState } from "react";
@@ -28,6 +29,8 @@ import { useRouter } from "next/navigation";
 import { StrategyItem } from "@/interfaces/strategy";
 import RelateMovementModal from "./relate-movement-modal";
 import { Movement } from "@/interfaces/training";
+import { AnimatePresence, motion } from "motion/react";
+import RelateMovementCard from "./relate-movement-card";
 
 const FormSchema = z.object({
   title: z.string().min(1),
@@ -233,35 +236,13 @@ export default function StrategyRegisterForm() {
           scrollAreaClassname="h-[600px]"
           parentClassname="col-span-4 flex flex-col items-center gap-3"
           movement_card={(move) => {
-            const choosed = strategyItems.some((strategyItem) => {
-              return strategyItem.movement.id === move.id;
-            });
             return (
-              <div
+              <RelateMovementCard
                 key={move.id}
-                className="flex flex-col gap-2 border-primary p-2 border rounded-lg"
-              >
-                <div className="flex justify-between items-center font-semibold">
-                  {move.name}
-                  <Question size={21} />
-                </div>
-                <Image
-                  src={move.image_url}
-                  className="w-full"
-                  width={100}
-                  height={100}
-                  alt="Imagem do movimento"
-                  priority
-                />
-                {choosed ? (
-                  <p className="bg-secondary text-center">Já relacionado</p>
-                ) : (
-                  <RelateMovementModal
-                    movement={move}
-                    addNewStrategyItem={addNewStrategyItem}
-                  />
-                )}
-              </div>
+                strategyItems={strategyItems}
+                movement={move}
+                addNewStrategyItem={addNewStrategyItem}
+              />
             );
           }}
         />

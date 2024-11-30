@@ -121,7 +121,7 @@ export default function UserDetails() {
                   <Fire size={25} weight="fill" className="text-orange-400" />
                   <Separator orientation="vertical" />
                   <p className="flex flex-1 justify-center items-center">
-                    {user_data.training_days + " dias de treino"}
+                    {user_data.training_days + " treinos concluídos"}
                   </p>
                 </div>
                 {own_page && (

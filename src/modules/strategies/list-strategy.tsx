@@ -101,7 +101,7 @@ export default function ListStrategy() {
                           {strategyItem.movement.name}
                         </p>
                         <ItemDetailsModal
-                          // strategy_description={strategyItem.description}
+                          strategy_description={strategyItem.description}
                           movement_name={strategyItem.movement.name}
                           movement_description={
                             strategyItem.movement.description

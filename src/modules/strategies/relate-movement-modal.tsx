@@ -24,6 +24,7 @@ export default function RelateMovementModal({
   addNewStrategyItem,
 }: RelateMovementModalProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [error, setError] = useState("");
   const [description, setDescription] = useState<string>("");
 
   return (
@@ -57,31 +58,56 @@ export default function RelateMovementModal({
           onChange={(event) => {
             setDescription(event.target.value);
           }}
+          onKeyUp={() => {
+            if (description.length > 500) {
+              setError("Máximo de 500 caracteres para a descrição.");
+              return;
+            }
+            if (description === "") {
+              setError("Descreva a relação do seu movimento com a estraégia.");
+              return;
+            }
+            setError("");
+          }}
         />
         <DialogFooter>
-          <div className="flex justify-between w-full">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setDescription("");
-                setIsOpen(false);
-              }}
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="button"
-              onClick={() => {
-                if (description === "") {
-                  alert("Descreva a relação do seu movimento com a estraégia.");
-                  return;
-                }
-                addNewStrategyItem(movement, description);
-                setIsOpen(false);
-              }}
-            >
-              Relacionar
-            </Button>
+          <div className="space-y-2 w-full">
+            <div className="flex justify-between w-full">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setDescription("");
+                  setIsOpen(false);
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="button"
+                onClick={() => {
+                  if (description === "") {
+                    setError(
+                      "Descreva a relação do seu movimento com a estraégia."
+                    );
+                    return;
+                  }
+                  if (description.length > 500) {
+                    setError("Máximo de 500 caracteres para a descrição.");
+                    return;
+                  }
+                  setError("");
+                  addNewStrategyItem(movement, description);
+                  setIsOpen(false);
+                }}
+              >
+                Relacionar
+              </Button>
+            </div>
+            {error ? (
+              <p className="border-destructive p-1 border rounded-lg text-destructive text-sm">
+                {error}
+              </p>
+            ) : null}
           </div>
         </DialogFooter>
       </DialogContent>

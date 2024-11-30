@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { TrainingItem } from "@/interfaces/training";
+import MovementsForChoose from "@/components/movements-for-choose";
 
 interface Movement {
   id: number;
@@ -36,12 +37,10 @@ interface Movement {
 }
 
 interface AddTrainingItemModalProps {
-  movementsForChoose: Movement[];
   addNewTrainingItem: (data: TrainingItem) => void;
 }
 
 export default function AddTrainingItemModal({
-  movementsForChoose,
   addNewTrainingItem,
 }: AddTrainingItemModalProps) {
   const [modalOpenState, setModalOpenState] = useState<boolean>(false);
@@ -102,14 +101,12 @@ export default function AddTrainingItemModal({
     }
 
     if (data.get("counting_mode") === "time") {
-      if (data.get("timeHH") === "") {
-        setError("Defina o campo de horas.");
-        return;
-      } else if (data.get("timeMM") === "") {
-        setError("Defina o campo de minutos.");
-        return;
-      } else if (data.get("timeSS") === "") {
-        setError("Defina o campo de segundos.");
+      if (
+        (data.get("timeHH") === "" || data.get("timeHH") === "0") &&
+        (data.get("timeMM") === "" || data.get("timeMM") === "0") &&
+        (data.get("timeSS") === "" || data.get("timeSS") === "0")
+      ) {
+        setError("Defina uma duração");
         return;
       }
     }
@@ -200,11 +197,11 @@ export default function AddTrainingItemModal({
             <div className={selectedOption !== "time" ? "hidden" : "w-min"}>
               <Label className="truncate">Executar durante (hh:mm:ss):</Label>
               <div className="flex items-center">
-                <Input name="timeHH" type="number" />
+                <Input name="timeHH" type="number" min={0} />
                 :
-                <Input name="timeMM" type="number" />
+                <Input name="timeMM" type="number" min={0} />
                 :
-                <Input name="timeSS" type="number" />
+                <Input name="timeSS" type="number" min={0} />
               </div>
             </div>
 
@@ -227,31 +224,21 @@ export default function AddTrainingItemModal({
             ) : null}
           </form>
         ) : (
-          <div className="flex flex-col gap-3">
-            <h1 className="font-semibold text-lg">Movimentos</h1>
-            <Search pagination={false} placeholder="Procurar..." />
-            <ScrollArea className="border-muted p-3 border rounded-lg w-full max-h-52">
-              <div className="flex flex-col items-center gap-3">
-                {movementsForChoose?.length ? (
-                  movementsForChoose.map((movement: Movement) => {
-                    return (
-                      <AddMovementCard
-                        key={movement.id}
-                        movement_id={movement.id}
-                        movement_image_url={movement.image_url}
-                        movement_name={movement.name}
-                        movement_average_time={movement.average_time}
-                        parentClassname="w-48"
-                        openAddItemModal={openAddTrainingItemForm}
-                      />
-                    );
-                  })
-                ) : (
-                  <p>Nenhum movimento cadastrado</p>
-                )}
-              </div>
-            </ScrollArea>
-          </div>
+          <MovementsForChoose
+            h1Classname="text-xl font-bold"
+            scrollAreaClassname="h-[300px]"
+            parentClassname="flex flex-col items-center gap-3"
+            movement_card={(move) => {
+              return (
+                <AddMovementCard
+                  key={move.id}
+                  movement={move}
+                  openAddItemModal={openAddTrainingItemForm}
+                  parentClassname="w-min"
+                />
+              );
+            }}
+          />
         )}
         <DialogFooter className="block">
           <p

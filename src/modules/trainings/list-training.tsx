@@ -4,12 +4,9 @@ import Loading from "@/app/loading";
 import Navbar from "@/components/navbar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Level } from "@/interfaces/level";
-import { Training } from "@/interfaces/training";
 import api from "@/lib/axios";
-import { Clock, Flag, Pencil, Trash } from "@phosphor-icons/react/dist/ssr";
+import { Clock, Flag, Pencil } from "@phosphor-icons/react/dist/ssr";
 import { useQuery } from "@tanstack/react-query";
-import { AxiosResponse } from "axios";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
@@ -19,36 +16,21 @@ import ShareButton from "@/components/share-button";
 import Link from "next/link";
 import { formatTime } from "@/lib/utils";
 import { DeleteTrainingOrStrategy } from "./delete-training-or-strategy";
-import { useDeleteTraining } from "@/hooks/use-trainings";
-
-interface TrainingResponse {
-  training: Training;
-}
+import { useDeleteTraining, useTrainingById } from "@/hooks/use-trainings";
 
 export default function ListTraining() {
   const session = useSession();
 
-  const token = session.data?.token.user.token;
   const username = session.data?.payload.username;
 
-  const training_id = useParams().training_id;
+  const training_id = useParams().training_id.toLocaleString();
 
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["trainingData", training_id],
-    queryFn: async () => {
-      return await api.get<TrainingResponse>(`/trainings/${training_id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-    },
-    enabled: !!token,
-  });
+  const { data, isLoading, isError } = useTrainingById(training_id);
 
   isLoading && <Loading />;
   isError && <p>Ocorreu um erro ao carregar os dados do treino</p>;
 
-  const training = data?.data.training;
+  const training = data?.training;
 
   if (!training) return;
 
@@ -105,14 +87,14 @@ export default function ListTraining() {
             </div>
             <ScrollArea>
               <div className="space-y-3">
-                {training.training_items.map((training) => {
+                {training.training_items.map((trainingItem) => {
                   return (
                     <div
-                      key={training.queue}
+                      key={trainingItem.queue}
                       className="flex gap-3 border-primary shadow shadow-primary p-2 border rounded-lg"
                     >
                       <Image
-                        src={training.movement.image_url}
+                        src={trainingItem.movement.image_url}
                         alt="Imagem do movimento"
                         width={100}
                         height={100}
@@ -122,18 +104,20 @@ export default function ListTraining() {
                       <div className="flex flex-col justify-between">
                         <div>
                           <p className="font-semibold">
-                            {training.movement.name}
+                            {trainingItem.movement.name}
                           </p>
                           <p className="text-muted-foreground">
-                            {training.time
-                              ? training.time + " segundos"
-                              : training.reps + " repetições"}
+                            {trainingItem.time
+                              ? formatTime(trainingItem.time)
+                              : trainingItem.reps + " repetições"}
                           </p>
                         </div>
                         <ItemDetailsModal
-                          movement_name={training.movement.name}
-                          movement_description={training.movement.description}
-                          movement_video_url={training.movement.video_url}
+                          movement_name={trainingItem.movement.name}
+                          movement_description={
+                            trainingItem.movement.description
+                          }
+                          movement_video_url={trainingItem.movement.video_url}
                         />
                       </div>
                     </div>

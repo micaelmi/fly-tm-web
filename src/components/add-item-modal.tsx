@@ -94,7 +94,7 @@ export default function AddItemModal({
 
   return (
     <div className="fixed inset-0 flex justify-center items-center bg-black/60">
-      <div className="flex flex-col gap-2 bg-zinc-900 px-6 py-5 rounded w-[640px]">
+      <div className="flex flex-col gap-2 border-white bg-zinc-900 px-6 py-5 border rounded w-[640px]">
         <div className="flex justify-between items-center">
           <h2 className="font-lg font-semibold">Adicionar movimento</h2>
           <button>
@@ -109,7 +109,7 @@ export default function AddItemModal({
             alt="Imagem do movimento"
             width={120}
             height={120}
-            className="border-white p-3 border rounded aspect-square"
+            className="rounded aspect-square"
             unoptimized={true}
           />
           <form className="flex flex-col flex-1 gap-3" onSubmit={onSubmit}>

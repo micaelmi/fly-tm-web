@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import {
@@ -11,6 +10,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { DialogClose } from "@radix-ui/react-dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ItemDetailsModalProps {
   movement_name: string;
@@ -32,7 +32,7 @@ export default function ItemDetailsModal({
           Ver detalhes
         </p>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="w-[500px]">
         <DialogHeader>
           <DialogTitle>{movement_name} - Detalhes do movimento</DialogTitle>
           <DialogDescription>
@@ -40,7 +40,7 @@ export default function ItemDetailsModal({
             {movement_description}
           </DialogDescription>
         </DialogHeader>
-        <Tabs defaultValue="account" className="w-[400px]">
+        <Tabs defaultValue="account" className="mx-auto w-full h-72">
           <TabsList className="w-full">
             <TabsTrigger value="video">Vídeo explicativo</TabsTrigger>
             {strategy_description ? (
@@ -59,7 +59,9 @@ export default function ItemDetailsModal({
           </TabsContent>
           {strategy_description ? (
             <TabsContent value="strategy">
-              <p>{strategy_description}</p>
+              <ScrollArea className="bg-modal p-2 pr-6 rounded-lg w-[450px] h-64 text-justify break-words">
+                {strategy_description}
+              </ScrollArea>
             </TabsContent>
           ) : null}
         </Tabs>

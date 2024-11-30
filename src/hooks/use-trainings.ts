@@ -1,8 +1,10 @@
 "useClient";
 
 import {
+  IncrementTrainingDaysResponse,
   Training,
   TrainingRegisterData,
+  TrainingsByIdResponse,
   TrainingsResponse,
 } from "@/interfaces/training";
 import api from "@/lib/axios";
@@ -10,6 +12,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useGetUserClubId } from "./use-users";
 import { useMemo } from "react";
+import { User } from "@/interfaces/user";
 
 export function useTrainingsData() {
   const { data: sessionData } = useSession();
@@ -78,6 +81,26 @@ export function useTrainingsDataByUser() {
   });
 }
 
+export function useTrainingById(training_id: string) {
+  const token = useSession().data?.token.user.token;
+
+  return useQuery({
+    queryKey: ["trainingData", training_id],
+    queryFn: async () => {
+      const response = await api.get<TrainingsByIdResponse>(
+        `/trainings/${training_id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data;
+    },
+    enabled: !!token && !!training_id,
+  });
+}
+
 export function useCreateTraining() {
   const { data: sessionData } = useSession();
   const token = sessionData?.token.user.token;
@@ -130,6 +153,26 @@ export function useDeleteTraining() {
     },
     onError: (error) => {
       console.error("Erro ao excluir treino:", error);
+    },
+  });
+}
+
+export function useIncrementTrainingDays() {
+  const token = useSession().data?.token.user.token;
+
+  return useMutation({
+    mutationFn: async ({ userId }: { userId: string }) => {
+      const response = await api.put<IncrementTrainingDaysResponse>(
+        `/trainings/${userId}/increment-training-days`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      return response.data.trainingDays;
     },
   });
 }

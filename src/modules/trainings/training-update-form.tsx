@@ -126,20 +126,6 @@ export default function TrainingUpdateForm() {
       })
     );
 
-  const movementsData = useQuery({
-    queryKey: ["movementsData"],
-    queryFn: async () => {
-      return await api.get("/movements", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-    },
-    enabled: !!token,
-  });
-
-  const movementsForChoose = movementsData.data?.data.movements;
-
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -310,7 +296,6 @@ export default function TrainingUpdateForm() {
                           Movimentos: {trainingItems.length}
                         </p>
                         <AddTrainingItemModal
-                          movementsForChoose={movementsForChoose}
                           addNewTrainingItem={addNewTrainingItem}
                         />
                       </div>
