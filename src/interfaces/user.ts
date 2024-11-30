@@ -37,7 +37,7 @@ export interface User {
     title: string;
     description: string;
   };
-  club_id: number | null;
+  club_id: string | null;
   club: {
     id: string;
     name: string;

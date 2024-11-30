@@ -31,6 +31,7 @@ import { useLevelsData, useVisibilityTypesData } from "@/hooks/use-auxiliaries";
 import { ComboboxItem, ComboboxOption } from "@/interfaces/level";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/axios";
+import { useGetUser, useGetUserByUsername } from "@/hooks/use-users";
 
 interface FinishingTrainingModalProps {
   trainingItems: TrainingItem[];
@@ -60,6 +61,7 @@ export default function FinishingTrainingModal({
 }: FinishingTrainingModalProps) {
   const { data: session } = useSession();
   const user_id = session?.payload.sub;
+  const username = session?.payload.username || "";
 
   const levelsData = useLevelsData().data?.levels ?? [];
 
@@ -108,6 +110,8 @@ export default function FinishingTrainingModal({
   const router = useRouter();
 
   const { mutate, isPending, isError, error } = useCreateTraining();
+  const { data: userData } = useGetUser(username);
+  console.log(userData);
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     let file;
@@ -139,6 +143,21 @@ export default function FinishingTrainingModal({
       }
     );
 
+    let visibility = filteredData.visibility_type_id;
+    let club = undefined;
+    if (filteredData.visibility_type_id === 3) {
+      if (username.length > 0) {
+        if (userData?.user.club.id) {
+          visibility = 3;
+          club = userData?.user.club.id;
+        } else {
+          visibility = 2; // privado
+        }
+      } else {
+        visibility = 2; // privado
+      }
+    }
+
     mutate(
       {
         title: filteredData.title,
@@ -147,13 +166,13 @@ export default function FinishingTrainingModal({
         icon_url: filteredData.icon_url,
         user_id: user_id,
         level_id: filteredData.level_id,
-        visibility_type_id: filteredData.visibility_type_id,
-        club_id: undefined,
+        visibility_type_id: visibility,
+        club_id: club,
         items: updatedTrainingItems,
       },
       {
         onSuccess: () => {
-          router.push("/home");
+          router.push("/trainings");
         },
       }
     );

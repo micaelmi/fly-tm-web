@@ -61,6 +61,7 @@ export default function ListStrategy() {
                   <Pencil />
                 </Link>
                 <DeleteTrainingOrStrategy
+                  type="strategies"
                   id={strategy_id}
                   useFunction={useDeleteStrategy}
                 />
