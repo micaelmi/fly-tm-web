@@ -9,11 +9,11 @@ import {
 } from "@/components/ui/dialog";
 import { User } from "@/interfaces/user";
 import { isValidUrl } from "@/lib/utils";
-import { Trash, UsersThree } from "@phosphor-icons/react/dist/ssr";
+import { UsersThree } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { AddClubMemberDialog } from "./add-club-member-dialog";
-import { Button } from "@/components/ui/button";
 import { RemoveMember } from "./remove-member";
+import { useSession } from "next-auth/react";
 
 interface ClubMembersDialog {
   clubId: string;
@@ -30,6 +30,7 @@ export function ClubMembersDialog({
   owner,
   isOwner,
 }: ClubMembersDialog) {
+  const session = useSession().data?.payload;
   return (
     <Dialog>
       <DialogTrigger>
@@ -51,7 +52,7 @@ export function ClubMembersDialog({
                   className="flex justify-between items-center gap-2 hover:bg-blue-950/50 p-2 rounded-lg"
                 >
                   <Link
-                    href={`/user/${user.username}`}
+                    href={`/users/${user.username}`}
                     target="_blank"
                     className="flex items-center gap-2"
                   >
@@ -65,20 +66,37 @@ export function ClubMembersDialog({
                       className="rounded-full w-12 h-12"
                     />
                     <DialogDescription className="font-black text-gray-300 text-xl">
-                      {user.username}
+                      {session && session.username === user.username
+                        ? user.username + " (você)"
+                        : user.username}
                     </DialogDescription>
                   </Link>
-                  {isOwner && (
+                  {isOwner ? (
                     <div>
-                      <RemoveMember clubId={clubId} userId={user.id} />
+                      <RemoveMember
+                        clubId={clubId}
+                        userId={user.id}
+                        isOwner={true}
+                      />
                     </div>
+                  ) : (
+                    session &&
+                    session.username === user.username && (
+                      <div>
+                        <RemoveMember
+                          clubId={clubId}
+                          userId={user.id}
+                          isOwner={false}
+                        />
+                      </div>
+                    )
                   )}
                 </div>
               );
             })}
           </div>
           <Link
-            href={`/user/${owner}`}
+            href={`/users/${owner}`}
             className="mt-4 text-gray-400 hover:underline"
             target="_blank"
           >

@@ -27,6 +27,7 @@ export default function ClubsCarousel() {
 
   return (
     <Carousel
+      id="clubs"
       className="px-4 w-full"
       opts={{
         loop: true,

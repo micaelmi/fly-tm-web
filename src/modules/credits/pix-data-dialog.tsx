@@ -9,13 +9,42 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { useManageCredits } from "@/hooks/use-credits";
 import { PixResponse } from "@/interfaces/credit";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
+import { priceTable } from "./price-table";
 
 export function PixData({ data }: { data: PixResponse }) {
   function copyCode() {
     navigator.clipboard.writeText(data.pix.qrCode);
     toast.success("Código do Pix copiado para a área de transferência.");
+  }
+  const { mutate } = useManageCredits();
+  const userId = useSession().data?.payload.sub;
+  const router = useRouter();
+
+  function handlePaymentCompleted() {
+    if (userId) {
+      const exchanged = priceTable.find(
+        (price) => price.reais === Number(data.pix.amount)
+      );
+      mutate(
+        {
+          action: "buy",
+          amount: exchanged?.credits || 0,
+          description: "Compra de créditos",
+          user_id: userId,
+        },
+        {
+          onSuccess() {
+            toast.success("Pagamento efetuado com sucesso!");
+            router.refresh();
+          },
+        }
+      );
+    }
   }
   return (
     <AlertDialog>
@@ -41,6 +70,9 @@ export function PixData({ data }: { data: PixResponse }) {
         </div>
         <AlertDialogFooter>
           <AlertDialogCancel>Fechar</AlertDialogCancel>
+          <Button onClick={handlePaymentCompleted}>
+            Efetuei meu pagamento
+          </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

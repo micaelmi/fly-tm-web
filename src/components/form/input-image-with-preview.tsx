@@ -98,7 +98,10 @@ export default function InputImageWithPreview({
         name={name}
         render={({ field }) => (
           <FormItem className={cn("w-full", formItemClassname)}>
-            <FormLabel className="flex justify-center items-center gap-4 hover:border-card hover:bg-card-foreground/10 py-4 border border-dashed rounded-lg w-full transition-colors cursor-pointer">
+            <FormLabel
+              className="flex justify-center items-center gap-4 hover:border-card hover:bg-card-foreground/10 py-4 border border-dashed rounded-lg w-full transition-colors cursor-pointer"
+              htmlFor="image"
+            >
               {selectedImage ? (
                 <>
                   <FolderCheck />
