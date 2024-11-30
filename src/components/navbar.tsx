@@ -54,7 +54,7 @@ export default function Navbar({ back = true }: { back?: boolean }) {
                 <Strategy />
               </Link>
               <Link
-                href={`/user/${username}`}
+                href={`/users/${username}`}
                 className="hover:text-primary transition-colors"
               >
                 <UserCircle />
@@ -88,7 +88,7 @@ export default function Navbar({ back = true }: { back?: boolean }) {
           <Strategy />
         </Link>
         <Link
-          href={`/user/${username}`}
+          href={`/users/${username}`}
           className="hover:text-primary transition-colors"
         >
           <UserCircle />

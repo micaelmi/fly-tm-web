@@ -2,6 +2,7 @@
 
 import Loading from "@/app/loading";
 import Navbar from "@/components/navbar";
+import ShareButton from "@/components/share-button";
 import { buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { User } from "@/interfaces/user";
@@ -9,7 +10,6 @@ import api from "@/lib/axios";
 import { isValidUrl } from "@/lib/utils";
 import LogoutButton from "@/modules/auth/logout-button";
 import { ChangeUsernameForm } from "@/modules/users/change-username-form";
-import ShareProfileButton from "@/modules/users/share-profile-button";
 import {
   Coins,
   Fire,
@@ -235,7 +235,10 @@ export default function UserDetails() {
                       </Link>
                     )}
                   </div>
-                  <ShareProfileButton username={user_data.username} />
+                  <ShareButton
+                    link={`http://localhost:3000/users/${user_data.username}`}
+                    what_is_being_shared="perfil"
+                  />
                   {own_page && <LogoutButton />}
                 </div>
               </div>
