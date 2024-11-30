@@ -62,15 +62,21 @@ export default function History() {
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1 mb-1">
-                      {match.games_history.map((partial) => (
-                        <div className="flex justify-center items-center bg-primary/30 p-1 rounded w-8 h-8">
+                      {match.games_history.map((partial, index) => (
+                        <div
+                          key={index}
+                          className="flex justify-center items-center bg-primary/30 p-1 rounded w-8 h-8"
+                        >
                           {partial.points_player1}
                         </div>
                       ))}
                     </div>
                     <div className="flex gap-1">
-                      {match.games_history.map((partial) => (
-                        <div className="flex justify-center items-center bg-primary/30 p-1 rounded w-8 h-8">
+                      {match.games_history.map((partial, index) => (
+                        <div
+                          key={index}
+                          className="flex justify-center items-center bg-primary/30 p-1 rounded w-8 h-8"
+                        >
                           {partial.points_player2}
                         </div>
                       ))}

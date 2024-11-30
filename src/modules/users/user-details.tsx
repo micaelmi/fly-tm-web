@@ -220,7 +220,7 @@ export default function UserDetails() {
                   <div className="flex gap-2">
                     {user_data._count.events > 0 && (
                       <Link
-                        href={`/user/my-events/${user_data.id}`}
+                        href={`/users/my-events/${user_data.id}`}
                         className={`${buttonVariants({ variant: "default" })} flex-1`}
                       >
                         Meus Eventos
@@ -228,7 +228,7 @@ export default function UserDetails() {
                     )}
                     {user_data._count.contacts > 0 && (
                       <Link
-                        href={`/user/my-contacts/${user_data.id}`}
+                        href={`/users/my-contacts/${user_data.id}`}
                         className={`${buttonVariants({ variant: "default" })} flex-1`}
                       >
                         Meus Contatos

@@ -9,6 +9,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { initMercadoPago } from "@mercadopago/sdk-react";
 import { PlusCircle } from "@phosphor-icons/react/dist/ssr";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -33,6 +34,9 @@ export function BuyCredits({ userId }: { userId: string }) {
     );
     setReais(exchanged ? exchanged.reais.toString() : "0");
   }, [credits]);
+
+  const key = process.env.NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY || "";
+  initMercadoPago(key);
 
   const { mutate, isPending } = useCreatePixPayment();
 

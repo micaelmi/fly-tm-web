@@ -214,7 +214,7 @@ export default function UserUpdateForm({ user_data }: UserUpdateFormProps) {
     };
     mutate(userData, {
       onSuccess: () => {
-        router.push(`/user/${user_data.username}`);
+        router.push(`/users/${user_data.username}`);
       },
     });
   };

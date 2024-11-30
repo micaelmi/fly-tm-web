@@ -73,15 +73,17 @@ export default function FeaturesCarousel() {
             alt="Patola atacando"
             imageUrl="mascot-hitting.svg"
             text="Meu perfil"
-            linkToFeaturePage={`/user/${username}`}
+            linkToFeaturePage={`/users/${username}`}
           />
         </CarouselItem>
         <CarouselItem className="md:basis-1/3 lg:basis-1/5">
           <FeatureCard
             alt="Logo de clube"
             imageUrl={user?.club_logo_url ?? `mascot-default.svg`}
-            text="Meu clube"
-            linkToFeaturePage={`/clubs/${user?.club_id}`}
+            text={user?.club_id ? "Meu clube" : "Clubes"}
+            linkToFeaturePage={
+              user?.club_id ? `/clubs/${user?.club_id}` : "#clubs"
+            }
           />
         </CarouselItem>
         <CarouselItem className="md:basis-1/3 lg:basis-1/5">

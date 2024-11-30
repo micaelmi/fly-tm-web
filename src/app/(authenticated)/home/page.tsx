@@ -22,11 +22,13 @@ export default function Home() {
           <h3 className="font-semibold text-xl whitespace-nowrap">
             Confira os próximos eventos
           </h3>
-          <Search
-            placeholder="Buscar evento"
-            pagination={false}
-            className="max-w-60"
-          />
+          <div className="">
+            <Search
+              placeholder="Buscar evento"
+              pagination={false}
+              className="max-w-60 self-end"
+            />
+          </div>
         </div>
         {/* events */}
         <EventsCarousel />
@@ -42,11 +44,13 @@ export default function Home() {
           <h3 className="font-semibold text-xl whitespace-nowrap">
             Encontre clubes
           </h3>
-          <Search
-            placeholder="Buscar clube"
-            pagination={false}
-            className="max-w-60"
-          />
+          <div className="">
+            <Search
+              placeholder="Buscar clube"
+              pagination={false}
+              className="max-w-60"
+            />
+          </div>
         </div>
         <ClubsCarousel />
         <div className="flex justify-end mb-4">

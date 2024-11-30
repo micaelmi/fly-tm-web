@@ -7,6 +7,7 @@ import {
   UserByUsernameApiResponse,
   UserData,
   UserRegisterData,
+  UserResponse,
   UsersResponse,
 } from "@/interfaces/user";
 import { useSession } from "next-auth/react";
@@ -35,7 +36,7 @@ export function useUsersData() {
 export const useGetUser = (username: string) => {
   const { data: dataSession } = useSession();
   const token = dataSession?.token.user.token;
-  return useQuery<User>({
+  return useQuery<UserResponse>({
     queryKey: ["userByUsername", username],
     queryFn: async () => {
       const response = await api.get(`/users/${username}`, {

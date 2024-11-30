@@ -17,9 +17,11 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export function DeleteTrainingOrStrategy({
+  type,
   id,
   useFunction,
 }: {
+  type: "trainings" | "strategies";
   id: string;
   useFunction: () => UseMutationResult<any, Error, string, unknown>;
 }) {
@@ -27,7 +29,7 @@ export function DeleteTrainingOrStrategy({
   const router = useRouter();
   function handleDelete() {
     mutate(id);
-    router.push("/strategies");
+    router.push(`/${type}`);
   }
   return (
     <AlertDialog>

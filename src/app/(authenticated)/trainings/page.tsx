@@ -19,6 +19,8 @@ export default function Trainings() {
   const trainingsByUser = useTrainingsDataByUser();
   const trainingsByClub = useTrainingsDataByClub();
 
+  console.log(trainingsByClub.data);
+
   return (
     <>
       <Navbar />

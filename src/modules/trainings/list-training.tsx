@@ -63,6 +63,7 @@ export default function ListTraining() {
                   <Pencil />
                 </Link>
                 <DeleteTrainingOrStrategy
+                  type="trainings"
                   id={training.id}
                   useFunction={useDeleteTraining}
                 />
