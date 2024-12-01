@@ -10,8 +10,10 @@ import Autoplay from "embla-carousel-autoplay";
 import EventCard from "./event-card";
 import { useEventsData } from "@/hooks/use-events";
 import { format } from "date-fns";
+import { useSession } from "next-auth/react";
 
 export default function EventsCarousel() {
+  const user_id = useSession().data?.payload.sub;
   const { data, isLoading, error } = useEventsData();
 
   if (isLoading)
@@ -52,6 +54,7 @@ export default function EventsCarousel() {
                 level={event.level.title}
                 title={event.name}
                 local={event.city + " - " + event.state}
+                adminView={event.user_id === user_id ? true : false}
               />
             </CarouselItem>
           );

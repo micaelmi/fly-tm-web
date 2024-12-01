@@ -24,6 +24,7 @@ import { CalendarDots } from "@phosphor-icons/react/dist/ssr";
 import { useQuery } from "@tanstack/react-query";
 import { AxiosResponse } from "axios";
 import { useSession } from "next-auth/react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -33,7 +34,7 @@ import * as z from "zod";
 const FormSchema = z
   .object({
     name: z.string().min(4, { message: "Mínimo de 4 caracteres" }),
-    description: z.string(),
+    description: z.string().max(500, { message: "Máximo de 500 caracteres" }),
     startsAt: z.coerce.date(),
     endsAt: z.coerce.date(),
     cep: z.string().length(8, { message: "Deve conter 8 dígitos" }),
@@ -63,24 +64,6 @@ const FormSchema = z
         path: ["endsAt"], // Path para o campo específico que será marcado com erro
         message: "A data de fim deve ser maior ou igual à data de início",
       });
-    }
-
-    if (data.representationOption === "image") {
-      if (!data.representationUrl || data.representationUrl.size === 0) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["representationUrl"],
-          message: "Selecione uma imagem",
-        });
-      }
-    } else if (data.representationOption === "color") {
-      if (!data.representationColor || data.representationColor === undefined) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["representationColor"],
-          message: "Selecione uma cor",
-        });
-      }
     }
   });
 
@@ -435,6 +418,23 @@ export default function EventUpdateForm({
               <p className="peer-disabled:opacity-70 font-medium text-sm leading-none peer-disabled:cursor-not-allowed">
                 Escolha como representar seu evento!
               </p>
+              {event.image_url && !event.image_url.startsWith("#") ? (
+                <div className="flex items-center gap-3">
+                  <Image
+                    src={event.image_url}
+                    width={100}
+                    height={100}
+                    className="border-primary border rounded-lg aspect-square"
+                    alt="Imagem atual do perfil"
+                    priority
+                  />
+                  <div className="flex flex-col gap-2">
+                    <p className="text-sm leading-4 tracking-tight">
+                      Essa é a representação atual.
+                    </p>
+                  </div>
+                </div>
+              ) : null}
               <div className="flex md:flex-row flex-col gap-2">
                 <RadioButton
                   firstLabel="Imagem"
@@ -462,7 +462,7 @@ export default function EventUpdateForm({
                       defaultValue={
                         event.image_url && event.image_url.startsWith("#")
                           ? event.image_url
-                          : "fff"
+                          : "#fff"
                       }
                     />
                   )}

@@ -27,9 +27,9 @@ export default function LandingPage() {
       <LandingNavbar />
       <section className="relative mt-5 mb-5 container">
         {/* blue balls */}
-        <div className="absolute inset-0 bg-primary/50 mt-72 rounded-full w-28 h-28 animate-in" />
-        <div className="top-64 right-10 absolute bg-primary/50 rounded-full w-44 h-44" />
-        <div className="top-40 right-0 absolute bg-primary/50 mr-0 rounded-full w-36 h-36" />
+        <div className="absolute inset-0 bg-primary/50 mt-72 rounded-full w-28 h-28 animate-pulse" />
+        <div className="top-64 right-10 absolute bg-primary/50 rounded-full w-44 h-44 animate-pulse" />
+        <div className="top-40 right-0 absolute bg-primary/50 mr-0 rounded-full w-36 h-36 animate-pulse" />
 
         <div className="flex items-center gap-5">
           <div className="flex items-center gap-2 h-[250px]">

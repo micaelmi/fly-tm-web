@@ -37,7 +37,7 @@ const resetTime = (date: Date) => {
 const FormSchema = z
   .object({
     name: z.string().min(4, { message: "Mínimo de 4 caracteres" }),
-    description: z.string(),
+    description: z.string().max(500, { message: "Máximo de 500 caracteres" }),
     startsAt: z.coerce
       .date()
       .refine((startsAt) => resetTime(startsAt) >= resetTime(new Date()), {

@@ -31,7 +31,7 @@ export default function ColorPicker({
         <div className="flex-1 rounded" style={{ backgroundColor: color }}>
           <span
             onClick={() => setShowColorPicker(!showColorPicker)}
-            className="flex flex-1 justify-center bg-accent opacity-0 hover:opacity-40 rounded transition-all duration-200 cursor-pointer"
+            className={`flex flex-1 justify-center bg-accent ${showColorPicker ? "opacity-40" : "opacity-0"} hover:opacity-40 rounded transition-all duration-200 cursor-pointer`}
           >
             <p>{showColorPicker ? "Fechar" : "Alterar cor"}</p>
           </span>

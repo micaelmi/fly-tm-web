@@ -8,10 +8,12 @@ import { MagnifyingGlass } from "@phosphor-icons/react/dist/ssr";
 export default function Search({
   placeholder,
   pagination,
+  searchKey, // chave específica para este componente (e.g., "club", "event")
   className,
 }: {
   placeholder: string;
   pagination: boolean;
+  searchKey: string; // Nova prop para especificar a chave na query
   className?: string;
 }) {
   const searchParams = useSearchParams();
@@ -20,11 +22,11 @@ export default function Search({
 
   const handleSearch = useDebouncedCallback((term) => {
     const params = new URLSearchParams(searchParams);
-    if (pagination) params.set("page", "1");
+    if (pagination) params.set("page", "1"); // Reinicia a paginação ao pesquisar
     if (term) {
-      params.set("query", term);
+      params.set(searchKey, term); // Define a pesquisa na chave específica
     } else {
-      params.delete("query");
+      params.delete(searchKey); // Remove a chave se a pesquisa estiver vazia
     }
     replace(`${pathname}?${params.toString()}`);
   }, 300);
@@ -38,7 +40,7 @@ export default function Search({
         onChange={(e) => {
           handleSearch(e.target.value);
         }}
-        defaultValue={searchParams.get("query")?.toString()}
+        defaultValue={searchParams.get(searchKey) ?? ""} // Define o valor baseado na chave específica
         className={className}
       />
     </div>

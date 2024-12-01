@@ -9,9 +9,13 @@ import {
 import Autoplay from "embla-carousel-autoplay";
 import ClubCard from "./club-card";
 import { useClubsData } from "@/hooks/use-clubs";
+import { useSearchParams } from "next/navigation";
 
 export default function ClubsCarousel() {
-  const { data, isLoading, error } = useClubsData();
+  const searchParams = useSearchParams();
+  const { data, isLoading, error } = useClubsData(
+    searchParams.get("clubs") ?? ""
+  );
 
   if (isLoading)
     return (

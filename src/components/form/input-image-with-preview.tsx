@@ -19,6 +19,7 @@ interface InputImageProps {
   formItemClassname?: string;
   parentClassname?: string;
   labelClassname?: string;
+  selectedImageParentClassname?: string;
 }
 
 export default function InputImageWithPreview({
@@ -27,6 +28,7 @@ export default function InputImageWithPreview({
   formItemClassname,
   parentClassname,
   labelClassname,
+  selectedImageParentClassname,
 }: InputImageProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(
     image_url ?? null
@@ -64,7 +66,7 @@ export default function InputImageWithPreview({
   return (
     <div className={cn("flex items-center gap-2 w-full", parentClassname)}>
       {selectedImage ? (
-        <div>
+        <div className={cn(selectedImageParentClassname)}>
           <button
             onClick={removeImage}
             className="z-50 absolute bg-red-500 hover:bg-red-700 p-1 rounded-full text-white"

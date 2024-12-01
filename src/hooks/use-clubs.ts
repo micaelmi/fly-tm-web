@@ -9,15 +9,18 @@ import api from "@/lib/axios";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 
-export function useClubsData() {
+export function useClubsData(searchQuery?: string) {
   const { data: dataSession } = useSession();
   const token = dataSession?.token.user.token;
   const query = useQuery({
-    queryKey: ["clubs"],
+    queryKey: ["clubs", searchQuery],
     queryFn: async () => {
       const response = await api.get<ClubsResponse>("/clubs", {
         headers: {
           Authorization: `Bearer ${token}`,
+        },
+        params: {
+          club: searchQuery,
         },
       });
       return response;

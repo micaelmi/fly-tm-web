@@ -26,18 +26,17 @@ export function isValidUrl(url: string): boolean {
   return urlPattern.test(url);
 }
 
-export function Timer() {
-  const [elapsedTime, setElapsedTime] = useState<number>(0); // Armazena o tempo em segundos
+export function hexToRgba(hex: string, alpha = 1) {
+  // Remove o # caso exista
+  const cleanHex = hex.replace("#", "");
+  // Divide a cor em componentes R, G, B
+  const bigint = parseInt(cleanHex, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setElapsedTime((prevTime) => prevTime + 1); // Incrementa o tempo a cada segundo
-    }, 1000);
-
-    return () => clearInterval(interval); // Limpa o intervalo ao desmontar o componente
-  }, []);
-
-  return elapsedTime;
+  // Retorna no formato RGBA
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
 export const formatTime = (seconds: number) => {

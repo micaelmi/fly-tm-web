@@ -264,7 +264,10 @@ export default function ClubRegisterForm() {
             >
               <div className="flex flex-col gap-2 mt-4">
                 <p className="text-sm">Logo</p>
-                <InputImageWithPreview name="logo_url" />
+                <InputImageWithPreview
+                  name="logo_url"
+                  selectedImageParentClassname="w-16 h-16"
+                />
               </div>
               <div className="flex flex-col gap-2">
                 <p className="peer-disabled:opacity-70 font-medium text-sm leading-none peer-disabled:cursor-not-allowed">

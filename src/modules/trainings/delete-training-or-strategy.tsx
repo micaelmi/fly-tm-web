@@ -21,7 +21,7 @@ export function DeleteTrainingOrStrategy({
   id,
   useFunction,
 }: {
-  type: "trainings" | "strategies";
+  type: "trainings" | "strategies" | "home";
   id: string;
   useFunction: () => UseMutationResult<any, Error, string, unknown>;
 }) {

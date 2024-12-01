@@ -1,18 +1,22 @@
+"use client";
+
 import FeaturesCarousel from "@/components/features-carousel";
 import Navbar from "@/components/navbar";
 import Search from "@/components/search";
 import ClubsCarousel from "@/modules/clubs/clubs-carousel";
 import ContactButton from "@/modules/contact/contact-button";
 import EventsCarousel from "@/modules/events/event-carousel";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 
 export default function Home() {
+  const user_name = useSession().data?.payload.name;
   return (
     <>
       <Navbar back={false} />
       <div className="flex flex-col gap-4 my-8 px-2 container">
         <div>
-          <h1 className="font-semibold text-3xl">Olá, Micael</h1>
+          <h1 className="font-semibold text-3xl">Olá, {user_name}</h1>
           <h3 className="font-semibold text-primary text-xl">
             Qual é o plano de hoje?
           </h3>
@@ -24,6 +28,7 @@ export default function Home() {
           </h3>
           <div className="">
             <Search
+              searchKey="events"
               placeholder="Buscar evento"
               pagination={false}
               className="max-w-60 self-end"
@@ -46,6 +51,7 @@ export default function Home() {
           </h3>
           <div className="">
             <Search
+              searchKey="clubs"
               placeholder="Buscar clube"
               pagination={false}
               className="max-w-60"

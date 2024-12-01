@@ -35,7 +35,7 @@ export default function ClubDetails() {
       <img
         src={data.club.logo_url}
         alt={`Logo ${data.club.name}`}
-        className="z-20 border-secondary bg-black mx-auto -mt-32 border rounded-full"
+        className="z-20 border-secondary bg-black mx-auto -mt-32 border rounded-full aspect-square"
         width={250}
         height={250}
       />
