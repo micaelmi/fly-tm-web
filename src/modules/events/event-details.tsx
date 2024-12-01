@@ -44,6 +44,7 @@ export default function EventDetails({
         className={`${hasColor ? "w-[600px]" : "w-[800px]"} max-w-none`}
       >
         <DialogHeader>
+          <DialogDescription></DialogDescription>
           <DialogTitle>
             <div className="flex justify-between mt-5">
               <div className="flex items-center gap-2">
@@ -76,16 +77,14 @@ export default function EventDetails({
           </DialogTitle>
         </DialogHeader>
         <div className="flex gap-5">
-          <div className="flex flex-col gap-4">
-            {data.image_url && data.image_url.startsWith("http") && (
-              <img
-                src={data.image_url}
-                alt={data.name}
-                className="rounded w-52 h-full object-cover"
-              />
-            )}
-          </div>
-          <div className="flex gap-5">
+          {data.image_url && data.image_url.startsWith("http") && (
+            <img
+              src={data.image_url}
+              alt={data.name}
+              className="rounded w-52 h-full object-cover"
+            />
+          )}
+          <div className="flex gap-5 w-full">
             <ScrollArea
               className={`p-2 pr-6 rounded-lg h-64 text-justify break-words break-all ${!hasColor ? "bg-modal w-60" : "w-1/2"}`}
               {...(hasColor

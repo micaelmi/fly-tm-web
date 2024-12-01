@@ -12,18 +12,26 @@ export interface City {
   regiao_imediata: Object;
 }
 
+export interface LocationByCep {
+  state: string;
+  city: string;
+  neighborhood: string;
+  street: string;
+  complement: string;
+}
+
 export interface Location {
-  cep: string;
-  logradouro: string;
-  complemento: string;
-  unidade: string;
   bairro: string;
-  localidade: string;
-  uf: string;
-  estado: string;
-  regiao: string;
-  ibge: string;
-  gia: string;
+  cep: string;
+  complemento: string;
   ddd: string;
+  estado: string;
+  gia: string;
+  ibge: string;
+  localidade: string;
+  logradouro: string;
+  regiao: string;
   siafi: string;
+  uf: string;
+  unidade: string;
 }

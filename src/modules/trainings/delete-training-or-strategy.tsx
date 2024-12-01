@@ -21,7 +21,7 @@ export function DeleteTrainingOrStrategy({
   id,
   useFunction,
 }: {
-  type: "trainings" | "strategies" | "home";
+  type: "trainings" | "strategies" | "refresh" | "home";
   id: string;
   useFunction: () => UseMutationResult<any, Error, string, unknown>;
 }) {
@@ -29,7 +29,11 @@ export function DeleteTrainingOrStrategy({
   const router = useRouter();
   function handleDelete() {
     mutate(id);
-    router.push(`/${type}`);
+    if (type === "refresh") {
+      router.refresh();
+    } else {
+      router.push(`/${type}`);
+    }
   }
   return (
     <AlertDialog>

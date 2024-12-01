@@ -172,8 +172,6 @@ export default function UserUpdateForm({ user_data }: UserUpdateFormProps) {
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     let file;
 
-    console.log(data);
-
     if (removeFile) {
       file = "";
       if (user_data.image_url.length > 0) {

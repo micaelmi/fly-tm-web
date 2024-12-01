@@ -69,52 +69,83 @@ export default function ListStrategy() {
             ) : null}
           </div>
           <h1 className="text-3xl">{strategy.title}</h1>
-          <p className="text-primary">Por: {strategy.user.username}</p>
+          <p className="text-primary">
+            Por:{" "}
+            <Link
+              href={`/users/${strategy.user.username}`}
+              target="_blank"
+              className="hover:underline"
+            >
+              {strategy.user.username}
+            </Link>
+          </p>
         </div>
         <div className="gap-10 grid grid-cols-11">
           {/* movements */}
           <div className="col-span-5 w-96">
-            <div className="flex justify-between items-center">
-              <p className="font-semibold">Movimentos relacionados</p>
-              <p className="font-semibold text-primary">
-                Total: {strategy.strategy_items.length}
-              </p>
-            </div>
-            <ScrollArea>
-              <div className="space-y-3">
-                {strategy.strategy_items.map((strategyItem) => {
-                  return (
-                    <div
-                      key={strategyItem.movement.name}
-                      className="flex gap-3 border-primary shadow shadow-primary p-2 border rounded-lg"
-                    >
-                      <Image
-                        src={strategyItem.movement.image_url}
-                        alt="Imagem do movimento"
-                        width={100}
-                        height={100}
-                        className="rounded-lg aspect-square"
-                        unoptimized
-                        priority
-                      />
-                      <div className="flex flex-col justify-between">
-                        <p className="font-semibold">
-                          {strategyItem.movement.name}
-                        </p>
-                        <ItemDetailsModal
-                          strategy_description={strategyItem.description}
-                          movement_name={strategyItem.movement.name}
-                          movement_description={
-                            strategyItem.movement.description
-                          }
-                          movement_video_url={strategyItem.movement.video_url}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
+            {strategy.strategy_items.length > 0 ? (
+              <>
+                <div className="flex justify-between items-center">
+                  <p className="font-semibold">Movimentos relacionados</p>
+                  <p className="font-semibold text-primary">
+                    Total: {strategy.strategy_items.length}
+                  </p>
+                </div>
+                <ScrollArea>
+                  <div className="space-y-3">
+                    {strategy.strategy_items.map((strategyItem) => {
+                      return (
+                        <div
+                          key={strategyItem.movement.name}
+                          className="flex gap-3 border-primary shadow shadow-primary p-2 border rounded-lg"
+                        >
+                          <Image
+                            src={strategyItem.movement.image_url}
+                            alt="Imagem do movimento"
+                            width={100}
+                            height={100}
+                            className="rounded-lg aspect-square"
+                            unoptimized
+                            priority
+                          />
+                          <div className="flex flex-col justify-between">
+                            <p className="font-semibold">
+                              {strategyItem.movement.name}
+                            </p>
+                            <ItemDetailsModal
+                              strategy_description={strategyItem.description}
+                              movement_name={strategyItem.movement.name}
+                              movement_description={
+                                strategyItem.movement.description
+                              }
+                              movement_video_url={
+                                strategyItem.movement.video_url
+                              }
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </ScrollArea>
+              </>
+            ) : (
+              <div className="flex justify-around items-center gap-2 p-3 border border-border rounded-lg">
+                <Image
+                  src="/mascot-sad.svg"
+                  alt="Sem treinos"
+                  width={80}
+                  height={80}
+                  className="opacity-60 aspect-square"
+                  unoptimized={true}
+                />
+                <p className="text-muted-foreground">
+                  Nenhum
+                  <br /> movimento
+                  <br /> relacionado
+                </p>
               </div>
-            </ScrollArea>
+            )}
           </div>
           <Separator
             orientation="vertical"

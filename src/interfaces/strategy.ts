@@ -27,7 +27,7 @@ export interface Strategy {
   title: string;
   updated_at: string;
   against_whom: string;
-  club_id: string | null;
+  club_id: string | undefined;
   created_at: string;
   how_it_works: string;
   icon_url: string;

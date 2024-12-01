@@ -57,6 +57,10 @@ export interface User {
 }
 
 export interface UserByUsernameApiResponse {
+  user: UserByUsername;
+}
+
+export interface UserByUsernameWithSelectApiResponse {
   user: Partial<UserByUsername>;
 }
 
@@ -80,6 +84,7 @@ export interface UserByUsername {
   username: string;
   _count: {
     events: number;
+    contacts: number;
   };
 }
 

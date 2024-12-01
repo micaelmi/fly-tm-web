@@ -33,6 +33,7 @@ import RelateMovementModal from "./relate-movement-modal";
 import { Movement } from "@/interfaces/training";
 import { deleteFile, handleFileUpload } from "@/lib/firebase-upload";
 import RelateMovementCard from "./relate-movement-card";
+import { useGetUserClubId } from "@/hooks/use-users";
 
 const FormSchema = z.object({
   title: z.string().min(1),
@@ -50,36 +51,17 @@ export default function StrategyUpdateForm() {
 
   const session = useSession();
   const user_id = session.data?.payload.sub;
-  const username = session.data?.payload.username;
-
   const params = useParams();
   const strategy_id = params.strategy_id.toLocaleString();
 
   const { data, isLoading, isError } = useStrategyById(strategy_id);
-
-  isLoading && <Loading />;
-  isError && <p>Ocorreu um erro ao carregar os dados da estratégia</p>;
-
-  const strategy = data?.strategy;
-
   const levelsData = useLevelsData().data?.levels ?? [];
-
   const visibilityTypesData =
     useVisibilityTypesData().data?.visibilityTypes ?? [];
+  const { mutate, isPending, isError: isEditError } = useEditStrategy();
+  const hasClub = useGetUserClubId();
 
-  const levels: ComboboxItem[] = levelsData
-    .map((level: ComboboxOption) => ({
-      value: level.id,
-      label: level.title,
-    }))
-    .filter((level: ComboboxItem) => level.label !== "Livre");
-
-  const visibilityTypes: ComboboxItem[] = visibilityTypesData.map(
-    (visibilityType: Partial<ComboboxOption>) => ({
-      value: visibilityType.id,
-      label: visibilityType.description,
-    })
-  );
+  const router = useRouter();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -93,6 +75,43 @@ export default function StrategyUpdateForm() {
     },
   });
 
+  useEffect(() => {
+    if (data?.strategy.strategy_items) {
+      setStrategyItems(data?.strategy.strategy_items);
+      form.reset(data?.strategy);
+    }
+  }, [data?.strategy]);
+
+  isLoading && <Loading />;
+  isError && <p>Ocorreu um erro ao carregar os dados da estratégia</p>;
+
+  const strategy = data?.strategy;
+
+  const levels: ComboboxItem[] = levelsData
+    .map((level: ComboboxOption) => ({
+      value: level.id,
+      label: level.title,
+    }))
+    .filter((level: ComboboxItem) => level.label !== "Livre");
+
+  let visibilityTypes: ComboboxItem[];
+
+  if (hasClub) {
+    visibilityTypes = visibilityTypesData.map(
+      (visibilityType: Partial<ComboboxOption>) => ({
+        value: visibilityType.id,
+        label: visibilityType.description,
+      })
+    );
+  } else {
+    visibilityTypes = visibilityTypesData
+      .map((visibilityType: Partial<ComboboxOption>) => ({
+        value: visibilityType.id,
+        label: visibilityType.description,
+      }))
+      .filter((visibilityType) => visibilityType.label !== "Apenas clube");
+  }
+
   const addNewStrategyItem = (movement: Movement, description: string) => {
     const addNewStrategyItem = {
       description: description,
@@ -101,10 +120,6 @@ export default function StrategyUpdateForm() {
 
     setStrategyItems([...strategyItems, addNewStrategyItem]);
   };
-
-  const router = useRouter();
-
-  const { mutate, isPending, isError: isEditError } = useEditStrategy();
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     if (!strategy) return;
@@ -145,6 +160,7 @@ export default function StrategyUpdateForm() {
         against_whom: filteredData.against_whom,
         ...(file && { icon_url: filteredData.icon_url }),
         user_id: user_id,
+        club_id: filteredData.visibility_type_id === 3 ? hasClub : undefined,
         level_id: filteredData.level_id,
         visibility_type_id: filteredData.visibility_type_id,
         items: filteredData.items,
@@ -158,14 +174,7 @@ export default function StrategyUpdateForm() {
     });
   };
 
-  useEffect(() => {
-    if (strategy?.strategy_items) {
-      setStrategyItems(strategy.strategy_items);
-      form.reset(strategy);
-    }
-  }, [strategy]);
-
-  if (!strategy) return;
+  if (!strategy) return <Loading />;
 
   return (
     <>
@@ -303,6 +312,7 @@ export default function StrategyUpdateForm() {
           movement_card={(move) => {
             return (
               <RelateMovementCard
+                key={move.id}
                 strategyItems={strategyItems}
                 movement={move}
                 addNewStrategyItem={addNewStrategyItem}

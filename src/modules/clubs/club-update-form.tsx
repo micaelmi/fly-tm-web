@@ -340,7 +340,10 @@ export default function ClubUpdateForm({ clubData: club }: { clubData: Club }) {
                   </p>
                 </div>
               )}
-              <InputImageWithPreview name="logo_url" />
+              <InputImageWithPreview
+                name="logo_url"
+                selectedImageParentClassname="w-16 h-16"
+              />
 
               {/* background */}
               {club.background.startsWith("http") &&

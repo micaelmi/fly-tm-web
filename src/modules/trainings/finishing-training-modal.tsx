@@ -1,21 +1,10 @@
 "use client";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { useCreateTraining } from "@/hooks/use-trainings";
 import { handleFileUpload } from "@/lib/firebase-upload";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { DialogClose } from "@radix-ui/react-dialog";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "../../components/ui/button";
@@ -29,20 +18,12 @@ import { formatTime } from "@/lib/utils";
 import { TrainingItem } from "@/interfaces/training";
 import { useLevelsData, useVisibilityTypesData } from "@/hooks/use-auxiliaries";
 import { ComboboxItem, ComboboxOption } from "@/interfaces/level";
-import { useQuery } from "@tanstack/react-query";
-import api from "@/lib/axios";
-import { useGetUser, useGetUserByUsername } from "@/hooks/use-users";
+import { useGetUser, useGetUserClubId } from "@/hooks/use-users";
 
 interface FinishingTrainingModalProps {
   trainingItems: TrainingItem[];
   description: string;
   closeFinishinTrainingModal: () => void;
-}
-
-interface Level {
-  value: number;
-  label: string;
-  description: string;
 }
 
 const FormSchema = z.object({
@@ -75,12 +56,25 @@ export default function FinishingTrainingModal({
     }))
     .filter((level: ComboboxItem) => level.label !== "Livre");
 
-  const visibilityTypes: ComboboxItem[] = visibilityTypesData.map(
-    (visibilityType: Partial<ComboboxOption>) => ({
-      value: visibilityType.id,
-      label: visibilityType.description,
-    })
-  );
+  const hasClub = useGetUserClubId();
+
+  let visibilityTypes: ComboboxItem[];
+
+  if (hasClub) {
+    visibilityTypes = visibilityTypesData.map(
+      (visibilityType: Partial<ComboboxOption>) => ({
+        value: visibilityType.id,
+        label: visibilityType.description,
+      })
+    );
+  } else {
+    visibilityTypes = visibilityTypesData
+      .map((visibilityType: Partial<ComboboxOption>) => ({
+        value: visibilityType.id,
+        label: visibilityType.description,
+      }))
+      .filter((visibilityType) => visibilityType.label !== "Apenas clube");
+  }
 
   const estimated_time_to_finish_training = () => {
     let time = 0;
@@ -110,8 +104,6 @@ export default function FinishingTrainingModal({
   const router = useRouter();
 
   const { mutate, isPending, isError, error } = useCreateTraining();
-  const { data: userData } = useGetUser(username);
-  console.log(userData);
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     let file;
@@ -129,34 +121,11 @@ export default function FinishingTrainingModal({
     const filteredData = { ...rest, icon_url: file };
 
     const updatedTrainingItems = trainingItems.map(
-      ({ id, movement, ...rest }) => {
-        if (!movement?.id) {
-          throw new Error(
-            `Movement ID is missing for training item with ID ${id}`
-          );
-        }
-
-        return {
-          ...rest,
-          movement_id: movement.id,
-        };
-      }
+      ({ movement, id, ...rest }) => ({
+        ...rest,
+        movement_id: movement.id,
+      })
     );
-
-    let visibility = filteredData.visibility_type_id;
-    let club = undefined;
-    if (filteredData.visibility_type_id === 3) {
-      if (username.length > 0) {
-        if (userData?.user.club.id) {
-          visibility = 3;
-          club = userData?.user.club.id;
-        } else {
-          visibility = 2; // privado
-        }
-      } else {
-        visibility = 2; // privado
-      }
-    }
 
     mutate(
       {
@@ -166,8 +135,8 @@ export default function FinishingTrainingModal({
         icon_url: filteredData.icon_url,
         user_id: user_id,
         level_id: filteredData.level_id,
-        visibility_type_id: visibility,
-        club_id: club,
+        visibility_type_id: filteredData.visibility_type_id,
+        club_id: filteredData.visibility_type_id === 3 ? hasClub : undefined,
         items: updatedTrainingItems,
       },
       {

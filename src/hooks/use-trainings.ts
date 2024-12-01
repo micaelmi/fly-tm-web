@@ -34,27 +34,18 @@ export function useTrainingsData() {
 
 export function useTrainingsDataByClub() {
   const club_id = useGetUserClubId();
-  const stableKey = useMemo(() => ["trainingsByClub", club_id], [club_id]);
   const { data: dataSession } = useSession();
   const token = dataSession?.token.user.token;
-  const stableToken = useMemo(
-    () => dataSession?.token.user.token,
-    [dataSession]
-  );
   return useQuery({
-    queryKey: stableKey,
+    queryKey: ["trainingsByClub", club_id],
     queryFn: async () => {
       const response = await api.get(`/trainings/club/${club_id}`, {
         headers: {
-          Authorization: `Bearer ${stableToken}`,
+          Authorization: `Bearer ${token}`,
         },
       });
       return response;
     },
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    refetchOnMount: false,
-    staleTime: 1000 * 60 * 5,
     enabled: !!club_id && !!token,
   });
 }
@@ -98,6 +89,8 @@ export function useTrainingById(training_id: string) {
       return response.data;
     },
     enabled: !!token && !!training_id,
+    staleTime: 1000 * 60 * 5, // Cache de 5 minutos
+    retry: 1,
   });
 }
 

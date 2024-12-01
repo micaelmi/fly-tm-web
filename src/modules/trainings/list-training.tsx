@@ -75,7 +75,16 @@ export default function ListTraining() {
             <Clock />
             {formatTime(training.time)}
           </div>
-          <p className="text-primary">Por: {training.user.name}</p>
+          <p className="text-primary">
+            Por:{" "}
+            <Link
+              href={`/users/${training.user.username}`}
+              target="_blank"
+              className="hover:underline"
+            >
+              {training.user.username}
+            </Link>
+          </p>
         </div>
         <div className="gap-10 grid grid-cols-11">
           {/* movements */}
