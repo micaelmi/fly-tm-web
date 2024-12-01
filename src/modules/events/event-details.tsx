@@ -56,17 +56,21 @@ export default function EventDetails({
                 {data.name}
               </div>
               <div className="flex gap-2">
-                <Link
-                  href={`/events/${data.id}/update`}
-                  className="border-muted hover:border-muted-foreground p-2 border rounded-full text-muted hover:text-muted-foreground transition-all hover:cursor-pointer"
-                >
-                  <Pencil />
-                </Link>
-                <DeleteTrainingOrStrategy
-                  type="home"
-                  id={data.id}
-                  useFunction={useDeleteEvent}
-                />
+                {adminView && (
+                  <>
+                    <Link
+                      href={`/events/${data.id}/update`}
+                      className="border-muted hover:border-muted-foreground p-2 border rounded-full text-muted hover:text-muted-foreground transition-all hover:cursor-pointer"
+                    >
+                      <Pencil />
+                    </Link>
+                    <DeleteTrainingOrStrategy
+                      type="home"
+                      id={data.id}
+                      useFunction={useDeleteEvent}
+                    />
+                  </>
+                )}
               </div>
             </div>
           </DialogTitle>

@@ -28,20 +28,18 @@ export default function ListStrategies() {
           <div className="flex justify-between">
             <PageTitleWithIcon icon={Strategy} title="Estratégias" />
             <div className="flex items-center gap-3">
-              <Search placeholder="Procurar" pagination={false} />
               <Link href={"strategies/register"}>
                 <Button>+ Criar estratégia</Button>
               </Link>
             </div>
           </div>
-          <PageSession sessionTitle="Estratégias recomendadas" />
           <StrategyCarousel
             strategies={strategies}
             noStrategiesMessage={
               <span>Nenhuma estratégia cadastrada na plataforma.</span>
             }
+            sessionTitle="Estratégias recomendadas"
           />
-          <PageSession sessionTitle="Suas estratégias" />
           <StrategyCarousel
             strategies={strategiesByUser}
             noStrategiesMessage={
@@ -53,13 +51,14 @@ export default function ListStrategies() {
                 .
               </span>
             }
+            sessionTitle="Suas estratégias"
           />
-          <PageSession sessionTitle="Estratégias do seu clube" />
           <StrategyCarousel
             strategies={strategiesByClub}
             noStrategiesMessage={
               <span>Seu clube ainda não publicou nenhuma estratégia.</span>
             }
+            sessionTitle="Estratégias do seu clube"
           />
         </div>
       </div>

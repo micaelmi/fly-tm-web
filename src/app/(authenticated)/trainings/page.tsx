@@ -19,8 +19,6 @@ export default function Trainings() {
   const trainingsByUser = useTrainingsDataByUser();
   const trainingsByClub = useTrainingsDataByClub();
 
-  console.log(trainingsByClub.data);
-
   return (
     <>
       <Navbar />
@@ -29,20 +27,18 @@ export default function Trainings() {
           <div className="flex justify-between">
             <PageTitleWithIcon icon={Barbell} title="Treinamentos" />
             <div className="flex items-center gap-3">
-              <Search placeholder="Procurar" pagination={false} />
               <Link href={"trainings/register"}>
                 <Button>+ Criar treino</Button>
               </Link>
             </div>
           </div>
-          <TrainingsSession sessionTitle="Treinos recomendados" />
           <TrainingsCarousel
             trainings={trainings}
             noTrainingsMessage={
               <span>Nenhum treino cadastrado na plataforma.</span>
             }
+            sessionTitle="Treinos recomendados"
           />
-          <TrainingsSession sessionTitle="Seus treinos" />
           <TrainingsCarousel
             trainings={trainingsByUser}
             noTrainingsMessage={
@@ -54,13 +50,14 @@ export default function Trainings() {
                 .
               </span>
             }
+            sessionTitle="Seus treinos"
           />
-          <TrainingsSession sessionTitle="Treinos do seu clube" />
           <TrainingsCarousel
             trainings={trainingsByClub}
             noTrainingsMessage={
               <span>Seu clube ainda não publicou nenhum treino.</span>
             }
+            sessionTitle="Treinos do seu clube"
           />
         </div>
       </div>

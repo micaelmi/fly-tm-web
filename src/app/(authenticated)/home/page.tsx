@@ -2,7 +2,6 @@
 
 import FeaturesCarousel from "@/components/features-carousel";
 import Navbar from "@/components/navbar";
-import Search from "@/components/search";
 import ClubsCarousel from "@/modules/clubs/clubs-carousel";
 import ContactButton from "@/modules/contact/contact-button";
 import EventsCarousel from "@/modules/events/event-carousel";
@@ -22,19 +21,6 @@ export default function Home() {
           </h3>
         </div>
         <FeaturesCarousel />
-        <div className="flex justify-between items-center">
-          <h3 className="font-semibold text-xl whitespace-nowrap">
-            Confira os próximos eventos
-          </h3>
-          <div className="">
-            <Search
-              searchKey="events"
-              placeholder="Buscar evento"
-              pagination={false}
-              className="max-w-60 self-end"
-            />
-          </div>
-        </div>
         {/* events */}
         <EventsCarousel />
         <div className="flex justify-end mb-4">
@@ -44,19 +30,6 @@ export default function Home() {
           >
             Criar evento
           </Link>
-        </div>
-        <div className="flex justify-between items-center">
-          <h3 className="font-semibold text-xl whitespace-nowrap">
-            Encontre clubes
-          </h3>
-          <div className="">
-            <Search
-              searchKey="clubs"
-              placeholder="Buscar clube"
-              pagination={false}
-              className="max-w-60"
-            />
-          </div>
         </div>
         <ClubsCarousel />
         <div className="flex justify-end mb-4">

@@ -52,12 +52,12 @@ export default function UserDetails() {
   if (user.isLoading) return <Loading />;
   if (user.error) return <p>Erro ao carregar perfil: {user.error.message}</p>;
 
-  const user_data = user.data?.data.user;
+  const user_data = user.data?.data?.user;
 
   return (
     <>
       {!user_data ? (
-        <p>Dados do usuário não disponíveis</p>
+        <Loading />
       ) : (
         <>
           <Navbar />

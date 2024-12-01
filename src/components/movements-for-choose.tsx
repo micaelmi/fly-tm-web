@@ -8,7 +8,10 @@ import { useSession } from "next-auth/react";
 import { Movement } from "@/interfaces/training";
 import AddMovementCard from "@/modules/trainings/add-movement-card";
 import { cn } from "@/lib/utils";
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
+import { MagnifyingGlass } from "@phosphor-icons/react/dist/ssr";
+import { Input } from "./ui/input";
+import { MovementsResponse } from "@/interfaces/movement";
 
 interface MovementsForChooseProps {
   parentClassname?: string;
@@ -25,11 +28,12 @@ export default function MovementsForChoose({
 }: MovementsForChooseProps) {
   const session = useSession().data;
   const token = session?.token.user.token;
+  const [searchTerm, setSearchTerm] = useState("");
 
   const movementsData = useQuery({
     queryKey: ["movementsData"],
     queryFn: async () => {
-      return await api.get("/movements", {
+      return await api.get<MovementsResponse>("/movements", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -40,20 +44,33 @@ export default function MovementsForChoose({
 
   const movementsForChoose = movementsData.data?.data.movements;
 
+  const filteredMovements = movementsForChoose?.filter((movement) =>
+    movement.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className={cn(parentClassname)}>
       <h1 className={cn(h1Classname)}>Movimentos</h1>
-      <Search pagination={false} placeholder="Procurar..." className="" />
+      <div className="flex items-center gap-2">
+        <MagnifyingGlass size={35} />
+        <Input
+          type="search"
+          placeholder="Buscar movimento..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="flex-1"
+        />
+      </div>
       <ScrollArea
         className={cn("flex justify-center w-full", scrollAreaClassname)}
       >
         <div className="space-y-3 mx-auto w-4/5">
-          {movementsForChoose?.length ? (
-            movementsForChoose.map((movement: Movement) =>
+          {filteredMovements?.length ? (
+            filteredMovements.map((movement: Movement) =>
               movement_card(movement)
             )
           ) : (
-            <p>Nenhum movimento cadastrado</p>
+            <p className="text-center">Nenhum movimento encontrado</p>
           )}
         </div>
       </ScrollArea>

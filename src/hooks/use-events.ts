@@ -8,15 +8,18 @@ import api from "@/lib/axios";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 
-export function useEventsData() {
+export function useEventsData(searchQuery?: string) {
   const { data: dataSession } = useSession();
   const token = dataSession?.token.user.token;
   const query = useQuery({
-    queryKey: ["events"],
+    queryKey: ["events", searchQuery],
     queryFn: async () => {
       const response = await api.get<EventsResponse>("/events", {
         headers: {
           Authorization: `Bearer ${token}`,
+        },
+        params: {
+          event: searchQuery,
         },
       });
       return response;

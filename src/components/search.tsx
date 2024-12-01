@@ -28,7 +28,8 @@ export default function Search({
     } else {
       params.delete(searchKey); // Remove a chave se a pesquisa estiver vazia
     }
-    replace(`${pathname}?${params.toString()}`);
+    const newUrl = `${pathname}?${params.toString()}`;
+    window.history.replaceState(null, "", newUrl);
   }, 300);
 
   return (
