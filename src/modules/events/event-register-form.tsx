@@ -12,8 +12,14 @@ import RadioButton from "@/components/radio-button";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { useLevelsData } from "@/hooks/use-auxiliaries";
+import { useCep } from "@/hooks/use-cep";
 import { useCreateEvent } from "@/hooks/use-events";
-import { Level, LevelResponse } from "@/interfaces/level";
+import {
+  ComboboxItem,
+  ComboboxOption,
+  Level,
+  LevelResponse,
+} from "@/interfaces/level";
 import { Location } from "@/interfaces/location";
 import api from "@/lib/axios";
 import { handleFileUpload } from "@/lib/firebase-upload";
@@ -26,6 +32,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
+import { useDebouncedCallback } from "use-debounce";
 import * as z from "zod";
 
 const resetTime = (date: Date) => {
@@ -61,7 +68,12 @@ const FormSchema = z
     representationUrl: z.instanceof(File).optional(),
     representationColor: z.string().optional(),
     representationOption: z.enum(["image", "color"]),
-    maps_url: z.string().optional(),
+    maps_url: z
+      .string()
+      .optional() // O campo é opcional
+      .refine((value) => !value || z.string().url().safeParse(value).success, {
+        message: "A URL informada não é válida",
+      }),
   })
   .superRefine((data, ctx) => {
     if (data.endsAt < data.startsAt) {
@@ -121,15 +133,31 @@ export default function EventRegisterForm() {
     },
   });
 
-  useEffect(() => {
-    if (currentDate) {
-      form.reset({
-        startsAt: currentDate,
-        representationOption: "image",
-        representationColor: "ffff",
-      });
+  const informedCep = form.watch("cep");
+  const { data, isSuccess } = useCep(informedCep);
+
+  const getLocation = useDebouncedCallback(() => {
+    if (isSuccess) {
+      form.setValue("state", data.state);
+      form.setValue("city", data.city);
+      form.setValue("neighborhood", data.neighborhood);
+      form.setValue("street", data.street);
+      form.setValue("complement", data.complement);
+    } else {
+      form.setValue("state", "");
+      form.setValue("city", "");
+      form.setValue("neighborhood", "");
+      form.setValue("street", "");
+      form.setValue("complement", "");
     }
-  }, [currentDate, form]);
+  }, 500);
+
+  const levelsData = useLevelsData().data?.levels ?? [];
+
+  const levels: ComboboxItem[] = levelsData.map((level: ComboboxOption) => ({
+    value: level.id,
+    label: level.title,
+  }));
 
   const router = useRouter();
 
@@ -200,26 +228,6 @@ export default function EventRegisterForm() {
     );
   };
 
-  const informedCep = form.watch("cep");
-
-  const location = useQuery({
-    queryKey: ["location", informedCep],
-    queryFn: async (): Promise<AxiosResponse<Location>> => {
-      return await api.get(`https://viacep.com.br/ws/${informedCep}/json/`);
-    },
-
-    enabled: /^\d{8}$/.test(informedCep),
-    select: (data) => {
-      return {
-        state: data.data.uf,
-        city: data.data.localidade,
-        neighborhood: data.data.bairro,
-        street: data.data.logradouro,
-        complement: data.data.complemento,
-      };
-    },
-  });
-
   useEffect(() => {
     const now = new Date();
     now.setHours(0, 0, 0, 0); // Zera as horas, minutos e segundos
@@ -227,47 +235,14 @@ export default function EventRegisterForm() {
   }, []);
 
   useEffect(() => {
-    if (location.isSuccess) {
-      form.setValue("state", location.data.state);
-      form.setValue("city", location.data.city);
-      form.setValue("neighborhood", location.data.neighborhood);
-      form.setValue("street", location.data.street);
-      form.setValue("complement", location.data.complement);
-    } else {
-      form.setValue("state", "");
-      form.setValue("city", "");
-      form.setValue("neighborhood", "");
-      form.setValue("street", "");
-      form.setValue("complement", "");
-    }
-  }, [location.isSuccess, location.data]);
-
-  const token = session?.token.user.token;
-  const [levelData, setLevelData] = useState<Level[]>([]);
-  async function fetchLevels() {
-    if (session) {
-      const response = await api.get<LevelResponse>("/levels", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+    if (currentDate) {
+      form.reset({
+        startsAt: currentDate,
+        representationOption: "image",
+        representationColor: "ffff",
       });
-      setLevelData(response.data.levels);
     }
-  }
-
-  interface item {
-    value: number;
-    label: string;
-  }
-  const levels: item[] = [];
-
-  levelData.map((level) =>
-    levels.push({ value: level.id, label: level.title })
-  );
-
-  useEffect(() => {
-    fetchLevels();
-  }, [session]);
+  }, [currentDate, form]);
 
   return (
     <>
@@ -333,6 +308,7 @@ export default function EventRegisterForm() {
                   placeholder="CEP"
                   className="md:flex-1"
                   maxLength={8}
+                  onChange={getLocation}
                 />
                 <InputDefault
                   control={form.control}

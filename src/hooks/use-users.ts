@@ -5,6 +5,7 @@ import {
   User,
   UserByUsername,
   UserByUsernameApiResponse,
+  UserByUsernameWithSelectApiResponse,
   UserData,
   UserRegisterData,
   UserResponse,
@@ -96,13 +97,25 @@ export function useEditUser() {
   });
 }
 
+export function useGetUserByUsername(): UseQueryResult<UserByUsernameApiResponse>;
+
 export function useGetUserByUsername(
-  selectData?: (data: UserByUsernameApiResponse) => UserByUsernameApiResponse
+  selectData: (
+    data: UserByUsernameApiResponse
+  ) => UserByUsernameWithSelectApiResponse
+): UseQueryResult<UserByUsernameWithSelectApiResponse>;
+
+// Implementação
+export function useGetUserByUsername(
+  selectData?: (
+    data: UserByUsernameApiResponse
+  ) => UserByUsernameWithSelectApiResponse
 ) {
   const { data: dataSession } = useSession();
   const username = dataSession?.payload.username;
   const token = dataSession?.token.user.token;
-  return useQuery<UserByUsernameApiResponse>({
+
+  return useQuery({
     queryKey: ["userData", username],
     queryFn: async () => {
       const response = await api.get(`/users/${username}`, {
@@ -113,10 +126,12 @@ export function useGetUserByUsername(
       return response.data;
     },
     enabled: !!token && !!username,
-    ...(selectData && {
-      select: selectData,
-    }),
-  });
+    ...(selectData && { select: selectData }),
+  }) as unknown as UseQueryResult<
+    typeof selectData extends undefined
+      ? UserByUsernameApiResponse
+      : UserByUsernameWithSelectApiResponse
+  >;
 }
 
 export function useGetUserClubId() {

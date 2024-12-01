@@ -29,7 +29,7 @@ export interface Event {
   neighborhood: string;
   street: string;
   address_number: number;
-  maps_url: string;
+  maps_url?: string;
   description: string;
   image_url: string | undefined;
   status: "active" | "inactive";

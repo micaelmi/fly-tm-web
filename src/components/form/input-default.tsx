@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { FocusEvent } from "react";
+import { ChangeEvent, FocusEvent } from "react";
 
 interface InputDefaultProps {
   control: any;
@@ -23,6 +23,7 @@ interface InputDefaultProps {
   disabled?: boolean;
   maxLength?: number | undefined;
   onBlur?: (event: FocusEvent<HTMLInputElement>) => void;
+  onChange?: (event: ChangeEvent<HTMLInputElement>) => void;
 }
 
 export default function InputDefault({
@@ -38,6 +39,7 @@ export default function InputDefault({
   disabled = false,
   maxLength = undefined,
   onBlur,
+  onChange,
 }: InputDefaultProps) {
   return (
     <FormField
@@ -57,6 +59,10 @@ export default function InputDefault({
               disabled={disabled}
               maxLength={maxLength}
               onBlur={(event) => onBlur && onBlur(event)}
+              onChange={(event) => {
+                field.onChange(event);
+                onChange && onChange(event);
+              }}
             />
           </FormControl>
           <FormMessage />

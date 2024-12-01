@@ -19,8 +19,6 @@ export default function Trainings() {
   const trainingsByUser = useTrainingsDataByUser();
   const trainingsByClub = useTrainingsDataByClub();
 
-  console.log(trainingsByClub.data);
-
   return (
     <>
       <Navbar />
@@ -29,7 +27,11 @@ export default function Trainings() {
           <div className="flex justify-between">
             <PageTitleWithIcon icon={Barbell} title="Treinamentos" />
             <div className="flex items-center gap-3">
-              <Search placeholder="Procurar" pagination={false} />
+              <Search
+                searchKey="trainings"
+                placeholder="Procurar"
+                pagination={false}
+              />
               <Link href={"trainings/register"}>
                 <Button>+ Criar treino</Button>
               </Link>

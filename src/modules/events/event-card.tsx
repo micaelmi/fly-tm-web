@@ -2,6 +2,7 @@ import { Event } from "@/interfaces/event";
 import { cn } from "@/lib/utils";
 import {
   CalendarCheck,
+  Flag,
   MapPinLine,
   Medal,
 } from "@phosphor-icons/react/dist/ssr";
@@ -43,7 +44,7 @@ export default function EventCard({
         {local}
       </div>
       <div className="flex items-center gap-2 text-muted-foreground">
-        <Medal size={20} />
+        <Flag size={20} />
         Nível: {level}
       </div>
       <EventDetails data={data} adminView={adminView} />

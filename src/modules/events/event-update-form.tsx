@@ -11,11 +11,18 @@ import TextareaDefault from "@/components/form/textarea-default";
 import Navbar from "@/components/navbar";
 import RadioButton from "@/components/radio-button";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Form } from "@/components/ui/form";
 import { useLevelsData } from "@/hooks/use-auxiliaries";
+import { useCep } from "@/hooks/use-cep";
 import { useCreateEvent, useUpdateEvent } from "@/hooks/use-events";
 import { Event } from "@/interfaces/event";
-import { Level, LevelResponse } from "@/interfaces/level";
+import {
+  ComboboxItem,
+  ComboboxOption,
+  Level,
+  LevelResponse,
+} from "@/interfaces/level";
 import { Location } from "@/interfaces/location";
 import api from "@/lib/axios";
 import { deleteFile, handleFileUpload } from "@/lib/firebase-upload";
@@ -29,6 +36,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
+import { useDebouncedCallback } from "use-debounce";
 import * as z from "zod";
 
 const FormSchema = z
@@ -54,7 +62,12 @@ const FormSchema = z
     representationUrl: z.instanceof(File).optional(),
     representationColor: z.string().optional(),
     representationOption: z.enum(["image", "color"]),
-    maps_url: z.string().optional(),
+    maps_url: z
+      .string()
+      .optional() // O campo é opcional
+      .refine((value) => !value || z.string().url().safeParse(value).success, {
+        message: "A URL informada não é válida",
+      }),
     status: z.enum(["active", "inactive"]),
   })
   .superRefine((data, ctx) => {
@@ -64,6 +77,24 @@ const FormSchema = z
         path: ["endsAt"], // Path para o campo específico que será marcado com erro
         message: "A data de fim deve ser maior ou igual à data de início",
       });
+    }
+
+    if (data.representationOption === "image") {
+      if (!data.representationUrl || data.representationUrl.size === 0) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["representationUrl"],
+          message: "Selecione uma imagem",
+        });
+      }
+    } else if (data.representationOption === "color") {
+      if (!data.representationColor || data.representationColor === undefined) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["representationColor"],
+          message: "Selecione uma cor",
+        });
+      }
     }
   });
 
@@ -75,6 +106,7 @@ export default function EventUpdateForm({
   const { data: session } = useSession();
   const userId = session?.payload.sub;
 
+  const [keepCurrentImage, setKeepCurrentImage] = useState<boolean>(false);
   const [payOption, setPayOption] = useState(
     event.price ? "with-value" : "no-value"
   );
@@ -82,30 +114,67 @@ export default function EventUpdateForm({
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      name: event.name,
-      description: event.description,
-      startsAt: new Date(event.start_date) || undefined,
-      endsAt: new Date(event.end_date) || undefined,
-      cep: event.cep || "",
-      state: event.state || "",
-      city: event.city || "",
-      neighborhood: event.neighborhood || "",
-      street: event.street || "",
-      address_number: event.address_number.toString(),
-      complement: event.complement || "",
+      name: event.name ?? "",
+      description: event.description ?? "",
+      startsAt: new Date(event.start_date ?? ""),
+      endsAt: new Date(event.end_date ?? ""),
+      cep: event.cep ?? "",
+      state: event.state ?? "",
+      city: event.city ?? "",
+      neighborhood: event.neighborhood ?? "",
+      street: event.street ?? "",
+      address_number: event.address_number.toString() ?? "",
+      complement: event.complement ?? "",
       level: event.level_id,
-      price: event.price,
+      price: event.price ?? "",
       representationUrl: new File([], ""),
       representationColor:
         event.image_url && event.image_url.startsWith("#")
           ? event.image_url
-          : "fff",
+          : "#fff",
       representationOption:
         event.image_url && event.image_url.startsWith("#") ? "color" : "image",
-      maps_url: event.maps_url || "",
-      status: event.status,
+      maps_url: event.maps_url ?? "",
+      status: event.status ?? "",
     },
   });
+
+  const informedCep = form.watch("cep");
+  const { data, isSuccess } = useCep(informedCep);
+
+  const getLocation = useDebouncedCallback(() => {
+    if (isSuccess) {
+      form.setValue("state", data.state);
+      form.setValue("city", data.city);
+      form.setValue("neighborhood", data.neighborhood);
+      form.setValue("street", data.street);
+      form.setValue("complement", data.complement);
+    } else {
+      form.setValue("state", "");
+      form.setValue("city", "");
+      form.setValue("neighborhood", "");
+      form.setValue("street", "");
+      form.setValue("complement", "");
+    }
+  }, 500);
+
+  const levelsData = useLevelsData().data?.levels ?? [];
+
+  const levels: ComboboxItem[] = levelsData.map((level: ComboboxOption) => ({
+    value: level.id,
+    label: level.title,
+  }));
+
+  const status = [
+    {
+      value: "active",
+      label: "Ativo",
+    },
+    {
+      value: "inactive",
+      label: "Inativo",
+    },
+  ];
 
   const router = useRouter();
 
@@ -113,10 +182,25 @@ export default function EventUpdateForm({
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     let filteredData;
-    if (data.representationUrl && data.representationUrl.size > 0) {
+
+    //Se a representação atual for uma image
+    //e ele vai trocar por outra ou uma cor
+    if (
+      !keepCurrentImage &&
+      event.image_url &&
+      !event.image_url.startsWith("#")
+    ) {
+      deleteFile(event.image_url);
+    }
+
+    //Se está trocando a imagem atual por outra imagem
+    if (
+      !keepCurrentImage &&
+      data.representationUrl &&
+      data.representationUrl.size > 0
+    ) {
       let file;
       if (data.representationUrl instanceof File) {
-        if (event.image_url) deleteFile(event.image_url);
         const timestamp = new Date().toISOString();
         const fileExtension = data.representationUrl.name.split(".").pop();
         file = await handleFileUpload(
@@ -136,15 +220,22 @@ export default function EventUpdateForm({
         representation: file, // A URL da imagem após o upload
       };
     } else {
-      // Atribuir a 'filteredData' o objeto 'data' removendo 'representationUrl'
       const {
         representationUrl,
         representationOption,
         representationColor,
         ...rest
       } = data;
-      filteredData = { ...rest, representation: representationColor };
+
+      if (keepCurrentImage && !event.image_url?.startsWith("#")) {
+        filteredData = { ...rest, representation: event.image_url };
+      } else {
+        filteredData = { ...rest, representation: representationColor };
+      }
     }
+
+    const isUrlValid =
+      data.maps_url && z.string().url().safeParse(data.maps_url).success;
 
     mutate(
       {
@@ -161,10 +252,7 @@ export default function EventUpdateForm({
           street: filteredData.street,
           address_number: Number(filteredData.address_number),
           complement: filteredData.complement,
-          maps_url:
-            filteredData.maps_url && filteredData.maps_url?.length > 0
-              ? filteredData.maps_url
-              : undefined,
+          maps_url: isUrlValid ? data.maps_url : "",
           image_url: filteredData.representation,
           price: filteredData.price,
           status: filteredData.status,
@@ -179,87 +267,13 @@ export default function EventUpdateForm({
     );
   };
 
-  const informedCep = form.watch("cep");
-
-  const location = useQuery({
-    queryKey: ["location", informedCep],
-    queryFn: async (): Promise<AxiosResponse<Location>> => {
-      return await api.get(`https://viacep.com.br/ws/${informedCep}/json/`);
-    },
-
-    enabled: /^\d{8}$/.test(informedCep),
-    select: (data) => {
-      return {
-        state: data.data.uf,
-        city: data.data.localidade,
-        neighborhood: data.data.bairro,
-        street: data.data.logradouro,
-        complement: data.data.complemento,
-      };
-    },
-  });
-
-  useEffect(() => {
-    if (location.isSuccess) {
-      form.setValue("state", location.data.state);
-      form.setValue("city", location.data.city);
-      form.setValue("neighborhood", location.data.neighborhood);
-      form.setValue("street", location.data.street);
-      form.setValue("complement", location.data.complement);
-    } else {
-      form.setValue("state", "");
-      form.setValue("city", "");
-      form.setValue("neighborhood", "");
-      form.setValue("street", "");
-      form.setValue("complement", "");
-    }
-  }, [location.isSuccess, location.data]);
-
-  const token = session?.token.user.token;
-  const [levelData, setLevelData] = useState<Level[]>([]);
-  async function fetchLevels() {
-    if (session) {
-      const response = await api.get<LevelResponse>("/levels", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      setLevelData(response.data.levels);
-    }
-  }
-
-  interface item {
-    value: number;
-    label: string;
-  }
-  const levels: item[] = [];
-
-  levelData.map((level) =>
-    levels.push({ value: level.id, label: level.title })
-  );
-
-  useEffect(() => {
-    fetchLevels();
-  }, [session]);
-
-  const status = [
-    {
-      value: "active",
-      label: "Ativo",
-    },
-    {
-      value: "inactive",
-      label: "Inativo",
-    },
-  ];
-
   return (
     <>
       <Navbar />
       <div className="flex flex-col gap-5 my-8 px-4 lg:px-12 max-w-screen-sm container">
         <div className="flex justify-center items-center gap-3 font-bold text-xl md:text-3xl">
           <CalendarDots />
-          <h1 className="">Cadastre seu evento</h1>
+          <h1 className="">Edite seu evento</h1>
         </div>
         <Form {...form}>
           <form
@@ -317,6 +331,7 @@ export default function EventUpdateForm({
                   placeholder="CEP"
                   className="md:flex-1"
                   maxLength={8}
+                  onChange={getLocation}
                 />
                 <InputDefault
                   control={form.control}
@@ -422,52 +437,79 @@ export default function EventUpdateForm({
                 <div className="flex items-center gap-3">
                   <Image
                     src={event.image_url}
-                    width={100}
-                    height={100}
+                    width={80}
+                    height={0}
                     className="border-primary border rounded-lg aspect-square"
                     alt="Imagem atual do perfil"
                     priority
                   />
                   <div className="flex flex-col gap-2">
                     <p className="text-sm leading-4 tracking-tight">
-                      Essa é a representação atual.
+                      Essa é a representação atual. Desmarque a opção{" "}
+                      <span className="text-primary">
+                        "Manter imagem atual"
+                      </span>{" "}
+                      para alterá-la.
                     </p>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="check"
+                        checked={keepCurrentImage}
+                        onClick={() => {
+                          form.setValue(
+                            "representationUrl",
+                            new File(["Imagem mantida"], "Imagem mantida")
+                          );
+                          setKeepCurrentImage(!keepCurrentImage);
+                        }}
+                      />
+                      <label
+                        htmlFor="check"
+                        className="peer-disabled:opacity-70 font-medium text-sm leading-none cursor-pointer peer-disabled:cursor-not-allowed"
+                      >
+                        Manter imagem atual
+                      </label>
+                    </div>
                   </div>
                 </div>
               ) : null}
-              <div className="flex md:flex-row flex-col gap-2">
-                <RadioButton
-                  firstLabel="Imagem"
-                  secondLabel="Cor"
-                  firstValue="image"
-                  secondValue="color"
-                  optionValue={form.watch("representationOption")}
-                  onValueChange={(value) => {
-                    if (value === "image" || value === "color") {
-                      form.setValue("representationOption", value);
-                    }
-                    if (value === "image") {
-                      form.setValue("representationColor", "");
-                    } else {
-                      form.setValue("representationUrl", new File([], ""));
-                    }
-                  }}
-                />
-                <div className="md:flex-1">
-                  {form.watch("representationOption") === "image" ? (
-                    <InputImage name="representationUrl" />
-                  ) : (
-                    <ColorPicker
-                      name="representationColor"
-                      defaultValue={
-                        event.image_url && event.image_url.startsWith("#")
-                          ? event.image_url
-                          : "#fff"
+              {event.image_url &&
+              (event.image_url.startsWith("#") ||
+                keepCurrentImage === false) ? (
+                <div className="flex md:flex-row flex-col gap-2">
+                  <RadioButton
+                    firstLabel="Imagem"
+                    secondLabel="Cor"
+                    firstValue="image"
+                    secondValue="color"
+                    optionValue={form.watch("representationOption")}
+                    onValueChange={(value) => {
+                      if (value === "image" || value === "color") {
+                        form.setValue("representationOption", value);
                       }
-                    />
-                  )}
+                      if (value === "image") {
+                        form.setValue("representationColor", "");
+                      } else {
+                        form.setValue("representationUrl", new File([], ""));
+                      }
+                    }}
+                  />
+                  <div className="md:flex-1">
+                    {form.watch("representationOption") === "image" ? (
+                      <InputImage name="representationUrl" />
+                    ) : (
+                      <ColorPicker
+                        name="representationColor"
+                        defaultValue={
+                          event.image_url && event.image_url.startsWith("#")
+                            ? event.image_url
+                            : "#fff"
+                        }
+                      />
+                    )}
+                  </div>
                 </div>
-              </div>
+              ) : null}
             </div>
 
             {/* buttons: cancel and register */}

@@ -63,7 +63,7 @@ export default function TrainingsCarousel({
                   className="md:basis-1/2 lg:basis-1/3 py-2"
                 >
                   <TrainingCard
-                    by={training.user.name}
+                    by={training.user.username}
                     duration={training.time}
                     level={training.level.title}
                     title={training.title}

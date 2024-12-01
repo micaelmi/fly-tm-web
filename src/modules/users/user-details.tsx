@@ -5,6 +5,7 @@ import Navbar from "@/components/navbar";
 import ShareButton from "@/components/share-button";
 import { buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { useGetUserByUsername } from "@/hooks/use-users";
 import { User } from "@/interfaces/user";
 import api from "@/lib/axios";
 import { isValidUrl } from "@/lib/utils";
@@ -30,34 +31,24 @@ interface UserData {
 }
 
 export default function UserDetails() {
-  const username_params = useParams().username;
+  const username_params = useParams().username.toLocaleString();
   const session = useSession().data;
 
   const own_page = username_params === session?.payload.username;
 
   const token = session?.token.user.token;
 
-  const user = useQuery({
-    queryKey: ["userData", username_params],
-    queryFn: async (): Promise<AxiosResponse<Partial<UserData>>> => {
-      return await api.get(`/users/${username_params}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-    },
-    enabled: !!token,
-  });
+  const user = useGetUserByUsername();
 
   if (user.isLoading) return <Loading />;
   if (user.error) return <p>Erro ao carregar perfil: {user.error.message}</p>;
 
-  const user_data = user.data?.data.user;
+  const user_data = user.data?.user;
 
   return (
     <>
       {!user_data ? (
-        <p>Dados do usuário não disponíveis</p>
+        <Loading />
       ) : (
         <>
           <Navbar />
@@ -179,14 +170,22 @@ export default function UserDetails() {
                       }
                       width={100}
                       height={100}
-                      className="border-primary bg-slate-300 p-2 border rounded-full aspect-square"
+                      className="border-primary bg-slate-300 border rounded-full aspect-square"
                       alt="Imagem do clube"
                       unoptimized={true}
                     />
                     <p className="max-w-24 text-sm">
-                      {user_data.club
-                        ? user_data.club.name
-                        : "Este jogador não está em nenhum clube"}
+                      {user_data.club ? (
+                        <Link
+                          href={`/clubs/${user_data.club.id}`}
+                          target="_blank"
+                          className="hover:underline"
+                        >
+                          {user_data.club.name}
+                        </Link>
+                      ) : (
+                        "Este jogador não está em nenhum clube"
+                      )}
                     </p>
                   </div>
                   {/* athlete info */}
@@ -218,7 +217,7 @@ export default function UserDetails() {
                 </div>
                 <div className="flex flex-col gap-4">
                   <div className="flex gap-2">
-                    {user_data._count.events > 0 && (
+                    {user_data._count && user_data._count.events > 0 && (
                       <Link
                         href={`/users/my-events/${user_data.id}`}
                         className={`${buttonVariants({ variant: "default" })} flex-1`}
@@ -226,7 +225,7 @@ export default function UserDetails() {
                         Meus Eventos
                       </Link>
                     )}
-                    {user_data._count.contacts > 0 && (
+                    {user_data._count && user_data._count.contacts > 0 && (
                       <Link
                         href={`/users/my-contacts/${user_data.id}`}
                         className={`${buttonVariants({ variant: "default" })} flex-1`}
