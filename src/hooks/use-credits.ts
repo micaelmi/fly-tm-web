@@ -73,3 +73,20 @@ export const useGetTransactionsByUser = (userId: string) => {
     enabled: !!userId && !!token,
   });
 };
+
+export const useVerifyPixPayment = (paymentId: string | undefined) => {
+  const { data: dataSession } = useSession();
+  const token = dataSession?.token.user.token;
+  return useQuery<any>({
+    queryKey: ["pixPayment", paymentId],
+    queryFn: async () => {
+      const response = await api.get(`/payments/pix/${paymentId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    },
+    enabled: !!paymentId && !!token,
+  });
+};

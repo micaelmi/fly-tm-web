@@ -17,7 +17,8 @@ export interface UserCredits {
 }
 
 export interface PixPaymentRegisterData {
-  amount: number;
+  credits: number;
+  reais: number;
   description: string;
   user_id: string;
 }
@@ -41,6 +42,9 @@ export interface CreditTransactionResponse {
     action: string;
     amount: number;
     description: string;
+    payment_id: string;
+    payment_status: string;
+    payment_description: string;
     created_at: string;
     user_id: string;
   }[];

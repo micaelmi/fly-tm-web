@@ -43,7 +43,8 @@ export function BuyCredits({ userId }: { userId: string }) {
   function handleCreatePixPayment() {
     mutate(
       {
-        amount: Number(reais),
+        credits: Number(credits),
+        reais: Number(reais),
         description: "Compra de créditos",
         user_id: userId,
       },

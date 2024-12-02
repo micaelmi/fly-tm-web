@@ -25,27 +25,27 @@ export function PixData({ data }: { data: PixResponse }) {
   const userId = useSession().data?.payload.sub;
   const router = useRouter();
 
-  function handlePaymentCompleted() {
-    if (userId) {
-      const exchanged = priceTable.find(
-        (price) => price.reais === Number(data.pix.amount)
-      );
-      mutate(
-        {
-          action: "buy",
-          amount: exchanged?.credits || 0,
-          description: "Compra de créditos",
-          user_id: userId,
-        },
-        {
-          onSuccess() {
-            toast.success("Pagamento efetuado com sucesso!");
-            router.refresh();
-          },
-        }
-      );
-    }
-  }
+  // function handlePaymentCompleted() {
+  //   if (userId) {
+  //     const exchanged = priceTable.find(
+  //       (price) => price.reais === Number(data.pix.amount)
+  //     );
+  //     mutate(
+  //       {
+  //         action: "buy",
+  //         amount: exchanged?.credits || 0,
+  //         description: "Compra de créditos",
+  //         user_id: userId,
+  //       },
+  //       {
+  //         onSuccess() {
+  //           toast.success("Pagamento efetuado com sucesso!");
+  //           router.refresh();
+  //         },
+  //       }
+  //     );
+  //   }
+  // }
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
@@ -69,10 +69,12 @@ export function PixData({ data }: { data: PixResponse }) {
           </Button>
         </div>
         <AlertDialogFooter>
-          <AlertDialogCancel>Fechar</AlertDialogCancel>
-          <Button onClick={handlePaymentCompleted}>
+          <AlertDialogCancel onClick={() => router.refresh()}>
+            Fechar
+          </AlertDialogCancel>
+          {/* <Button onClick={handlePaymentCompleted}>
             Efetuei meu pagamento
-          </Button>
+          </Button> */}
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

@@ -1,27 +1,34 @@
 import Loading from "@/app/loading";
+import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { useGetTransactionsByUser } from "@/hooks/use-credits";
-import { format } from "date-fns";
-import { ReplyContact } from "../admin/reply-contact";
-import { DeleteContact } from "../contact/delete-contact";
-import {
-  TooltipProvider,
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-} from "@radix-ui/react-tooltip";
+  useGetTransactionsByUser,
+  useVerifyPixPayment,
+} from "@/hooks/use-credits";
 import { Coins, MinusCircle, PlusCircle } from "@phosphor-icons/react/dist/ssr";
+import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { FaSpinner } from "react-icons/fa";
 
 export default function CreditTransactions({ userId }: { userId: string }) {
+  const [paymentId, setPaymentId] = useState<string | null>(null);
+
+  const router = useRouter();
+  const { data: pix } = useVerifyPixPayment(paymentId ?? undefined);
+
+  const [verifyingId, setVerifyingId] = useState<string | null>("1");
+
+  const verifyPaymentStatus = (id: string) => {
+    setVerifyingId(id); // Define o botão atual como "verificando"
+    setPaymentId(id);
+    setTimeout(() => {
+      setVerifyingId("1"); // Reseta o botão após o processo
+      router.refresh();
+    }, 3000);
+  };
+
   const { data, isLoading, isError, error } = useGetTransactionsByUser(userId);
   if (isLoading) return <Loading />;
   if (isError)
@@ -62,6 +69,36 @@ export default function CreditTransactions({ userId }: { userId: string }) {
                     {transaction.amount}
                   </div>
                 </TableCell>
+                {transaction.action === "buy" && (
+                  <TableCell>
+                    <div className="flex gap-2">
+                      <Button
+                        variant={"outline"}
+                        onClick={() =>
+                          verifyPaymentStatus(transaction.payment_id)
+                        }
+                        disabled={verifyingId === transaction.id} // Desativa apenas o botão atual
+                      >
+                        {verifyingId === transaction.payment_id ? (
+                          <p className="flex items-center gap-2">
+                            <FaSpinner className="animate-spin" /> Verificando
+                          </p>
+                        ) : (
+                          "Verificar status"
+                        )}
+                      </Button>
+                      <div
+                        className={`${transaction.payment_status === "pending" ? "bg-yellow-500 py-2 px-4" : transaction.payment_status === "approved" ? "bg-green-500 py-2 px-4" : "bg-red-500"} rounded-full`}
+                      >
+                        {transaction.payment_status === "pending"
+                          ? "pendente"
+                          : transaction.payment_status === "approved"
+                            ? "aprovado"
+                            : null}
+                      </div>
+                    </div>
+                  </TableCell>
+                )}
                 <TableCell className="font-semibold text-gray-400 text-xl">
                   {format(transaction.created_at, "dd MMM yyyy", {
                     locale: ptBR,
