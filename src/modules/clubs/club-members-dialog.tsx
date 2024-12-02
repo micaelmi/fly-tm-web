@@ -58,7 +58,7 @@ export function ClubMembersDialog({
                   >
                     <img
                       src={
-                        user.image_url && isValidUrl(user.image_url)
+                        user.image_url
                           ? user.image_url
                           : `https://api.dicebear.com/9.x/thumbs/svg?seed=${user.id}`
                       }

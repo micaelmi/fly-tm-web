@@ -186,7 +186,7 @@ export default function TrainingRegisterForm() {
 
         <MovementsForChoose
           h1Classname="text-3xl font-bold"
-          scrollAreaClassname="h-[500px]"
+          scrollAreaClassname="h-[600px]"
           parentClassname="col-span-4 flex flex-col items-center gap-3"
           movement_card={(move) => {
             return (

@@ -10,10 +10,21 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Form } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useEditUser } from "@/hooks/use-users";
+import {
+  useGameStylesData,
+  useHandGripsData,
+  useLevelsData,
+} from "@/hooks/use-auxiliaries";
+import { useCepCityAndState } from "@/hooks/use-cep";
+import { useEditUser, useGetUserByUsername } from "@/hooks/use-users";
 import { GameStyle } from "@/interfaces/game-style";
 import { HandGrip } from "@/interfaces/hand-grip";
-import { Level, LevelResponse } from "@/interfaces/level";
+import {
+  ComboboxItem,
+  ComboboxOption,
+  Level,
+  LevelResponse,
+} from "@/interfaces/level";
 import { Location } from "@/interfaces/location";
 import { UserType } from "@/interfaces/user-type";
 import api from "@/lib/axios";
@@ -43,131 +54,90 @@ const FormSchema = z.object({
   hand_grip_id: z.number().optional(),
 });
 
-interface UserFilteredData {
-  id: string;
-  name: string;
-  username: string;
-  email: string;
-  bio: string;
-  created_at: Date;
-  training_days: number;
-  state: string;
-  city: string;
-  instagram: string;
-  image_url: string;
-  user_type: UserType;
-  level: Level;
-  game_style: GameStyle;
-  hand_grip: HandGrip;
-  club: {
-    id: string;
-    name: string;
-    logo_url: string;
-  };
-  credits: number;
-}
-
-interface Item {
-  value: number;
-  label: string;
-}
-
-interface ComboboxOption {
-  id: number;
-  title: string;
-  description: string;
-}
-
-interface UserUpdateFormProps {
-  user_data: UserFilteredData;
-}
-
-export default function UserUpdateForm({ user_data }: UserUpdateFormProps) {
-  const { data: session } = useSession();
-  const token = session?.token.user.token;
-
+export default function UserUpdateForm() {
   const [removeFile, setRemoveFile] = useState(false);
   const [cep, setCep] = useState("");
   const [deleteModal, setDeleteModal] = useState<boolean>(false);
 
-  const {
-    data: combobox_data,
-    isLoading: combobox_isLoading,
-    error: combobox_error,
-  } = useQuery({
-    queryKey: ["levelsData", "handGripsData", "gameStylesData"],
-    queryFn: async () => {
-      const [levels, hand_grips, game_styles] = await Promise.all([
-        api.get("/levels"),
-        api.get("/hand-grips"),
-        api.get("/game-styles"),
-      ]);
+  const { data, isLoading, error } = useGetUserByUsername();
+  const levelsData = useLevelsData().data?.levels ?? [];
+  const handGripsData = useHandGripsData().data?.handGrips ?? [];
+  const gameStylesData = useGameStylesData().data?.gameStyles ?? [];
 
-      return {
-        levels: levels.data,
-        hand_grips: hand_grips.data,
-        game_styles: game_styles.data,
-      };
+  const {
+    data: locationData,
+    isLoading: locationLoading,
+    isError: locationError,
+  } = useCepCityAndState(cep);
+
+  const onChangeCep = useDebouncedCallback((event) => {
+    setCep(event.target.value);
+  }, 500);
+
+  const router = useRouter();
+
+  const { mutate, isPending, isError: isEditError } = useEditUser();
+
+  const form = useForm<z.infer<typeof FormSchema>>({
+    resolver: zodResolver(FormSchema),
+    defaultValues: {
+      email: "",
+      name: "",
+      image_file: new File([], ""),
+      city: "",
+      state: "",
+      instagram: "",
+      bio: "",
+      game_style_id: undefined,
+      hand_grip_id: undefined,
+      level_id: undefined,
+      status: "active",
     },
-    enabled: !!token,
   });
 
-  const levels: Item[] = combobox_data?.levels.levels
+  useEffect(() => {
+    if (data) {
+      const user = data.user;
+
+      form.reset({
+        ...user,
+        game_style_id: user.game_style.id,
+        hand_grip_id: user.hand_grip.id,
+        level_id: user.level.id,
+      });
+    }
+  }, [data]);
+
+  useEffect(() => {
+    form.setValue("city", locationData?.city);
+    form.setValue("state", locationData?.state);
+  }, [locationData]);
+
+  if (isLoading || !data) return <Loading />;
+  if (error) return <p>Erro ao carregar dados do usuário: {error.message}</p>;
+
+  const user_data = data?.user;
+
+  const levels: ComboboxItem[] = levelsData
     .map((level: ComboboxOption) => ({
       value: level.id,
       label: level.title,
     }))
-    .filter((level: Item) => level.label !== "Livre");
+    .filter((level: ComboboxItem) => level.label !== "Livre");
 
-  const handGrips: Item[] = combobox_data?.hand_grips.handGrips.map(
+  const handGrips: ComboboxItem[] = handGripsData.map(
     (handGrip: ComboboxOption) => ({
       value: handGrip.id,
       label: handGrip.title,
     })
   );
 
-  const gameStyles: Item[] = combobox_data?.game_styles.gameStyles.map(
+  const gameStyles: ComboboxItem[] = gameStylesData.map(
     (gameStyle: ComboboxOption) => ({
       value: gameStyle.id,
       label: gameStyle.title,
     })
   );
-
-  const form = useForm<z.infer<typeof FormSchema>>({
-    resolver: zodResolver(FormSchema),
-    defaultValues: {
-      email: user_data.email,
-      name: user_data.name,
-      image_file: new File([], ""),
-      city: user_data.city,
-      state: user_data.state,
-      instagram: user_data.instagram ?? "",
-      bio: user_data.bio ?? "",
-      game_style_id: user_data.game_style?.id ?? undefined,
-      hand_grip_id: user_data.hand_grip?.id ?? undefined,
-      level_id: user_data.level?.id ?? undefined,
-      status: "active",
-    },
-  });
-
-  const { isLoading, isError, data } = useQuery({
-    queryKey: ["location", cep],
-    queryFn: async (): Promise<AxiosResponse<Location>> => {
-      return await api.get(`https://viacep.com.br/ws/${cep}/json/`);
-    },
-
-    enabled: /^\d{8}$/.test(cep),
-    select: (data) => {
-      return {
-        state: data.data.uf,
-        city: data.data.localidade,
-      };
-    },
-  });
-
-  const router = useRouter();
-
-  const { mutate, isPending, isError: isEditError } = useEditUser();
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     let file;
@@ -217,251 +187,232 @@ export default function UserUpdateForm({ user_data }: UserUpdateFormProps) {
     });
   };
 
-  const onChangeCep = useDebouncedCallback((event) => {
-    setCep(event.target.value);
-  }, 500);
-
-  useEffect(() => {
-    if (token) api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-  }, [token]);
-
-  useEffect(() => {
-    form.setValue("city", data?.city);
-    form.setValue("state", data?.state);
-  }, [data]);
-
   return (
-    <>
-      {combobox_isLoading ? (
-        <Loading />
-      ) : (
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="mt-5 mb-5 container"
-          >
-            <h1 className="mb-5 font-semibold text-3xl">Edite seu perfil</h1>
-            <div className="gap-32 grid grid-cols-2">
-              {/* image, name, local and instagram */}
-              <div className="flex flex-col gap-3">
-                <InputDefault
-                  control={form.control}
-                  name="email"
-                  placeholder="E-mail..."
-                  type="email"
-                  label="E-mail cadastrado"
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="mt-5 mb-5 container"
+      >
+        <h1 className="mb-5 font-semibold text-3xl">Edite seu perfil</h1>
+        <div className="gap-32 grid grid-cols-2">
+          {/* image, name, local and instagram */}
+          <div className="flex flex-col gap-3">
+            <InputDefault
+              control={form.control}
+              name="email"
+              placeholder="E-mail..."
+              type="email"
+              label="E-mail cadastrado"
+            />
+            {user_data.image_url ? (
+              <div className="flex items-center gap-3">
+                <Image
+                  src={user_data.image_url}
+                  width={100}
+                  height={100}
+                  className="border-primary border rounded-full aspect-square"
+                  alt="Imagem atual do perfil"
+                  priority
                 />
-                {user_data.image_url ? (
-                  <div className="flex items-center gap-3">
-                    <Image
-                      src={user_data.image_url}
-                      width={100}
-                      height={100}
-                      className="border-primary border rounded-full aspect-square"
-                      alt="Imagem atual do perfil"
-                      priority
-                    />
-                    <div className="flex flex-col gap-2">
-                      <p className="text-sm leading-4 tracking-tight">
-                        Essa é a sua imagem atual. Sinta-se a vontade para
-                        realizar o upload de uma nova imagem abaixo.
-                      </p>
-                      <div className="flex items-center gap-2">
-                        <Checkbox
-                          id="check"
-                          onClick={() => {
-                            setRemoveFile(!removeFile);
-                          }}
-                        />
-                        <label
-                          htmlFor="check"
-                          className="peer-disabled:opacity-70 font-medium text-sm leading-none cursor-pointer peer-disabled:cursor-not-allowed"
-                        >
-                          {removeFile
-                            ? "Sua foto será removida"
-                            : "Clique para remover sua foto"}
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-3">
-                    <Image
-                      src={`https://api.dicebear.com/9.x/thumbs/svg?seed=${user_data.id}`}
-                      width={100}
-                      height={100}
-                      className="border-primary border rounded-full aspect-square"
-                      alt="Imagem atual do perfil"
-                      unoptimized={true}
-                      priority
-                    />
-                    <p className="text-sm leading-4 tracking-tight">
-                      Você não possui nenhuma imagem cadastrada.{" "}
-                      <span className="text-primary">
-                        Uma imagem aleatória está sendo usada no lugar.
-                      </span>{" "}
-                      Sinta-se a vontade para realizar o upload de uma nova
-                      imagem abaixo.
-                    </p>
-                  </div>
-                )}
-                <InputImageWithPreview name="image_file" />
-                <InputDefault
-                  control={form.control}
-                  name="name"
-                  placeholder="Seu nome..."
-                  label="Nome"
-                />
-                <Label>Cidade e estado</Label>
-                <div className="flex gap-2 text-sm leading-4 tracking-tight">
-                  Atual:
-                  {user_data.city ? (
-                    <p>
-                      {user_data.city} - {user_data.state}
-                    </p>
-                  ) : (
-                    <p>Não informado</p>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <p className="text-sm leading-4 tracking-tight whitespace-nowrap">
-                    Para alterar esses dados informe um CEP:
+                <div className="flex flex-col gap-2">
+                  <p className="text-sm leading-4 tracking-tight">
+                    Essa é a sua imagem atual. Sinta-se a vontade para realizar
+                    o upload de uma nova imagem abaixo.
                   </p>
-                  <Input placeholder="CEP" onChange={onChangeCep} />
-                </div>
-                {cep && /^\d{8}$/.test(cep) ? (
-                  isLoading ? (
-                    <p className="text-sm leading-4 tracking-tight">
-                      Carregando dados
-                    </p>
-                  ) : isError ? (
-                    <p className="text-sm leading-4 tracking-tight">
-                      Ocorreu um erro na busca dos dados
-                    </p>
-                  ) : (
-                    <div className="flex gap-2 text-sm leading-4 tracking-tight">
-                      <p>Sua localização será atualizada para:</p>
-                      <p className="font-semibold">
-                        {data?.city} - {data?.state}
-                      </p>
-                    </div>
-                  )
-                ) : null}
-                <InputDefault
-                  control={form.control}
-                  name="instagram"
-                  placeholder="Adicione seu @"
-                  label="Instagram"
-                />
-              </div>
-              {/* bio, hand_grip, game_style, level */}
-              <div className="flex flex-col gap-3">
-                <TextareaDefault
-                  control={form.control}
-                  name="bio"
-                  placeholder="Fale um pouco sobre você..."
-                  label="Apresentação"
-                />
-                <Label>Informações do atleta</Label>
-                <DefaultCombobox
-                  control={form.control}
-                  name="hand_grip_id"
-                  object={handGrips}
-                  label="Empunhadura"
-                  searchLabel="Buscar empunhadura..."
-                  selectLabel="Empunhadura"
-                  onSelect={(value: number) => {
-                    form.setValue("hand_grip_id", value);
-                  }}
-                />
-                <DefaultCombobox
-                  control={form.control}
-                  name="game_style_id"
-                  object={gameStyles}
-                  label="Estilo de jogo"
-                  searchLabel="Buscar estilo de jogo..."
-                  selectLabel="Estilo de jogo"
-                  onSelect={(value: number) => {
-                    form.setValue("game_style_id", value);
-                  }}
-                />
-                <DefaultCombobox
-                  control={form.control}
-                  name="level_id"
-                  object={levels}
-                  label="Qual seu nível no jogo?"
-                  searchLabel="Buscar nível..."
-                  selectLabel="Nível"
-                  onSelect={(value: number) => {
-                    form.setValue("level_id", value);
-                  }}
-                />
-                <div className="flex justify-between">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="hover:bg-destructive"
-                    onClick={() => setDeleteModal(true)}
-                  >
-                    Excluir perfil
-                  </Button>
-                  <Button type="submit">Salvar</Button>
-                </div>
-              </div>
-            </div>
-
-            {deleteModal && (
-              <div className="fixed inset-0 flex justify-center items-center bg-background/60">
-                <div className="flex flex-col items-center gap-10 border-white bg-modal p-10 border rounded-lg">
-                  <h1 className="font-semibold text-3xl antialiased tracking-tighter">
-                    Deseja realmente excluir sua conta?
-                  </h1>
-                  <div className="flex gap-10">
-                    <Image
-                      src="/mascot-sad.svg"
-                      width={150}
-                      height={300}
-                      alt="Não vá embora"
-                    />
-                    <h3 className="max-w-xs antialiased leading-relaxed tracking-tight">
-                      <span className="font-semibold text-primary hover:text-blue-600">
-                        Sua compania é muito importante para nós!
-                      </span>{" "}
-                      Clicando em{" "}
-                      <span className="text-red-300 hover:text-red-400">
-                        "Excluir"
-                      </span>{" "}
-                      essa conta será inativada em nosso sistema, seu perfil
-                      será desconectado e você será redirecionado para nossa
-                      Landing Page.{" "}
-                      <span className="text-yellow-100 hover:text-yellow-200">
-                        Pensa com carinho, o patola ainda espera viver muitas
-                        aventuras ao seu lado.
-                      </span>
-                    </h3>
-                  </div>
-                  <div className="flex justify-between w-full">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="hover:bg-destructive"
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="check"
                       onClick={() => {
-                        form.setValue("status", "inactive");
-                        form.handleSubmit(onSubmit)();
+                        setRemoveFile(!removeFile);
                       }}
+                    />
+                    <label
+                      htmlFor="check"
+                      className="peer-disabled:opacity-70 font-medium text-sm leading-none cursor-pointer peer-disabled:cursor-not-allowed"
                     >
-                      Excluir
-                    </Button>
-                    <Button type="button" onClick={() => setDeleteModal(false)}>
-                      Cancelar
-                    </Button>
+                      {removeFile
+                        ? "Sua foto será removida"
+                        : "Clique para remover sua foto"}
+                    </label>
                   </div>
                 </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <Image
+                  src={`https://api.dicebear.com/9.x/thumbs/svg?seed=${user_data.id}`}
+                  width={100}
+                  height={100}
+                  className="border-primary border rounded-full aspect-square"
+                  alt="Imagem atual do perfil"
+                  unoptimized={true}
+                  priority
+                />
+                <p className="text-sm leading-4 tracking-tight">
+                  Você não possui nenhuma imagem cadastrada.{" "}
+                  <span className="text-primary">
+                    Uma imagem aleatória está sendo usada no lugar.
+                  </span>{" "}
+                  Sinta-se a vontade para realizar o upload de uma nova imagem
+                  abaixo.
+                </p>
               </div>
             )}
-          </form>
-        </Form>
-      )}
-    </>
+            <InputImageWithPreview name="image_file" />
+            <InputDefault
+              control={form.control}
+              name="name"
+              placeholder="Seu nome..."
+              label="Nome"
+            />
+            <Label>Cidade e estado</Label>
+            <div className="flex gap-2 text-sm leading-4 tracking-tight">
+              Atual:
+              {user_data.city ? (
+                <p>
+                  {user_data.city} - {user_data.state}
+                </p>
+              ) : (
+                <p>Não informado</p>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <p className="text-sm leading-4 tracking-tight whitespace-nowrap">
+                Para alterar esses dados informe um CEP:
+              </p>
+              <Input placeholder="CEP" maxLength={8} onChange={onChangeCep} />
+            </div>
+            {cep && /^\d{8}$/.test(cep) ? (
+              locationLoading ? (
+                <p className="text-sm leading-4 tracking-tight">
+                  Carregando dados
+                </p>
+              ) : locationError ? (
+                <p className="text-sm leading-4 tracking-tight">
+                  Ocorreu um erro na busca dos dados
+                </p>
+              ) : (
+                <div className="flex gap-2 text-sm leading-4 tracking-tight">
+                  <p>Sua localização será atualizada para:</p>
+                  <p className="font-semibold">
+                    {locationData?.city} - {locationData?.state}
+                  </p>
+                </div>
+              )
+            ) : null}
+            <InputDefault
+              control={form.control}
+              name="instagram"
+              placeholder="Adicione seu @"
+              label="Instagram"
+            />
+          </div>
+          {/* bio, hand_grip, game_style, level */}
+          <div className="flex flex-col gap-3">
+            <TextareaDefault
+              control={form.control}
+              name="bio"
+              placeholder="Fale um pouco sobre você..."
+              label="Apresentação"
+            />
+            <Label>Informações do atleta</Label>
+            <DefaultCombobox
+              control={form.control}
+              name="hand_grip_id"
+              object={handGrips}
+              label="Empunhadura"
+              searchLabel="Buscar empunhadura..."
+              selectLabel="Empunhadura"
+              onSelect={(value: number) => {
+                form.setValue("hand_grip_id", value);
+              }}
+            />
+            <DefaultCombobox
+              control={form.control}
+              name="game_style_id"
+              object={gameStyles}
+              label="Estilo de jogo"
+              searchLabel="Buscar estilo de jogo..."
+              selectLabel="Estilo de jogo"
+              onSelect={(value: number) => {
+                form.setValue("game_style_id", value);
+              }}
+            />
+            <DefaultCombobox
+              control={form.control}
+              name="level_id"
+              object={levels}
+              label="Qual seu nível no jogo?"
+              searchLabel="Buscar nível..."
+              selectLabel="Nível"
+              onSelect={(value: number) => {
+                form.setValue("level_id", value);
+              }}
+            />
+            <div className="flex justify-between">
+              <Button
+                type="button"
+                variant="outline"
+                className="hover:bg-destructive"
+                onClick={() => setDeleteModal(true)}
+              >
+                Excluir perfil
+              </Button>
+              <Button type="submit">Salvar</Button>
+            </div>
+          </div>
+        </div>
+
+        {deleteModal && (
+          <div className="fixed inset-0 flex justify-center items-center bg-background/60">
+            <div className="flex flex-col items-center gap-10 border-white bg-modal p-10 border rounded-lg">
+              <h1 className="font-semibold text-3xl antialiased tracking-tighter">
+                Deseja realmente excluir sua conta?
+              </h1>
+              <div className="flex gap-10">
+                <Image
+                  src="/mascot-sad.svg"
+                  width={150}
+                  height={300}
+                  alt="Não vá embora"
+                />
+                <h3 className="max-w-xs antialiased leading-relaxed tracking-tight">
+                  <span className="font-semibold text-primary hover:text-blue-600">
+                    Sua compania é muito importante para nós!
+                  </span>{" "}
+                  Clicando em{" "}
+                  <span className="text-red-300 hover:text-red-400">
+                    "Excluir"
+                  </span>{" "}
+                  essa conta será inativada em nosso sistema, seu perfil será
+                  desconectado e você será redirecionado para nossa Landing
+                  Page.{" "}
+                  <span className="text-yellow-100 hover:text-yellow-200">
+                    Pensa com carinho, o patola ainda espera viver muitas
+                    aventuras ao seu lado.
+                  </span>
+                </h3>
+              </div>
+              <div className="flex justify-between w-full">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="hover:bg-destructive"
+                  onClick={() => {
+                    form.setValue("status", "inactive");
+                    form.handleSubmit(onSubmit)();
+                  }}
+                >
+                  Excluir
+                </Button>
+                <Button type="button" onClick={() => setDeleteModal(false)}>
+                  Cancelar
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+      </form>
+    </Form>
   );
 }

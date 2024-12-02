@@ -5,5 +5,5 @@ export interface HandGrip {
 }
 
 export interface HandGripResponse {
-  hand_grips: HandGrip[];
+  handGrips: HandGrip[];
 }

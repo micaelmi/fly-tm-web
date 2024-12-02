@@ -2,6 +2,24 @@ import { LocationByCep } from "@/interfaces/location";
 import api from "@/lib/axios";
 import { useQuery } from "@tanstack/react-query";
 
+const useCepCityAndState = (cep: string) => {
+  return useQuery({
+    queryKey: ["location", cep],
+    queryFn: async () => {
+      const response = await api.get(`https://viacep.com.br/ws/${cep}/json/`);
+      return response.data;
+    },
+
+    enabled: !!cep && /^\d{8}$/.test(cep),
+    select: (data) => {
+      return {
+        state: data.uf,
+        city: data.localidade,
+      };
+    },
+  });
+};
+
 const useCep = (cep: string) => {
   return useQuery({
     queryKey: ["location", cep],
@@ -23,4 +41,4 @@ const useCep = (cep: string) => {
   });
 };
 
-export { useCep };
+export { useCep, useCepCityAndState };

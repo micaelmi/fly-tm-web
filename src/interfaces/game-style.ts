@@ -5,5 +5,5 @@ export interface GameStyle {
 }
 
 export interface GameStyleResponse {
-  game_styles: GameStyle[];
+  gameStyles: GameStyle[];
 }

@@ -56,6 +56,7 @@ export default function LandingPage() {
                       width={0}
                       height={0}
                       className="rounded-lg w-full aspect-video"
+                      priority
                     />
                   </CarouselItem>
                 ))}

@@ -170,6 +170,9 @@ export default function PerformingTrainingFeature() {
                     ? formatTime(currentItem.time)
                     : currentItem.reps + " x"}
                 </h1>
+                {currentItem.comments ? (
+                  <p>Comentário: {currentItem.comments}</p>
+                ) : null}
                 <div className="flex gap-2">
                   <p>Tempo estimado para finalizar:</p>
                   <p>

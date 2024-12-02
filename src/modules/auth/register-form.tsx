@@ -139,6 +139,7 @@ export default function RegisterForm() {
                 Li e concordo com os{" "}
                 <a
                   href="use-terms.pdf"
+                  target="blank"
                   className="hover:opacity-85 text-primary text-sm underline"
                 >
                   termos de uso
@@ -147,6 +148,7 @@ export default function RegisterForm() {
                 e<br />
                 <a
                   href="privacy-polices.pdf"
+                  target="blank"
                   className="hover:opacity-85 text-primary text-sm underline"
                 >
                   políticas de privacidade

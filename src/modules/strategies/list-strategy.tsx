@@ -14,6 +14,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { DeleteTrainingOrStrategy } from "../trainings/delete-training-or-strategy";
 import ItemDetailsModal from "../trainings/item-details-modal";
+import ContactReportForm from "../contact/contact-report-form";
 
 export default function ListStrategy() {
   const session = useSession();
@@ -171,7 +172,7 @@ export default function ListStrategy() {
                     strategy.id
                   }
                 />
-                <Button variant={"destructive"}>Denunciar</Button>
+                <ContactReportForm type="estratégia" id={strategy.id} />
               </div>
             </div>
           </div>

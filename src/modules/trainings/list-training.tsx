@@ -15,6 +15,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { DeleteTrainingOrStrategy } from "./delete-training-or-strategy";
 import ItemDetailsModal from "./item-details-modal";
+import ContactReportForm from "../contact/contact-report-form";
 
 export default function ListTraining() {
   const session = useSession();
@@ -157,7 +158,9 @@ export default function ListTraining() {
                     training.id
                   }
                 />
-                <Button variant={"destructive"}>Denunciar</Button>
+                {!own_training ? (
+                  <ContactReportForm type="treino" id={training.id} />
+                ) : null}
               </div>
             </div>
           </div>
