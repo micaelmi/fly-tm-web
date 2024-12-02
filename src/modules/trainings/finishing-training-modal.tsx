@@ -1,24 +1,24 @@
 "use client";
 
+import DefaultCombobox from "@/components/form/combobox-default";
+import InputDefault from "@/components/form/input-default";
+import InputImageWithPreview from "@/components/form/input-image-with-preview";
+import { Form } from "@/components/ui/form";
+import { useLevelsData, useVisibilityTypesData } from "@/hooks/use-auxiliaries";
 import { useCreateTraining } from "@/hooks/use-trainings";
+import { useGetUserClubId } from "@/hooks/use-users";
+import { ComboboxItem, ComboboxOption } from "@/interfaces/level";
+import { TrainingItem } from "@/interfaces/training";
 import { handleFileUpload } from "@/lib/firebase-upload";
+import { formatTime } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Clock, Flag } from "@phosphor-icons/react/dist/ssr";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
+import { FaSpinner } from "react-icons/fa";
 import { z } from "zod";
 import { Button } from "../../components/ui/button";
-import DefaultCombobox from "@/components/form/combobox-default";
-import { Form } from "@/components/ui/form";
-import InputDefault from "@/components/form/input-default";
-import InputImageWithPreview from "@/components/form/input-image-with-preview";
-import { FaSpinner } from "react-icons/fa";
-import { Clock, Flag } from "@phosphor-icons/react/dist/ssr";
-import { formatTime } from "@/lib/utils";
-import { TrainingItem } from "@/interfaces/training";
-import { useLevelsData, useVisibilityTypesData } from "@/hooks/use-auxiliaries";
-import { ComboboxItem, ComboboxOption } from "@/interfaces/level";
-import { useGetUser, useGetUserClubId } from "@/hooks/use-users";
 
 interface FinishingTrainingModalProps {
   trainingItems: TrainingItem[];
@@ -42,8 +42,6 @@ export default function FinishingTrainingModal({
 }: FinishingTrainingModalProps) {
   const { data: session } = useSession();
   const user_id = session?.payload.sub;
-  const username = session?.payload.username || "";
-
   const levelsData = useLevelsData().data?.levels ?? [];
 
   const visibilityTypesData =

@@ -3,4 +3,5 @@ export const priceTable = [
   { credits: 500, reais: 30 },
   { credits: 1000, reais: 45 },
   { credits: 2000, reais: 60 },
+  { credits: 10, reais: 1 },
 ];

@@ -1,34 +1,25 @@
 "use client";
 
 import AddItemModal from "@/components/add-item-modal";
-import AddMovementCard from "@/modules/trainings/add-movement-card";
-import TrainingItemCard from "@/modules/trainings/training-item-card";
+import MovementsForChoose from "@/components/movements-for-choose";
 import Navbar from "@/components/navbar";
 import PageTitleWithIcon from "@/components/page-title-with-icon";
-import Search from "@/components/search";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import api from "@/lib/axios";
+import { TrainingItem } from "@/interfaces/training";
+import AddMovementCard from "@/modules/trainings/add-movement-card";
 import FinishingTrainingModal from "@/modules/trainings/finishing-training-modal";
 import TrainingsSession from "@/modules/trainings/page-session";
+import TrainingItemCard from "@/modules/trainings/training-item-card";
 import { Barbell } from "@phosphor-icons/react/dist/ssr";
-import { useQuery } from "@tanstack/react-query";
-import { useSession } from "next-auth/react";
+import { Reorder } from "motion/react";
 import Image from "next/image";
-import { useCallback, useEffect, useState } from "react";
-import update from "immutability-helper";
-import { motion, Reorder } from "motion/react";
-import { Movement, TrainingItem } from "@/interfaces/training";
-import MovementsForChoose from "@/components/movements-for-choose";
+import { useState } from "react";
 
 export default function TrainingRegisterForm() {
-  const session = useSession();
-  const token = session.data?.token.user.token;
-
-  const [estimatedTime, setEstimatedTime] = useState<number>(0);
   const [trainingItems, setTrainingItems] = useState<TrainingItem[]>([]);
   const [description, setDescription] = useState<string>("");
   const [addItemModal, setAddItemModal] = useState({
@@ -41,20 +32,6 @@ export default function TrainingRegisterForm() {
   const [finishingTrainingModal, setFinishinTrainingModal] = useState({
     is_open: false,
   });
-
-  const movementsData = useQuery({
-    queryKey: ["movementsData"],
-    queryFn: async () => {
-      return await api.get("/movements", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-    },
-    enabled: !!token,
-  });
-
-  const movementsForChoose = movementsData.data?.data.movements;
 
   function openAddItemModal(
     movement_id: number,
@@ -125,22 +102,6 @@ export default function TrainingRegisterForm() {
     const updatedTrainingItems = changeQueue(newTrainingItemsList);
 
     setTrainingItems(updatedTrainingItems);
-  };
-
-  const changeTime = (items: TrainingItem[]) => {
-    let time = 0;
-
-    items.forEach((item) => {
-      if (item.movement.average_time) {
-        if (item.reps) {
-          time += item.reps * item.movement.average_time;
-        } else if (item.time) {
-          time += item.time;
-        }
-      }
-    });
-
-    setEstimatedTime(time);
   };
 
   const changeQueue = (items: TrainingItem[]) => {

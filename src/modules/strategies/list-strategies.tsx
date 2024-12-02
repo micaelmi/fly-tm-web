@@ -2,7 +2,6 @@
 
 import Navbar from "@/components/navbar";
 import PageTitleWithIcon from "@/components/page-title-with-icon";
-import Search from "@/components/search";
 import { Button } from "@/components/ui/button";
 import {
   useStrategiesData,
@@ -11,8 +10,6 @@ import {
 } from "@/hooks/use-strategies";
 import { Strategy } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
-import TrainingsSession from "../trainings/page-session";
-import PageSession from "../trainings/page-session";
 import StrategyCarousel from "./strategy-carousel";
 
 export default function ListStrategies() {

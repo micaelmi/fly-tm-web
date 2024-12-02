@@ -7,7 +7,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
+import { useGetUserCredits } from "@/hooks/use-users";
+import { plans } from "./club-plans";
 
 interface PlanCardProps {
   control: any;
@@ -15,65 +16,73 @@ interface PlanCardProps {
   label: string;
 }
 export function PlanCards({ control, name, label }: PlanCardProps) {
+  const credits = useGetUserCredits() || 0;
   return (
     <FormField
       control={control}
       name={name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel className="mt-8 text-lg">{label}</FormLabel>
+          <div className="flex justify-between items-center">
+            <FormLabel className="mt-8 text-lg">{label}</FormLabel>
+            <p className="bg-gray-800 p-2 rounded-lg text-white">
+              Você tem {credits} créditos
+            </p>
+          </div>
           <RadioGroup
             onValueChange={field.onChange}
             defaultValue={field.value}
             className="flex flex-col space-y-1"
           >
-            <FormItem className="flex items-center justify-between flex-row-reverse space-x-3 space-y-0 border border-white rounded-lg p-4 hover:bg-blue-900/10 hover:border-green-400 transition-colors">
+            <FormItem className="flex flex-row-reverse justify-between items-center space-x-3 space-y-0 border-white hover:border-green-400 hover:bg-blue-900/10 p-4 border rounded-lg transition-colors">
               <FormControl>
                 <RadioGroupItem
                   value="1"
-                  className="scale-150 mr-8 accent-green-400"
+                  className="mr-8 accent-green-400 scale-150"
                 />
               </FormControl>
-              <FormLabel className="font-normal flex gap-2">
+              <FormLabel className="flex gap-2 font-normal">
                 <SmileyWink size={48} className="text-yellow-500" />
                 <div>
                   <h2 className="text-lg">Grátis</h2>
-                  <p className="text-sm text-gray-300">Até 5 membros</p>
+                  <p className="text-gray-300 text-sm">Até 5 membros</p>
                 </div>
               </FormLabel>
             </FormItem>
 
-            <FormItem className="flex items-center justify-between flex-row-reverse space-x-3 space-y-0 border border-white rounded-lg p-4 hover:bg-blue-900/10 hover:border-green-400 transition-colors">
+            <FormItem className="flex flex-row-reverse justify-between items-center space-x-3 space-y-0 border-white hover:border-green-400 hover:bg-blue-900/10 p-4 border rounded-lg transition-colors">
               <FormControl>
                 <RadioGroupItem
                   value="2"
-                  className="scale-150 mr-8 accent-green-400"
+                  className="mr-8 accent-green-400 scale-150"
+                  disabled={plans[1].price > credits}
                 />
               </FormControl>
-              <FormLabel className="font-normal flex gap-2">
+              <FormLabel className="flex gap-2 font-normal">
                 <Coin size={48} className="text-yellow-500" />
                 <div>
                   <h2 className="text-lg">Básico</h2>
-                  <p className="text-sm text-gray-300">
-                    Até 35 membros | 250 créditos/mês
+                  <p className="text-gray-300 text-sm">
+                    Até 35 membros | {plans[1].price} créditos
                   </p>
                 </div>
               </FormLabel>
             </FormItem>
 
-            <FormItem className="flex items-center justify-between flex-row-reverse space-x-3 space-y-0 border border-white rounded-lg p-4 hover:bg-blue-900/10 hover:border-green-400 transition-colors accent-green-400">
+            <FormItem className="flex flex-row-reverse justify-between items-center space-x-3 space-y-0 border-white hover:border-green-400 hover:bg-blue-900/10 p-4 border rounded-lg transition-colors accent-green-400">
               <FormControl>
                 <RadioGroupItem
                   value="3"
-                  className="scale-150 mr-8 accent-green-400"
+                  className="mr-8 accent-green-400 scale-150"
+                  disabled={plans[2].price > credits}
                 />
               </FormControl>
-              <FormLabel className="font-normal flex gap-2">
+              <FormLabel className="flex gap-2 font-normal">
                 <Coins size={48} className="text-yellow-500" />
                 <div>
                   <h2 className="text-lg">Super</h2>
-                  <p className="text-sm text-gray-300">
-                    Até 150 membros | 600 créditos/mês
+                  <p className="text-gray-300 text-sm">
+                    Até 150 membros | {plans[2].price} créditos
                   </p>
                 </div>
               </FormLabel>
@@ -84,37 +93,4 @@ export function PlanCards({ control, name, label }: PlanCardProps) {
       )}
     />
   );
-  // return (
-  //   <div className="">
-  //     <div className="">
-  //       <div className="">
-  //         <SmileyWink />
-  //       </div>
-  //       <div className="">
-  //         <div>
-  //           <h2 className="text-xl font-semibold">Grátis</h2>
-  //           <p className="text-gray-400 text-lg">Até 5 membros</p>
-  //         </div>
-  //       </div>
-  //     </div>
-  //     <div className="">
-  //       {type === 2 && (
-  //         <div>
-  //           <h2 className="text-xl font-semibold">Standard Plan</h2>
-  //           <p className="text-gray-400 text-lg">
-  //             Até 35 membros | 250 créditos/mês
-  //           </p>
-  //         </div>
-  //       )}
-  //       {type === 3 && (
-  //         <div>
-  //           <h2 className="text-xl font-semibold">Super</h2>
-  //           <p className="text-gray-400 text-lg">
-  //             Até 150 membros | 600 créditos/mês
-  //           </p>
-  //         </div>
-  //       )}
-  //     </div>
-  //   </div>
-  // );
 }

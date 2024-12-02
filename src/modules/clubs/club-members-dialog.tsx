@@ -73,11 +73,13 @@ export function ClubMembersDialog({
                   </Link>
                   {isOwner ? (
                     <div>
-                      <RemoveMember
-                        clubId={clubId}
-                        userId={user.id}
-                        isOwner={true}
-                      />
+                      {session && session.username !== user.username && (
+                        <RemoveMember
+                          clubId={clubId}
+                          userId={user.id}
+                          isOwner={true}
+                        />
+                      )}
                     </div>
                   ) : (
                     session &&

@@ -1,20 +1,10 @@
 import DefaultCombobox from "@/components/form/combobox-default";
 import InputDefault from "@/components/form/input-default";
-import InputImage from "@/components/form/input-image";
 import InputImageWithPreview from "@/components/form/input-image-with-preview";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { useLevelsData, useVisibilityTypesData } from "@/hooks/use-auxiliaries";
 import { ComboboxItem, ComboboxOption } from "@/interfaces/level";
-import { Flag, X } from "@phosphor-icons/react/dist/ssr";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Flag } from "@phosphor-icons/react/dist/ssr";
 import { useFormContext } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
 
@@ -24,6 +14,7 @@ interface FinishingStrategyModalProps {
   error: Error | null;
   isOpen: boolean;
   closeFinishingStrategyModal: () => void;
+  hasClub: string | undefined;
 }
 
 export default function FinishingStrategyModal({
@@ -32,11 +23,9 @@ export default function FinishingStrategyModal({
   error,
   isOpen,
   closeFinishingStrategyModal,
+  hasClub,
 }: FinishingStrategyModalProps) {
   const levelsData = useLevelsData().data?.levels ?? [];
-
-  const visibilityTypesData =
-    useVisibilityTypesData().data?.visibilityTypes ?? [];
 
   const levels: ComboboxItem[] = levelsData
     .map((level: ComboboxOption) => ({
@@ -45,12 +34,26 @@ export default function FinishingStrategyModal({
     }))
     .filter((level: ComboboxItem) => level.label !== "Livre");
 
-  const visibilityTypes: ComboboxItem[] = visibilityTypesData.map(
-    (visibilityType: Partial<ComboboxOption>) => ({
-      value: visibilityType.id,
-      label: visibilityType.description,
-    })
-  );
+  const visibilityTypesData =
+    useVisibilityTypesData().data?.visibilityTypes ?? [];
+
+  let visibilityTypes: ComboboxItem[];
+
+  if (hasClub) {
+    visibilityTypes = visibilityTypesData.map(
+      (visibilityType: Partial<ComboboxOption>) => ({
+        value: visibilityType.id,
+        label: visibilityType.description,
+      })
+    );
+  } else {
+    visibilityTypes = visibilityTypesData
+      .map((visibilityType: Partial<ComboboxOption>) => ({
+        value: visibilityType.id,
+        label: visibilityType.description,
+      }))
+      .filter((visibilityType) => visibilityType.label !== "Apenas clube");
+  }
 
   const form = useFormContext();
   const errors = form.formState.errors;

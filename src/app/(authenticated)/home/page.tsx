@@ -15,7 +15,9 @@ export default function Home() {
       <Navbar back={false} />
       <div className="flex flex-col gap-4 my-8 px-2 container">
         <div>
-          <h1 className="font-semibold text-3xl">Olá, {user_name}</h1>
+          <h1 className="font-semibold text-3xl">
+            Olá, {user_name?.split(" ")[0]}
+          </h1>
           <h3 className="font-semibold text-primary text-xl">
             Qual é o plano de hoje?
           </h3>

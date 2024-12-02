@@ -15,25 +15,15 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Form } from "@/components/ui/form";
 import { useLevelsData } from "@/hooks/use-auxiliaries";
 import { useCep } from "@/hooks/use-cep";
-import { useCreateEvent, useUpdateEvent } from "@/hooks/use-events";
+import { useUpdateEvent } from "@/hooks/use-events";
 import { Event } from "@/interfaces/event";
-import {
-  ComboboxItem,
-  ComboboxOption,
-  Level,
-  LevelResponse,
-} from "@/interfaces/level";
-import { Location } from "@/interfaces/location";
-import api from "@/lib/axios";
+import { ComboboxItem, ComboboxOption } from "@/interfaces/level";
 import { deleteFile, handleFileUpload } from "@/lib/firebase-upload";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarDots } from "@phosphor-icons/react/dist/ssr";
-import { useQuery } from "@tanstack/react-query";
-import { AxiosResponse } from "axios";
-import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
 import { useDebouncedCallback } from "use-debounce";
@@ -103,10 +93,9 @@ export default function EventUpdateForm({
 }: {
   eventData: Event;
 }) {
-  const { data: session } = useSession();
-  const userId = session?.payload.sub;
-
-  const [keepCurrentImage, setKeepCurrentImage] = useState<boolean>(false);
+  const [keepCurrentImage, setKeepCurrentImage] = useState<boolean>(
+    event.image_url?.startsWith("http") ? true : false
+  );
   const [payOption, setPayOption] = useState(
     event.price ? "with-value" : "no-value"
   );

@@ -11,8 +11,6 @@ import api from "@/lib/axios";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useGetUserClubId } from "./use-users";
-import { useMemo } from "react";
-import { User } from "@/interfaces/user";
 
 export function useTrainingsData() {
   const { data: sessionData } = useSession();

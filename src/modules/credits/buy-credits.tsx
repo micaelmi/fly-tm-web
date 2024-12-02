@@ -87,6 +87,10 @@ export function BuyCredits({ userId }: { userId: string }) {
             onValueChange={setCredits}
           >
             <div className="flex items-center space-x-2">
+              <RadioGroupItem value="10" id="option-zero" />
+              <Label htmlFor="option-zero">10</Label>
+            </div>
+            <div className="flex items-center space-x-2">
               <RadioGroupItem value="250" id="option-one" />
               <Label htmlFor="option-one">250</Label>
             </div>

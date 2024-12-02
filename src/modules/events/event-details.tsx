@@ -120,15 +120,13 @@ export default function EventDetails({
                 <p className="flex gap-2 font-semibold text-primary">
                   <MapPinLine size={20} /> Endereço
                 </p>
-                <p className="whitespace-nowrap">
+                <p>
                   {data.street}, {data.neighborhood}, {data.address_number}
                 </p>
-                <p className="whitespace-nowrap">
+                <p>
                   {data.state} - {data.city} | CEP: {data.cep}
                 </p>
-                <p className="whitespace-nowrap">
-                  {data.complement && "Complemento: " + data.complement}
-                </p>
+                <p>{data.complement && "Complemento: " + data.complement}</p>
                 {data.maps_url && (
                   <Link
                     className="font-bold underline"

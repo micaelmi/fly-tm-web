@@ -2,34 +2,26 @@
 
 import InputDefault from "@/components/form/input-default";
 import TextareaDefault from "@/components/form/textarea-default";
-import Search from "@/components/search";
+import MovementsForChoose from "@/components/movements-for-choose";
+import Navbar from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { useCreateStrategy } from "@/hooks/use-strategies";
+import { useGetUserClubId } from "@/hooks/use-users";
+import { StrategyItem } from "@/interfaces/strategy";
+import { Movement } from "@/interfaces/training";
+import { handleFileUpload } from "@/lib/firebase-upload";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Question,
-  Strategy,
-  TrashSimple,
-  X,
-} from "@phosphor-icons/react/dist/ssr";
-import Image from "next/image";
+import { Strategy, TrashSimple } from "@phosphor-icons/react/dist/ssr";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import FinishingStrategyModal from "./finishing-strategy-modal";
-import { handleFileUpload } from "@/lib/firebase-upload";
-import Navbar from "@/components/navbar";
-import { Separator } from "@/components/ui/separator";
-import { useCreateStrategy } from "@/hooks/use-strategies";
-import MovementsForChoose from "@/components/movements-for-choose";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { StrategyItem } from "@/interfaces/strategy";
-import RelateMovementModal from "./relate-movement-modal";
-import { Movement } from "@/interfaces/training";
-import { AnimatePresence, motion } from "motion/react";
 import RelateMovementCard from "./relate-movement-card";
 
 const FormSchema = z.object({
@@ -74,6 +66,8 @@ export default function StrategyRegisterForm() {
     setStrategyItems([...strategyItems, addNewStrategyItem]);
   };
 
+  const hasClub = useGetUserClubId();
+
   const router = useRouter();
 
   const { mutate, isPending, isError, error } = useCreateStrategy();
@@ -113,6 +107,7 @@ export default function StrategyRegisterForm() {
         user_id: user_id ?? "",
         level_id: filteredData.level_id,
         visibility_type_id: filteredData.visibility_type_id,
+        club_id: filteredData.visibility_type_id === 3 ? hasClub : undefined,
         items: filteredData.strategyItems,
       },
       {
@@ -222,6 +217,7 @@ export default function StrategyRegisterForm() {
                   form.setValue("icon_file", new File([], ""));
                   setIsFinishingStrategyModalOpen(false);
                 }}
+                hasClub={hasClub}
               />
             </form>
           </Form>

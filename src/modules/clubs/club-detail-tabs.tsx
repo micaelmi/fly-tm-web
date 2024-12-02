@@ -120,6 +120,12 @@ export default function ClubDetailTabs({
               >
                 Atualizar informações
               </Link>
+
+              <p
+                className={`${buttonVariants({ variant: "outline" })}hover:bg-transparent ${club._count.users === club.max_members && "bg-destructive"}`}
+              >
+                Membros: {club._count.users}/{club.max_members}
+              </p>
             </div>
           </div>
         </TabsContent>

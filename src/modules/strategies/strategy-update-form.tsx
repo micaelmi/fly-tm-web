@@ -1,39 +1,33 @@
 "use client";
 
+import Loading from "@/app/loading";
+import DefaultCombobox from "@/components/form/combobox-default";
 import InputDefault from "@/components/form/input-default";
+import InputImageWithPreview from "@/components/form/input-image-with-preview";
 import TextareaDefault from "@/components/form/textarea-default";
+import MovementsForChoose from "@/components/movements-for-choose";
+import Navbar from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Question,
-  Strategy,
-  TrashSimple,
-} from "@phosphor-icons/react/dist/ssr";
-import Image from "next/image";
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import Navbar from "@/components/navbar";
 import { Separator } from "@/components/ui/separator";
-import { useEditStrategy, useStrategyById } from "@/hooks/use-strategies";
-import MovementsForChoose from "@/components/movements-for-choose";
-import { useSession } from "next-auth/react";
-import { useParams, useRouter } from "next/navigation";
-import DefaultCombobox from "@/components/form/combobox-default";
-import InputImageWithPreview from "@/components/form/input-image-with-preview";
-import Loading from "@/app/loading";
 import { useLevelsData, useVisibilityTypesData } from "@/hooks/use-auxiliaries";
+import { useEditStrategy, useStrategyById } from "@/hooks/use-strategies";
+import { useGetUserClubId } from "@/hooks/use-users";
 import { ComboboxItem, ComboboxOption } from "@/interfaces/level";
-import { FaSpinner } from "react-icons/fa";
 import { StrategyItem } from "@/interfaces/strategy";
-import RelateMovementModal from "./relate-movement-modal";
 import { Movement } from "@/interfaces/training";
 import { deleteFile, handleFileUpload } from "@/lib/firebase-upload";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Strategy, TrashSimple } from "@phosphor-icons/react/dist/ssr";
+import { useSession } from "next-auth/react";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { FaSpinner } from "react-icons/fa";
+import { z } from "zod";
 import RelateMovementCard from "./relate-movement-card";
-import { useGetUserClubId } from "@/hooks/use-users";
 
 const FormSchema = z.object({
   title: z.string().min(1),

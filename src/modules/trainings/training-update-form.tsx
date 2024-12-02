@@ -6,30 +6,29 @@ import InputDefault from "@/components/form/input-default";
 import InputImageWithPreview from "@/components/form/input-image-with-preview";
 import TextareaDefault from "@/components/form/textarea-default";
 import Navbar from "@/components/navbar";
+import PageTitleWithIcon from "@/components/page-title-with-icon";
+import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Training, TrainingItem } from "@/interfaces/training";
-import api from "@/lib/axios";
+import { useLevelsData, useVisibilityTypesData } from "@/hooks/use-auxiliaries";
+import { useEditTraining, useTrainingById } from "@/hooks/use-trainings";
+import { useGetUserClubId } from "@/hooks/use-users";
+import { ComboboxItem, ComboboxOption } from "@/interfaces/level";
+import { TrainingItem } from "@/interfaces/training";
+import { deleteFile, handleFileUpload } from "@/lib/firebase-upload";
+import { formatTime } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useQuery } from "@tanstack/react-query";
+import { Barbell } from "@phosphor-icons/react/dist/ssr";
 import { Reorder } from "motion/react";
 import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
-import TrainingItemCard from "./training-item-card";
-import { Button } from "@/components/ui/button";
-import AddTrainingItemModal from "./add-training-item-modal";
-import PageTitleWithIcon from "@/components/page-title-with-icon";
-import { Barbell } from "@phosphor-icons/react/dist/ssr";
-import { createUniqueIdGenerator, formatTime } from "@/lib/utils";
-import { useEditTraining, useTrainingById } from "@/hooks/use-trainings";
-import { deleteFile, handleFileUpload } from "@/lib/firebase-upload";
 import { FaSpinner } from "react-icons/fa";
-import { ComboboxItem, ComboboxOption } from "@/interfaces/level";
-import { useLevelsData, useVisibilityTypesData } from "@/hooks/use-auxiliaries";
+import { z } from "zod";
+import AddTrainingItemModal from "./add-training-item-modal";
+import TrainingItemCard from "./training-item-card";
 
 const FormSchema = z.object({
   title: z.string().min(1).optional(),
@@ -100,12 +99,25 @@ export default function TrainingUpdateForm() {
     }))
     .filter((level: ComboboxItem) => level.label !== "Livre");
 
-  const visibilityTypes: ComboboxItem[] = visibilityTypesData.map(
-    (visibilityType: Partial<ComboboxOption>) => ({
-      value: visibilityType.id,
-      label: visibilityType.description,
-    })
-  );
+  const hasClub = useGetUserClubId();
+
+  let visibilityTypes: ComboboxItem[];
+
+  if (hasClub) {
+    visibilityTypes = visibilityTypesData.map(
+      (visibilityType: Partial<ComboboxOption>) => ({
+        value: visibilityType.id,
+        label: visibilityType.description,
+      })
+    );
+  } else {
+    visibilityTypes = visibilityTypesData
+      .map((visibilityType: Partial<ComboboxOption>) => ({
+        value: visibilityType.id,
+        label: visibilityType.description,
+      }))
+      .filter((visibilityType) => visibilityType.label !== "Apenas clube");
+  }
 
   const addNewTrainingItem = (data: TrainingItem) => {
     const newItem = {
@@ -203,6 +215,7 @@ export default function TrainingUpdateForm() {
         ...(file && { icon_url: filteredData.icon_url }),
         level_id: filteredData.level_id,
         visibility_type_id: filteredData.visibility_type_id,
+        club_id: filteredData.visibility_type_id === 3 ? hasClub : undefined,
         items: filteredData.items,
       },
     };

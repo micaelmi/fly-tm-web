@@ -27,6 +27,8 @@ import { toast } from "react-toastify";
 import * as z from "zod";
 import ClubStepIndicator from "./club-step-indicator";
 import { PlanCards } from "./plan-cards";
+import { useGetUserCredits } from "@/hooks/use-users";
+import { plans } from "./club-plans";
 
 const FormSchema = z.object({
   name: z.string().min(4, { message: "Mínimo de 4 caracteres" }),
@@ -85,17 +87,12 @@ export default function ClubRegisterForm() {
     },
   });
 
-  const plans = [
-    { id: 1, price: 0, members: 5 },
-    { id: 2, price: 250, members: 35 },
-    { id: 3, price: 600, members: 150 },
-  ];
-
   const [loading, setLoading] = useState(false);
 
   const router = useRouter();
   const { mutate: createClub, isError } = useCreateClub();
   const { mutate: manageCredits } = useManageCredits();
+  const credits = useGetUserCredits();
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     setLoading(true);
@@ -159,45 +156,49 @@ export default function ClubRegisterForm() {
     if (background === undefined) background = data.background_color || "#fff";
 
     // passo 4 - criar clube
-    createClub(
-      {
-        name: data.name,
-        description: data.description,
-        logo_url: logoFile,
-        background: background,
-        owner_username: username,
-        email: data.email,
-        phone: data.phone,
-        instagram: data.instagram,
-        other_contacts: data.other_contacts,
-        schedule: data.schedule,
-        prices: data.prices,
-        cep: data.cep,
-        state: data.state,
-        city: data.city,
-        neighborhood: data.neighborhood,
-        street: data.street,
-        address_number: Number(data.address_number),
-        complement: data.complement,
-        maps_url: data.maps_url,
-        max_members: planMembers,
-      },
-      {
-        onSuccess: async (club) => {
-          // passo 5 - subtrair créditos do usuário e registrar transação (efetuar pagamento)
-          if (price > 0) {
-            manageCredits({
-              action: "spend",
-              amount: price,
-              description: `Criação do clube ${data.name}`,
-              user_id: userId,
-            });
-          }
-          // passo 6 - redirecionar para a pagina do clube criado
-          router.push(`/clubs/${club.clubId}`);
+    if (successes > 0) {
+      createClub(
+        {
+          name: data.name,
+          description: data.description,
+          logo_url: logoFile,
+          background: background,
+          owner_username: username,
+          email: data.email,
+          phone: data.phone,
+          instagram: data.instagram,
+          other_contacts: data.other_contacts,
+          schedule: data.schedule,
+          prices: data.prices,
+          cep: data.cep,
+          state: data.state,
+          city: data.city,
+          neighborhood: data.neighborhood,
+          street: data.street,
+          address_number: Number(data.address_number),
+          complement: data.complement,
+          maps_url: data.maps_url,
+          max_members: planMembers,
         },
-      }
-    );
+        {
+          onSuccess: async (club) => {
+            // passo 5 - subtrair créditos do usuário e registrar transação (efetuar pagamento)
+            if (price > 0) {
+              manageCredits({
+                action: "spend",
+                amount: price,
+                description: `Criação do clube ${data.name}`,
+                user_id: userId,
+              });
+            }
+            // passo 6 - redirecionar para a pagina do clube criado
+            router.push(`/clubs/${club.clubId}`);
+          },
+        }
+      );
+    } else {
+      toast.error("Falha ao realizar a operação.");
+    }
     setLoading(false);
   };
 

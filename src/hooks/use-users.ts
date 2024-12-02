@@ -1,38 +1,13 @@
-import { useMutation, useQuery, UseQueryResult } from "@tanstack/react-query";
-import api from "@/lib/axios";
-import { AxiosResponse } from "axios";
 import {
   User,
-  UserByUsername,
   UserByUsernameApiResponse,
   UserByUsernameWithSelectApiResponse,
-  UserData,
   UserRegisterData,
   UserResponse,
-  UsersResponse,
 } from "@/interfaces/user";
+import api from "@/lib/axios";
+import { useMutation, useQuery, UseQueryResult } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
-
-const fetchUsers = async (): Promise<AxiosResponse<UsersResponse>> => {
-  const response = await api.get<UsersResponse>("/users", {
-    headers: {},
-  });
-  console.log(response);
-  return response;
-};
-
-export function useUsersData() {
-  const query = useQuery({
-    queryKey: ["users"],
-    queryFn: fetchUsers,
-    refetchInterval: 5 * 60 * 1000, // 5 minutes
-    // enabled: !!id, // if...
-    // retry: false,
-    refetchOnWindowFocus: true,
-    refetchOnReconnect: true,
-  });
-  return { ...query, data: query.data?.data };
-}
 
 export const useGetUser = (username: string) => {
   const { data: dataSession } = useSession();
@@ -148,4 +123,18 @@ export function useGetUserClubId() {
   const club_id = queryData.data?.user.club?.id;
 
   return club_id;
+}
+
+export function useGetUserCredits() {
+  const queryData = useGetUserByUsername((data) => {
+    return {
+      user: {
+        credits: data.user.credits,
+      },
+    };
+  });
+
+  const credits = queryData.data?.user.credits;
+
+  return credits;
 }
