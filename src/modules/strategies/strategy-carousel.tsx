@@ -1,4 +1,5 @@
 "use client";
+import Loading from "@/app/loading";
 import {
   Carousel,
   CarouselContent,
@@ -6,15 +7,14 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import Autoplay from "embla-carousel-autoplay";
-import Loading from "@/app/loading";
+import { Input } from "@/components/ui/input";
+import { Strategy, StrategyResponse } from "@/interfaces/strategy";
+import { Separator } from "@radix-ui/react-separator";
 import { UseQueryResult } from "@tanstack/react-query";
 import { AxiosResponse } from "axios";
+import Autoplay from "embla-carousel-autoplay";
 import { ReactNode, useState } from "react";
-import { Strategy, StrategyResponse } from "@/interfaces/strategy";
 import StrategyCard from "./strategy-card";
-import { Separator } from "@radix-ui/react-separator";
-import { Input } from "@/components/ui/input";
 
 interface StrategyCarouselProps {
   strategies: UseQueryResult<AxiosResponse<StrategyResponse, any>, Error>;

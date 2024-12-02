@@ -2,29 +2,22 @@
 
 import Loading from "@/app/loading";
 import Navbar from "@/components/navbar";
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import {
   useIncrementTrainingDays,
   useTrainingById,
 } from "@/hooks/use-trainings";
-import { useEditUser } from "@/hooks/use-users";
-import { Training, TrainingItem } from "@/interfaces/training";
-import api from "@/lib/axios";
-import { formatTime, Timer } from "@/lib/utils";
+import { TrainingItem } from "@/interfaces/training";
+import { formatTime } from "@/lib/utils";
 import {
   ArrowCircleLeft,
   ArrowCircleRight,
   Clock,
-  Fire,
   Flag,
-  Star,
 } from "@phosphor-icons/react/dist/ssr";
-import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 

@@ -13,22 +13,16 @@ import {
 } from "./ui/select";
 import { Input } from "./ui/input";
 import { convertToSeconds, createUniqueIdGenerator } from "@/lib/utils";
-import { TrainingItem } from "@/interfaces/training";
+import { Movement, TrainingItem } from "@/interfaces/training";
 
 interface AddItemModalProps {
-  movement_id: number;
-  movement_name: string;
-  movement_image_url: string;
-  movement_average_time: number;
+  movement: Movement;
   closeAddItemModal: () => void;
   addNewItem: (data: TrainingItem) => void;
 }
 
 export default function AddItemModal({
-  movement_id,
-  movement_name,
-  movement_image_url,
-  movement_average_time,
+  movement,
   closeAddItemModal,
   addNewItem,
 }: AddItemModalProps) {
@@ -80,12 +74,7 @@ export default function AddItemModal({
       time: time,
       queue: 0,
       comments: data.get("comments")?.toString() ?? "",
-      movement: {
-        id: movement_id,
-        average_time: movement_average_time,
-        image_url: movement_image_url ?? "",
-        name: movement_name,
-      },
+      movement: movement,
     };
 
     addNewItem(item);
@@ -102,10 +91,10 @@ export default function AddItemModal({
           </button>
         </div>
         <div className="bg-zinc-800 w-full h-px" />
-        {movement_name}
+        {movement.name}
         <div className="flex items-center gap-3">
           <Image
-            src={movement_image_url}
+            src={movement.image_url}
             alt="Imagem do movimento"
             width={120}
             height={120}

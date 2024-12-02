@@ -2,21 +2,19 @@
 
 import Loading from "@/app/loading";
 import Navbar from "@/components/navbar";
+import ShareButton from "@/components/share-button";
+import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import api from "@/lib/axios";
+import { useDeleteTraining, useTrainingById } from "@/hooks/use-trainings";
+import { formatTime } from "@/lib/utils";
 import { Clock, Flag, Pencil } from "@phosphor-icons/react/dist/ssr";
-import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
-import { useParams } from "next/navigation";
-import ItemDetailsModal from "./item-details-modal";
-import { Button } from "@/components/ui/button";
-import ShareButton from "@/components/share-button";
 import Link from "next/link";
-import { formatTime } from "@/lib/utils";
+import { useParams } from "next/navigation";
 import { DeleteTrainingOrStrategy } from "./delete-training-or-strategy";
-import { useDeleteTraining, useTrainingById } from "@/hooks/use-trainings";
+import ItemDetailsModal from "./item-details-modal";
 
 export default function ListTraining() {
   const session = useSession();

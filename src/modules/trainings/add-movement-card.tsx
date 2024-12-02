@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { Movement } from "@/interfaces/training";
-import { cn } from "@/lib/utils";
 import { Question, X } from "@phosphor-icons/react/dist/ssr";
 import { AnimatePresence, motion } from "motion/react";
 import Image from "next/image";
@@ -9,12 +8,7 @@ import { useState } from "react";
 interface AddMovementCardProps {
   movement: Movement;
   parentClassname?: string;
-  openAddItemModal: (
-    movement_id: number,
-    movement_name: string,
-    movement_image_url: string,
-    movement_average_time: number
-  ) => void;
+  openAddItemModal: (movement: Movement) => void;
 }
 
 export default function AddMovementCard({
@@ -82,14 +76,7 @@ export default function AddMovementCard({
         <Button
           variant="ghost"
           type="button"
-          onClick={() =>
-            openAddItemModal(
-              movement.id,
-              movement.name,
-              movement.image_url,
-              movement.average_time
-            )
-          }
+          onClick={() => openAddItemModal(movement)}
           className="text-primary"
         >
           Adicionar

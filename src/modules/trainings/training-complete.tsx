@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Fire, Star } from "@phosphor-icons/react/dist/ssr";
-import { motion, AnimatePresence } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import Confetti from "react-confetti";

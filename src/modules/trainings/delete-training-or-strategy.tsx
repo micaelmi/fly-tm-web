@@ -9,12 +9,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import { useDeleteTraining } from "@/hooks/use-trainings";
 import { Trash } from "@phosphor-icons/react/dist/ssr";
 import { UseMutationResult } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 
 export function DeleteTrainingOrStrategy({
   type,

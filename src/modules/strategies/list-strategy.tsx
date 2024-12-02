@@ -2,18 +2,18 @@
 
 import Loading from "@/app/loading";
 import Navbar from "@/components/navbar";
+import ShareButton from "@/components/share-button";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 import { useDeleteStrategy, useStrategyById } from "@/hooks/use-strategies";
 import { Flag, Pencil } from "@phosphor-icons/react/dist/ssr";
 import { useSession } from "next-auth/react";
+import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { DeleteTrainingOrStrategy } from "../trainings/delete-training-or-strategy";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import Image from "next/image";
 import ItemDetailsModal from "../trainings/item-details-modal";
-import { Separator } from "@/components/ui/separator";
-import ShareButton from "@/components/share-button";
-import { Button } from "@/components/ui/button";
 
 export default function ListStrategy() {
   const session = useSession();

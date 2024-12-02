@@ -1,4 +1,5 @@
 "use client";
+import Loading from "@/app/loading";
 import {
   Carousel,
   CarouselContent,
@@ -6,15 +7,14 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import Autoplay from "embla-carousel-autoplay";
-import TrainingCard from "./training-card";
-import Loading from "@/app/loading";
+import { Input } from "@/components/ui/input";
 import { Training, TrainingsResponse } from "@/interfaces/training";
+import { Separator } from "@radix-ui/react-separator";
 import { UseQueryResult } from "@tanstack/react-query";
 import { AxiosResponse } from "axios";
+import Autoplay from "embla-carousel-autoplay";
 import { ReactNode, useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Separator } from "@radix-ui/react-separator";
+import TrainingCard from "./training-card";
 
 interface TrainingsCarouselProps {
   trainings: UseQueryResult<AxiosResponse<TrainingsResponse, any>, Error>;

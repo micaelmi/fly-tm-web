@@ -24,17 +24,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { TrainingItem } from "@/interfaces/training";
+import { Movement, TrainingItem } from "@/interfaces/training";
 import MovementsForChoose from "@/components/movements-for-choose";
-
-interface Movement {
-  id: number;
-  name: string;
-  description: string;
-  average_time: number;
-  video_url: string;
-  image_url: string;
-}
 
 interface AddTrainingItemModalProps {
   addNewTrainingItem: (data: TrainingItem) => void;
@@ -47,34 +38,34 @@ export default function AddTrainingItemModal({
   const [selectedOption, setSelectedOption] = useState("");
   const [error, setError] = useState("");
   const [addTrainingItemForm, setTrainingItemForm] = useState({
-    movement_id: 0,
-    movement_name: "",
-    movement_image_url: "",
-    movement_average_time: 0,
+    movement: {
+      id: 0,
+      average_time: 0,
+      description: "",
+      image_url: "",
+      name: "",
+      video_url: "",
+    },
     is_open: false,
   });
 
-  const openAddTrainingItemForm = (
-    movement_id: number,
-    movement_name: string,
-    movement_image_url: string,
-    movement_average_time: number
-  ) => {
+  const openAddTrainingItemForm = (movement: Movement) => {
     setTrainingItemForm({
-      movement_id: movement_id,
-      movement_name: movement_name,
-      movement_image_url: movement_image_url,
-      movement_average_time: movement_average_time,
+      movement: movement,
       is_open: true,
     });
   };
 
   const closeAddTrainingItemModal = () => {
     setTrainingItemForm({
-      movement_id: 0,
-      movement_name: "",
-      movement_image_url: "",
-      movement_average_time: 0,
+      movement: {
+        id: 0,
+        average_time: 0,
+        description: "",
+        image_url: "",
+        name: "",
+        video_url: "",
+      },
       is_open: false,
     });
     setSelectedOption("");
@@ -126,12 +117,7 @@ export default function AddTrainingItemModal({
       time: time,
       queue: 0,
       comments: data.get("comments")?.toString() ?? "",
-      movement: {
-        id: addTrainingItemForm.movement_id,
-        average_time: addTrainingItemForm.movement_average_time,
-        image_url: addTrainingItemForm.movement_image_url ?? "",
-        name: addTrainingItemForm.movement_name,
-      },
+      movement: addTrainingItemForm.movement,
     };
 
     closeAddTrainingItemModal();
@@ -160,7 +146,7 @@ export default function AddTrainingItemModal({
               <span>
                 Você selecionou a opção{" "}
                 <span className="font-bold">
-                  {addTrainingItemForm.movement_name}
+                  {addTrainingItemForm.movement.name}
                 </span>
                 <br />
                 <br />

@@ -1,7 +1,5 @@
-import api from "@/lib/axios";
 import { formatTime } from "@/lib/utils";
-import { Flag, Clock } from "@phosphor-icons/react/dist/ssr";
-import { useQuery } from "@tanstack/react-query";
+import { Clock, Flag } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 
 interface TrainingCardProps {

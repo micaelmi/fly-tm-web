@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { TrainingItem } from "@/interfaces/training";
+import { Movement, TrainingItem } from "@/interfaces/training";
 import AddMovementCard from "@/modules/trainings/add-movement-card";
 import FinishingTrainingModal from "@/modules/trainings/finishing-training-modal";
 import TrainingsSession from "@/modules/trainings/page-session";
@@ -23,37 +23,37 @@ export default function TrainingRegisterForm() {
   const [trainingItems, setTrainingItems] = useState<TrainingItem[]>([]);
   const [description, setDescription] = useState<string>("");
   const [addItemModal, setAddItemModal] = useState({
-    movement_id: 0,
-    movement_name: "",
-    movement_image_url: "",
-    movement_average_time: 0,
+    movement: {
+      id: 0,
+      name: "",
+      description: "",
+      average_time: 0,
+      video_url: "",
+      image_url: "",
+    },
     is_open: false,
   });
   const [finishingTrainingModal, setFinishinTrainingModal] = useState({
     is_open: false,
   });
 
-  function openAddItemModal(
-    movement_id: number,
-    movement_name: string,
-    movement_image_url: string,
-    movement_average_time: number
-  ) {
+  function openAddItemModal(movement: Movement) {
     setAddItemModal({
-      movement_id: movement_id,
-      movement_name: movement_name,
-      movement_image_url: movement_image_url,
-      movement_average_time: movement_average_time,
+      movement: movement,
       is_open: true,
     });
   }
 
   function closeAddItemModal() {
     setAddItemModal({
-      movement_id: 0,
-      movement_name: "",
-      movement_image_url: "",
-      movement_average_time: 0,
+      movement: {
+        id: 0,
+        name: "",
+        description: "",
+        average_time: 0,
+        video_url: "",
+        image_url: "",
+      },
       is_open: false,
     });
   }
@@ -202,10 +202,7 @@ export default function TrainingRegisterForm() {
 
         {addItemModal.is_open && (
           <AddItemModal
-            movement_id={addItemModal.movement_id}
-            movement_name={addItemModal.movement_name}
-            movement_image_url={addItemModal.movement_image_url}
-            movement_average_time={addItemModal.movement_average_time}
+            movement={addItemModal.movement}
             closeAddItemModal={closeAddItemModal}
             addNewItem={addNewTrainingItem}
           />

@@ -1,9 +1,8 @@
 "use client";
 
+import { formatTime } from "@/lib/utils";
 import { TrashSimple } from "@phosphor-icons/react/dist/ssr";
 import Image from "next/image";
-import { formatTime } from "@/lib/utils";
-import { TrainingItem } from "@/interfaces/training";
 
 interface TrainingItemCardProps {
   image_url: string | undefined;
