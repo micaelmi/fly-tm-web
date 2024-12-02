@@ -110,6 +110,9 @@ export function useGetUserByUsername(
       return response.data;
     },
     enabled: !!token && !!username,
+    refetchInterval: 5 * 1000,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
     ...(selectData && { select: selectData }),
   }) as unknown as UseQueryResult<
     typeof selectData extends undefined
@@ -144,6 +147,5 @@ export function useGetUserCredits() {
   });
 
   const credits = queryData.data?.user.credits;
-
   return credits;
 }

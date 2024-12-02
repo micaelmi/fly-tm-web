@@ -87,8 +87,8 @@ export function useTrainingById(training_id: string) {
       return response.data;
     },
     enabled: !!token && !!training_id,
-    staleTime: 1000 * 60 * 5, // Cache de 5 minutos
-    retry: 1,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   });
 }
 

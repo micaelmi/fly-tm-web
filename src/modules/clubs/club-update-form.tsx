@@ -176,7 +176,7 @@ export default function ClubUpdateForm({ clubData: club }: { clubData: Club }) {
       }
     }
 
-    // passo 4 - criar clube
+    // passo 4 - atualizar clube
     updateClub(
       {
         clubId: club.id,
@@ -206,11 +206,17 @@ export default function ClubUpdateForm({ clubData: club }: { clubData: Club }) {
       {
         onSuccess: async (club) => {
           // passo 5 - subtrair créditos do usuário e registrar transação (efetuar pagamento)
-          if (price > 0 && planMembers !== club.max_members) {
+          if (
+            price > 0 &&
+            planMembers !== club.max_members &&
+            selectedPlan &&
+            selectedPlan?.price !== price
+          ) {
+            const newPrice = price - selectedPlan?.price;
             manageCredits({
               action: "spend",
-              amount: price,
-              description: `Criação do clube ${data.name}`,
+              amount: newPrice,
+              description: `Atualização de plano do clube ${data.name}`,
               user_id: userId,
             });
           }
@@ -547,6 +553,11 @@ export default function ClubUpdateForm({ clubData: club }: { clubData: Club }) {
                 name="selected_plan"
                 label="Selecione um plano"
               />
+              <span className="p-0 font-medium text-gray-300 text-sm">
+                Se você for aumentar seu plano do básico para o super, pagará
+                apenas a diferença de valores, se mantiver no básico, nenhum
+                valor será cobrado.
+              </span>
               {/* buttons: cancel and register */}
               <div className="flex justify-center md:justify-between gap-2 mb-20">
                 <Button

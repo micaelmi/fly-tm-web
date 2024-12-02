@@ -67,7 +67,7 @@ export default function TrainingsCarousel({
       </div>
       {filteredTrainings && filteredTrainings.length < 1 ? (
         <p className="w-full font-medium text-center text-lg text-primary">
-          Nenhum clube encontrado para "{searchTerm}".
+          Nenhum treino encontrado para "{searchTerm}".
         </p>
       ) : (
         <Carousel

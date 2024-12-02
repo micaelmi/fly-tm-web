@@ -34,6 +34,8 @@ export function RemoveMember({
     });
     if (!isOwner) {
       router.push("/home");
+    } else {
+      router.refresh();
     }
   }
   return (

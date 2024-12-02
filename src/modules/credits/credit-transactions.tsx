@@ -69,8 +69,8 @@ export default function CreditTransactions({ userId }: { userId: string }) {
                     {transaction.amount}
                   </div>
                 </TableCell>
-                {transaction.action === "buy" && (
-                  <TableCell>
+                <TableCell>
+                  {transaction.action === "buy" && (
                     <div className="flex gap-2">
                       <Button
                         variant={"outline"}
@@ -97,8 +97,8 @@ export default function CreditTransactions({ userId }: { userId: string }) {
                             : null}
                       </div>
                     </div>
-                  </TableCell>
-                )}
+                  )}
+                </TableCell>
                 <TableCell className="font-semibold text-gray-400 text-xl">
                   {format(transaction.created_at, "dd MMM yyyy", {
                     locale: ptBR,
