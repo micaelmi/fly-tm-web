@@ -1,4 +1,5 @@
 "use client";
+import Loading from "@/app/loading";
 import { CancelButton } from "@/components/cancel-button";
 import ColorPicker from "@/components/form/color-picker";
 import DefaultCombobox from "@/components/form/combobox-default";
@@ -15,15 +16,15 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Form } from "@/components/ui/form";
 import { useLevelsData } from "@/hooks/use-auxiliaries";
 import { useCep } from "@/hooks/use-cep";
-import { useUpdateEvent } from "@/hooks/use-events";
+import { useGetEvent, useUpdateEvent } from "@/hooks/use-events";
 import { Event } from "@/interfaces/event";
 import { ComboboxItem, ComboboxOption } from "@/interfaces/level";
 import { deleteFile, handleFileUpload } from "@/lib/firebase-upload";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarDots } from "@phosphor-icons/react/dist/ssr";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { FormEvent, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FaSpinner } from "react-icons/fa";
 import { useDebouncedCallback } from "use-debounce";
@@ -40,7 +41,7 @@ const FormSchema = z
     city: z.string(),
     neighborhood: z.string(),
     street: z.string(),
-    address_number: z
+    address_number: z.coerce
       .string()
       .regex(/^\d+$/, {
         message: "O campo deve conter apenas números",
@@ -49,9 +50,6 @@ const FormSchema = z
     complement: z.string(),
     level: z.number(),
     price: z.string(),
-    representationUrl: z.instanceof(File).optional(),
-    representationColor: z.string().optional(),
-    representationOption: z.enum(["image", "color"]),
     maps_url: z
       .string()
       .optional() // O campo é opcional
@@ -68,68 +66,20 @@ const FormSchema = z
         message: "A data de fim deve ser maior ou igual à data de início",
       });
     }
-
-    if (data.representationOption === "image") {
-      if (!data.representationUrl || data.representationUrl.size === 0) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["representationUrl"],
-          message: "Selecione uma imagem",
-        });
-      }
-    } else if (data.representationOption === "color") {
-      if (!data.representationColor || data.representationColor === undefined) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["representationColor"],
-          message: "Selecione uma cor",
-        });
-      }
-    }
   });
 
-export default function EventUpdateForm({
-  eventData: event,
-}: {
-  eventData: Event;
-}) {
-  const [keepCurrentImage, setKeepCurrentImage] = useState<boolean>(
-    event.image_url?.startsWith("http") ? true : false
-  );
-  const [payOption, setPayOption] = useState(
-    event.price ? "with-value" : "no-value"
-  );
+export default function EventUpdateForm() {
+  const eventId = useParams().id;
+  const { data: eventData, isLoading, error } = useGetEvent(eventId as string);
 
-  const form = useForm<z.infer<typeof FormSchema>>({
-    resolver: zodResolver(FormSchema),
-    defaultValues: {
-      name: event.name ?? "",
-      description: event.description ?? "",
-      startsAt: new Date(event.start_date ?? ""),
-      endsAt: new Date(event.end_date ?? ""),
-      cep: event.cep ?? "",
-      state: event.state ?? "",
-      city: event.city ?? "",
-      neighborhood: event.neighborhood ?? "",
-      street: event.street ?? "",
-      address_number: event.address_number.toString() ?? "",
-      complement: event.complement ?? "",
-      level: event.level_id,
-      price: event.price ?? "",
-      representationUrl: new File([], ""),
-      representationColor:
-        event.image_url && event.image_url.startsWith("#")
-          ? event.image_url
-          : "#fff",
-      representationOption:
-        event.image_url && event.image_url.startsWith("#") ? "color" : "image",
-      maps_url: event.maps_url ?? "",
-      status: event.status ?? "",
-    },
-  });
-
-  const informedCep = form.watch("cep");
-  const { data, isSuccess } = useCep(informedCep);
+  const [keepCurrentImage, setKeepCurrentImage] = useState<boolean>(false);
+  const [payOption, setPayOption] = useState("no-value");
+  const [representationFile, setRepresentationFile] = useState(
+    new File([], "")
+  );
+  const [representationColor, setRepresentationColor] = useState("#ffffff");
+  const [representationOption, setRepresentationOption] = useState("image");
+  const [imageOrColorError, setImageOrColorError] = useState("");
 
   const getLocation = useDebouncedCallback(() => {
     if (isSuccess) {
@@ -149,6 +99,68 @@ export default function EventUpdateForm({
 
   const levelsData = useLevelsData().data?.levels ?? [];
 
+  const form = useForm<z.infer<typeof FormSchema>>({
+    resolver: zodResolver(FormSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+      startsAt: undefined,
+      endsAt: undefined,
+      cep: "",
+      state: "",
+      city: "",
+      neighborhood: "",
+      street: "",
+      address_number: "",
+      complement: "",
+      level: undefined,
+      price: "",
+      maps_url: "",
+      status: "active",
+    },
+  });
+
+  const informedCep = form.watch("cep");
+
+  const { data, isSuccess } = useCep(informedCep);
+
+  const router = useRouter();
+
+  const { mutate, isPending, isError } = useUpdateEvent();
+
+  useEffect(() => {
+    if (eventData?.event) {
+      const event = eventData.event;
+      const hasImageAsRepresentation =
+        event.image_url && event.image_url.startsWith("http");
+
+      const hasColorAsRepresentation =
+        event.image_url && event.image_url.startsWith("#");
+
+      setRepresentationColor(
+        hasColorAsRepresentation ? event.image_url! : "#ffffff"
+      );
+      setRepresentationOption(hasColorAsRepresentation ? "color" : "image");
+
+      form.reset({
+        ...event,
+        address_number: String(event.address_number),
+        level: event.level_id,
+        startsAt: new Date(event.start_date),
+        endsAt: new Date(event.end_date),
+        maps_url: event.maps_url ?? "",
+      });
+
+      setKeepCurrentImage(hasImageAsRepresentation ? true : false);
+      setPayOption(event.price ? "with-value" : "no-value");
+    }
+  }, [eventData?.event]);
+
+  if (isLoading || !eventData) return <Loading />;
+  if (error) return <p>Erro ao carregar dados do evento: {error.message}</p>;
+
+  const event = eventData?.event;
+
   const levels: ComboboxItem[] = levelsData.map((level: ComboboxOption) => ({
     value: level.id,
     label: level.title,
@@ -165,11 +177,25 @@ export default function EventUpdateForm({
     },
   ];
 
-  const router = useRouter();
-
-  const { mutate, isPending, isError } = useUpdateEvent();
-
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
+    if (!keepCurrentImage) {
+      if (representationOption === "image") {
+        if (!representationFile || representationFile.size === 0) {
+          setImageOrColorError("Selecione uma imagem");
+          return;
+        }
+      } else if (representationOption === "color") {
+        if (!representationColor || representationColor === undefined) {
+          setImageOrColorError("Selecione uma cor");
+          return;
+        }
+      }
+      if (representationColor && representationColor.length < 6) {
+        setImageOrColorError("Mínimo de 6 dígitos para o código da cor.");
+        return;
+      }
+    }
+
     let filteredData;
 
     //Se a representação atual for uma image
@@ -185,46 +211,55 @@ export default function EventUpdateForm({
     //Se está trocando a imagem atual por outra imagem
     if (
       !keepCurrentImage &&
-      data.representationUrl &&
-      data.representationUrl.size > 0
+      representationFile &&
+      representationFile.size > 0
     ) {
       let file;
-      if (data.representationUrl instanceof File) {
+      if (representationFile instanceof File) {
         const timestamp = new Date().toISOString();
-        const fileExtension = data.representationUrl.name.split(".").pop();
+        const fileExtension = representationFile.name.split(".").pop();
         file = await handleFileUpload(
-          data.representationUrl,
+          representationFile,
           `eventos/imagem-representacao-${timestamp}.${fileExtension}`
         );
       } else file = "";
 
-      const {
-        representationUrl,
-        representationColor,
-        representationOption,
-        ...rest
-      } = data;
       filteredData = {
-        ...rest,
+        ...data,
         representation: file, // A URL da imagem após o upload
       };
     } else {
-      const {
-        representationUrl,
-        representationOption,
-        representationColor,
-        ...rest
-      } = data;
-
       if (keepCurrentImage && !event.image_url?.startsWith("#")) {
-        filteredData = { ...rest, representation: event.image_url };
+        filteredData = { ...data, representation: event.image_url };
       } else {
-        filteredData = { ...rest, representation: representationColor };
+        filteredData = { ...data, representation: representationColor };
       }
     }
 
     const isUrlValid =
       data.maps_url && z.string().url().safeParse(data.maps_url).success;
+
+    console.log({
+      eventId: event.id,
+      data: {
+        name: filteredData.name,
+        description: filteredData.description,
+        start_date: filteredData.startsAt.toISOString(),
+        end_date: filteredData.endsAt.toISOString(),
+        cep: filteredData.cep,
+        state: filteredData.state,
+        city: filteredData.city,
+        neighborhood: filteredData.neighborhood,
+        street: filteredData.street,
+        address_number: Number(filteredData.address_number),
+        complement: filteredData.complement,
+        maps_url: isUrlValid ? data.maps_url : "",
+        image_url: filteredData.representation,
+        price: filteredData.price,
+        status: filteredData.status,
+        level_id: filteredData.level,
+      },
+    });
 
     mutate(
       {
@@ -250,7 +285,7 @@ export default function EventUpdateForm({
       },
       {
         onSuccess: () => {
-          router.back();
+          router.push("/home");
         },
       }
     );
@@ -445,8 +480,7 @@ export default function EventUpdateForm({
                         id="check"
                         checked={keepCurrentImage}
                         onClick={() => {
-                          form.setValue(
-                            "representationUrl",
+                          setRepresentationFile(
                             new File(["Imagem mantida"], "Imagem mantida")
                           );
                           setKeepCurrentImage(!keepCurrentImage);
@@ -471,33 +505,42 @@ export default function EventUpdateForm({
                     secondLabel="Cor"
                     firstValue="image"
                     secondValue="color"
-                    optionValue={form.watch("representationOption")}
+                    optionValue={representationOption}
                     onValueChange={(value) => {
                       if (value === "image" || value === "color") {
-                        form.setValue("representationOption", value);
+                        setRepresentationOption(value);
                       }
                       if (value === "image") {
-                        form.setValue("representationColor", "");
+                        setRepresentationColor("");
                       } else {
-                        form.setValue("representationUrl", new File([], ""));
+                        setRepresentationFile(new File([], ""));
                       }
                     }}
                   />
                   <div className="md:flex-1">
-                    {form.watch("representationOption") === "image" ? (
-                      <InputImage name="representationUrl" />
+                    {representationOption === "image" ? (
+                      <InputImage
+                        name="representationFile"
+                        valueControlBy="state"
+                        setRepresentationFile={setRepresentationFile}
+                      />
                     ) : (
                       <ColorPicker
                         name="representationColor"
+                        valueControlBy="state"
+                        setRepresentationColor={setRepresentationColor}
                         defaultValue={
                           event.image_url && event.image_url.startsWith("#")
                             ? event.image_url
-                            : "#fff"
+                            : "#ffffff"
                         }
                       />
                     )}
                   </div>
                 </div>
+              ) : null}
+              {imageOrColorError ? (
+                <p className="text-destructive text-sm">{imageOrColorError}</p>
               ) : null}
             </div>
 

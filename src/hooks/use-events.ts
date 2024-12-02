@@ -5,7 +5,7 @@ import {
   EventsResponse,
 } from "@/interfaces/event";
 import api from "@/lib/axios";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 
 export function useEventsData(searchQuery?: string) {
@@ -33,23 +33,21 @@ export function useEventsData(searchQuery?: string) {
   return { ...query, data: query.data?.data };
 }
 
-export function useGetEvent(eventId: string) {
-  const { data: dataSession } = useSession();
-  const token = dataSession?.token.user.token;
-  const query = useQuery({
-    queryKey: ["eventData", eventId],
+export function useGetEvent(event_id: string) {
+  const token = useSession().data?.token.user.token;
+
+  return useQuery({
+    queryKey: ["eventData", event_id],
     queryFn: async () => {
-      const response = await api.get<EventResponse>(`/events/${eventId}`, {
+      const response = await api.get<EventResponse>(`/events/${event_id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      return response;
+      return response.data;
     },
-    refetchInterval: 5 * 60 * 1000, // 5 minutes
-    enabled: !!dataSession && !!token, // if...
+    enabled: !!token && !!event_id,
   });
-  return { ...query, data: query.data?.data };
 }
 
 export function useCreateEvent() {
@@ -107,6 +105,7 @@ export function useDeleteEvent() {
 export function useUpdateEvent() {
   const { data: dataSession } = useSession();
   const token = dataSession?.token.user.token;
+
   return useMutation({
     mutationFn: async ({
       eventId,

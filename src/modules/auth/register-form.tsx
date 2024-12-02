@@ -138,14 +138,15 @@ export default function RegisterForm() {
               <CheckboxCustomizable control={form.control} name="terms">
                 Li e concordo com os{" "}
                 <a
-                  href="#"
+                  href="use-terms.pdf"
                   className="hover:opacity-85 text-primary text-sm underline"
                 >
                   termos de uso
-                </a>{" "}
+                </a>
+                {""}
                 e<br />
                 <a
-                  href="#"
+                  href="privacy-polices.pdf"
                   className="hover:opacity-85 text-primary text-sm underline"
                 >
                   políticas de privacidade

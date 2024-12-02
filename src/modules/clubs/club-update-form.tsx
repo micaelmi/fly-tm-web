@@ -381,14 +381,15 @@ export default function ClubUpdateForm({ clubData: club }: { clubData: Club }) {
                   />
                   <div className="md:flex-1">
                     {form.watch("background") === "image" ? (
-                      <InputImage name="background_url" />
+                      <InputImage name="background_url" valueControlBy="form" />
                     ) : (
                       <ColorPicker
                         name="background_color"
+                        valueControlBy="form"
                         defaultValue={
                           club.background.startsWith("#")
                             ? club.background
-                            : "fff"
+                            : "#fff"
                         }
                       />
                     )}

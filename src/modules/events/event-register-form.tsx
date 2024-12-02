@@ -66,7 +66,10 @@ const FormSchema = z
     level: z.number(),
     price: z.string(),
     representationUrl: z.instanceof(File).optional(),
-    representationColor: z.string().optional(),
+    representationColor: z
+      .string()
+      .min(3, { message: "Mínimo de 6 dígitos para o código da cor" })
+      .optional(),
     representationOption: z.enum(["image", "color"]),
     maps_url: z
       .string()
@@ -127,7 +130,7 @@ export default function EventRegisterForm() {
       level: undefined,
       price: "",
       representationUrl: new File([], ""),
-      representationColor: "ffff",
+      representationColor: "#ffffff",
       representationOption: "image",
       maps_url: "",
     },
@@ -239,7 +242,7 @@ export default function EventRegisterForm() {
       form.reset({
         startsAt: currentDate,
         representationOption: "image",
-        representationColor: "ffff",
+        representationColor: "#ffffff",
       });
     }
   }, [currentDate, form]);
@@ -422,9 +425,15 @@ export default function EventRegisterForm() {
                 />
                 <div className="md:flex-1">
                   {form.watch("representationOption") === "image" ? (
-                    <InputImage name="representationUrl" />
+                    <InputImage
+                      name="representationUrl"
+                      valueControlBy="form"
+                    />
                   ) : (
-                    <ColorPicker name="representationColor" />
+                    <ColorPicker
+                      name="representationColor"
+                      valueControlBy="form"
+                    />
                   )}
                 </div>
               </div>

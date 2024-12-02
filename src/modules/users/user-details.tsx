@@ -216,29 +216,34 @@ export default function UserDetails() {
                   </div>
                 </div>
                 <div className="flex flex-col gap-4">
-                  <div className="flex gap-2">
-                    {user_data._count && user_data._count.events > 0 && (
-                      <Link
-                        href={`/users/my-events/${user_data.id}`}
-                        className={`${buttonVariants({ variant: "default" })} flex-1`}
-                      >
-                        Meus Eventos
-                      </Link>
-                    )}
-                    {user_data._count && user_data._count.contacts > 0 && (
-                      <Link
-                        href={`/users/my-contacts/${user_data.id}`}
-                        className={`${buttonVariants({ variant: "default" })} flex-1`}
-                      >
-                        Meus Contatos
-                      </Link>
-                    )}
-                  </div>
                   <ShareButton
                     link={`http://localhost:3000/users/${user_data.username}`}
                     what_is_being_shared="perfil"
                   />
-                  {own_page && <LogoutButton />}
+                  {own_page ? (
+                    <>
+                      <div className="flex gap-4">
+                        {user_data._count && user_data._count.events > 0 && (
+                          <Link
+                            href={`/users/my-events/${user_data.id}`}
+                            className={`${buttonVariants({ variant: "default" })} flex-1`}
+                          >
+                            Meus Eventos
+                          </Link>
+                        )}
+                        {user_data._count && user_data._count.contacts > 0 && (
+                          <Link
+                            href={`/users/my-contacts/${user_data.id}`}
+                            className={`${buttonVariants({ variant: "default" })} flex-1`}
+                          >
+                            Meus Contatos
+                          </Link>
+                        )}
+                      </div>
+
+                      <LogoutButton />
+                    </>
+                  ) : null}
                 </div>
               </div>
             </div>

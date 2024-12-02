@@ -8,6 +8,7 @@ import {
 import api from "@/lib/axios";
 import { useMutation, useQuery, UseQueryResult } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
+import { useParams } from "next/navigation";
 
 export const useGetUser = (username: string) => {
   const { data: dataSession } = useSession();
@@ -86,9 +87,17 @@ export function useGetUserByUsername(
     data: UserByUsernameApiResponse
   ) => UserByUsernameWithSelectApiResponse
 ) {
-  const { data: dataSession } = useSession();
-  const username = dataSession?.payload.username;
-  const token = dataSession?.token.user.token;
+  const session = useSession().data;
+  const params = useParams();
+
+  const token = session?.token.user.token;
+  let username;
+
+  if (params.username) {
+    username = params.username;
+  } else {
+    username = session?.payload.username;
+  }
 
   return useQuery({
     queryKey: ["userData", username],

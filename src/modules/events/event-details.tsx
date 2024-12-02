@@ -66,7 +66,7 @@ export default function EventDetails({
                       <Pencil />
                     </Link>
                     <DeleteTrainingOrStrategy
-                      type="home"
+                      type="refresh"
                       id={data.id}
                       useFunction={useDeleteEvent}
                     />
@@ -81,7 +81,7 @@ export default function EventDetails({
             <img
               src={data.image_url}
               alt={data.name}
-              className="rounded w-52 h-full object-cover"
+              className="rounded w-52 h-64 object-cover"
             />
           )}
           <div className="flex gap-5 w-full">
