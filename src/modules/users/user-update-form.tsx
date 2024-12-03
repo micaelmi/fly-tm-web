@@ -101,9 +101,15 @@ export default function UserUpdateForm() {
 
       form.reset({
         ...user,
-        game_style_id: user.game_style.id,
-        hand_grip_id: user.hand_grip.id,
-        level_id: user.level.id,
+        ...(user.game_style && {
+          game_style_id: user.game_style.id,
+        }),
+        ...(user.hand_grip && {
+          hand_grip_id: user.hand_grip.id,
+        }),
+        ...(user.level && {
+          level_id: user.level.id,
+        }),
       });
     }
   }, [data]);
@@ -158,8 +164,9 @@ export default function UserUpdateForm() {
       if (user_data.image_url) {
         deleteFile(user_data.image_url);
       }
-    } else if (data?.image_file) file = user_data.image_url;
-    else file = "";
+    } else if (data?.image_file === null || data.image_file === undefined) {
+      file = user_data.image_url;
+    } else file = "";
 
     const { image_file, ...rest } = data;
     const filteredData = { ...rest, image_url: file };
@@ -173,13 +180,18 @@ export default function UserUpdateForm() {
         state: filteredData.state,
         city: filteredData.city,
         instagram: filteredData.instagram,
-        image_url: filteredData.image_url,
+        ...(filteredData.image_url !== null &&
+          filteredData.image_url !== undefined &&
+          (filteredData.image_url !== "" || removeFile) && {
+            image_url: filteredData.image_url,
+          }),
         status: filteredData.status,
         level_id: filteredData.level_id,
         game_style_id: filteredData.game_style_id,
         hand_grip_id: filteredData.hand_grip_id,
       },
     };
+
     mutate(userData, {
       onSuccess: () => {
         router.push(`/users/${user_data.username}`);

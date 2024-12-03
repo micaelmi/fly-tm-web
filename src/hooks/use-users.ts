@@ -64,11 +64,15 @@ export function useEditUser() {
       userId: string;
       data: Partial<User>;
     }) => {
-      return await api.put(`/users/${userId}`, data, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      try {
+        return await api.put(`/users/${userId}`, data, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      } catch (e) {
+        console.error(e);
+      }
     },
   });
 }
