@@ -34,6 +34,7 @@ import InputDefault from "@/components/form/input-default";
 import { PlusCircle } from "@phosphor-icons/react/dist/ssr";
 import { useCreateMatch } from "@/hooks/use-scoreboards";
 import { useSession } from "next-auth/react";
+import { useState } from "react";
 
 const FormSchema = z.object({
   player1: z.string().min(2, {
@@ -56,6 +57,8 @@ export default function CreateMatch() {
       firstService: "",
     },
   });
+  const [player1Name, setPlayer1Name] = useState<string>("");
+  const [player2Name, setPlayer2Name] = useState<string>("");
   const userId = useSession().data?.payload.sub;
   const { mutate, isError, error } = useCreateMatch();
   const router = useRouter();
@@ -121,12 +124,14 @@ export default function CreateMatch() {
               name="player1"
               label="Jogador 1"
               placeholder="Digite o nome do jogador 1"
+              onChange={(e) => setPlayer1Name(e.target.value)}
             />
             <InputDefault
               control={form.control}
               name="player2"
               label="Jogador 2"
               placeholder="Digite o nome do jogador 2"
+              onChange={(e) => setPlayer2Name(e.target.value)}
             />
             <FormField
               control={form.control}
@@ -170,8 +175,12 @@ export default function CreateMatch() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="1">Jogador 1</SelectItem>
-                      <SelectItem value="2">Jogador 2</SelectItem>
+                      <SelectItem value="1">
+                        {player1Name || "Jogador 1"}
+                      </SelectItem>
+                      <SelectItem value="2">
+                        {player2Name || "Jogador 2"}
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
